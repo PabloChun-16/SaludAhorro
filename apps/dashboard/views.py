@@ -2,4 +2,4 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 def index(request):
-    return HttpResponse("dashboard OK")
+    return HttpResponse("dashboard OK - Prueba GIT")
