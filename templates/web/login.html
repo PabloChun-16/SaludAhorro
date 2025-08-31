@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farmacia Salud y Ahorro</title>
+  <script>
+    (function(){
+      function loadScript(src, onload, onerror){
+        var s=document.createElement('script'); s.src=src; s.async=true;
+        s.onload=onload; s.onerror=onerror||function(){}; document.head.appendChild(s);
+      }
+      function loadCSS(href){
+        var l=document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l);
+      }
+      loadScript('https://cdn.tailwindcss.com', function(){}, function(){
+        loadScript('https://unpkg.com/tailwindcss-cdn@3.4.1/tailwind.min.js', function(){}, function(){
+          loadCSS('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+        });
+      });
+    })();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    * { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial }
+    .container { max-width: 1200px; }
+    .shadow-soft{box-shadow: 0 12px 30px rgba(2, 132, 199, .08)}
+    .btn{display:inline-grid; place-content:center; height:44px; padding:0 18px; border-radius:12px; font-weight:600}
+    .btn-primary{background:#16a34a; color:white} .btn-primary:hover{background:#15803d}
+    .btn-ghost{border:1px solid rgba(0,0,0,.1)}
+    .badge{background:#065f46;color:#ecfdf5;padding:.2rem .55rem;border-radius:999px;font-size:.75rem}
+    .link{color:#065f46} .link:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b shadow">
+    <nav class="container mx-auto px-4 h-16 flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="img/logo_empresa.png" alt="Logo Farmacia Salud y Ahorro" class="h-10 w-10 rounded-full bg-white p-1 shadow">
+        <div class="leading-tight">
+          <div class="font-extrabold tracking-wide text-emerald-700">FARMACIA SALUD Y AHORRO</div>
+          <div class="text-xs text-emerald-800/70">Cerca de ti</div>
+        </div>
+      </a>
+      <div class="ml-auto hidden md:flex items-center">
+        <a href="index.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Inicio</a>
+        <a href="saif.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Proyecto SAIF</a>
+        <a href="nosotros.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Acerca de</a>
+        <a href="index.html#productos" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Productos</a>
+        <a href="blog.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Blog</a>
+        <a href="contacto.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Contacto</a>
+        <a href="login.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 font-bold text-emerald-900 flex items-center gap-2">
+          <img src="img/login_icon.png" alt="Login" class="h-6 w-6 rounded-full bg-white p-1">
+          <span>Login</span>
+        </a>
+      </div>
+      <form action="login.html" class="ml-4 flex items-center gap-2">
+        <input name="q" placeholder="Buscar en el sitio..." class="h-10 px-3 rounded-lg border border-emerald-300 shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white" />
+        <button class="btn btn-primary shadow transition-transform hover:scale-105">Buscar</button>
+      </form>
+    </nav>
+  </header>
+    <!-- Controles -->
+    <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
+    <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
+    <!-- Indicadores -->
+    <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
+  </section>
+
+  <section id="login" class="min-h-[70vh] grid place-items-center bg-gradient-to-br from-emerald-50 to-white">
+    <form class="w-full max-w-sm p-6 rounded-2xl border bg-white shadow-soft">
+      <h1 class="text-xl font-bold text-emerald-800 mb-4">Iniciar sesión</h1>
+      <label class="text-sm">Usuario</label>
+      <input class="h-11 px-3 rounded-lg border w-full mb-3" placeholder="usuario@correo.com" required>
+      <label class="text-sm">Contraseña</label>
+      <input type="password" class="h-11 px-3 rounded-lg border w-full mb-4" placeholder="••••••••" required>
+      <button class="btn btn-primary w-full shadow transition-transform hover:scale-105">Entrar al sistema</button>
+      <p class="text-xs text-center mt-3 text-slate-500">¿No tienes cuenta? Solicita acceso al administrador.</p>
+    </form>
+  </section>
+
+  <footer class="bg-emerald-700 text-emerald-50 mt-16 rounded-t-2xl shadow-lg">
+    <div class="container mx-auto px-4 py-10 grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <img src="img/logo_empresa.png" alt="Logo Farmacia" class="h-8 w-8 rounded-full bg-white p-1">
+          <span class="font-semibold">Farmacia Salud y Ahorro</span>
+        </div>
+        <p class="text-sm opacity-90">Tu salud es nuestra prioridad.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Enlaces</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="index.html">Inicio</a></li>
+          <li><a class="hover:underline" href="saif.html">Proyecto SAIF</a></li>
+          <li><a class="hover:underline" href="nosotros.html">Acerca de</a></li>
+          <li><a class="hover:underline" href="blog.html">Blog</a></li>
+          <li><a class="hover:underline" href="contacto.html">Contacto</a></li>
+          <li><a class="hover:underline" href="index.html#productos">Productos</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Categorías de Productos</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='marca';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento de marca</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='generico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento genérico</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='topico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto tópico</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='inyectado';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto inyectado</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Legal y Políticas</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="nosotros.html#politicas">Políticas de la empresa</a></li>
+          <li class="mt-2 font-bold text-emerald-200">Atención al Cliente</li>
+          <li>Teléfono y WhatsApp: +502 4321 1234</li>
+          <li>Privacidad y seguridad de datos</li>
+          <li>Métodos de pago: Tarjetas, Qpaypro, Contra entrega</li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/20">
+      <div class="container mx-auto px-4 py-4 text-xs opacity-90 flex items-center justify-between">
+        <span>© 2025 Farmacia Salud y Ahorro · Proyecto SAIF</span>
+        <span>Universidad Mariano Gálvez</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
