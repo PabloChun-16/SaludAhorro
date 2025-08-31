@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farmacia Salud y Ahorro</title>
+  <script>
+    (function(){
+      function loadScript(src, onload, onerror){
+        var s=document.createElement('script'); s.src=src; s.async=true;
+        s.onload=onload; s.onerror=onerror||function(){}; document.head.appendChild(s);
+      }
+      function loadCSS(href){
+        var l=document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l);
+      }
+      loadScript('https://cdn.tailwindcss.com', function(){}, function(){
+        loadScript('https://unpkg.com/tailwindcss-cdn@3.4.1/tailwind.min.js', function(){}, function(){
+          loadCSS('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+        });
+      });
+    })();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    * { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial }
+    .container { max-width: 1200px; }
+    .shadow-soft{box-shadow: 0 12px 30px rgba(2, 132, 199, .08)}
+    .btn{display:inline-grid; place-content:center; height:44px; padding:0 18px; border-radius:12px; font-weight:600}
+    .btn-primary{background:#16a34a; color:white} .btn-primary:hover{background:#15803d}
+    .btn-ghost{border:1px solid rgba(0,0,0,.1)}
+    .badge{background:#065f46;color:#ecfdf5;padding:.2rem .55rem;border-radius:999px;font-size:.75rem}
+    .link{color:#065f46} .link:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b shadow">
+  <nav class="container mx-auto px-4 h-16 flex items-center gap-4">
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="img/logo_empresa.png" alt="Logo Farmacia Salud y Ahorro" class="h-10 w-10 rounded-full bg-white p-1 shadow">
+      <div class="leading-tight">
+        <div class="font-extrabold tracking-wide text-emerald-700">FARMACIA SALUD Y AHORRO</div>
+        <div class="text-xs text-emerald-800/70">Cerca de ti</div>
+      </div>
+    </a>
+    <div class="ml-auto hidden md:flex items-center">
+      <a href="index.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Inicio</a>
+      <a href="saif.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 font-bold text-emerald-900">Proyecto SAIF</a>
+      <a href="nosotros.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Acerca de</a>
+      <a href="index.html#productos" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Productos</a>
+      <a href="blog.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Blog</a>
+      <a href="contacto.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700">Contacto</a>
+      <a href="login.html" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 flex items-center gap-2">
+        <img src="img/login_icon.png" alt="Login" class="h-6 w-6 rounded-full bg-white p-1">
+        <span>Login</span>
+      </a>
+    </div>
+    <form action="saif.html" class="ml-4 flex items-center gap-2">
+      <input name="q" placeholder="Buscar en el sitio..." class="h-10 px-3 rounded-lg border border-emerald-300 shadow focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white" />
+      <button class="btn btn-primary shadow transition-transform hover:scale-105">Buscar</button>
+    </form>
+  </nav>
+</header>
+
+  <!-- CARRUSEL (Hero) -->
+  <section id="hero" class="relative w-full overflow-hidden bg-green-700/5">
+    <div id="slider" class="relative h-[52vh] md:h-[64vh]">
+      <!-- Slides -->
+      <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide>
+        <img src="img/carusel 1.jpg" class="w-full h-full object-cover" alt="Promoción 1"/>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+        <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+          <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span></h1>
+          <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Conoce SAIF</a>
+        </div>
+      </div>
+      <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+        <img src="img/carusel 2.jpg" class="w-full h-full object-cover" alt="Promoción 2"/>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+        <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+          <h2 class="text-4xl md:text-6xl font-extrabold">Gestión Total<br><span class="text-emerald-300">Inventario y ventas</span></h2>
+          <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver módulos</a>
+        </div>
+      </div>
+      <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+        <img src="img/carusel 3.jpg" class="w-full h-full object-cover" alt="Promoción 3"/>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+        <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+          <h2 class="text-4xl md:text-6xl font-extrabold">Optimiza tu farmacia<br><span class="text-emerald-300">SAIF es la solución</span></h2>
+          <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Entrar al sistema</a>
+        </div>
+      </div>
+    </div>
+    <!-- Controles -->
+    <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
+    <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
+    <!-- Indicadores -->
+    <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
+  </section>
+
+  <section id="saif" class="bg-emerald-700 text-white py-14">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl md:text-5xl font-extrabold">SAIF</h1>
+      <p class="mt-2 text-lg md:max-w-3xl">Sistema de Administración e Inventario de Farmacia</p>
+    </div>
+  </section>
+
+  <section class="container mx-auto px-4 py-12">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 mb-6">¿De qué se trata el proyecto?</h2>
+    <p class="mb-10 text-slate-700 leading-relaxed text-lg">
+      SAIF — Sistema de Administración e Inventario de Farmacia es una plataforma web para gestionar inventarios, ventas, proveedores y reportes de una red de farmacias.
+      Optimiza tiempos, reduce errores y da visibilidad en tiempo real.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+      <div class="p-8 rounded-2xl border bg-gradient-to-br from-emerald-50 via-white to-emerald-100 shadow-soft hover:shadow-lg transition hover:scale-105">
+        <h3 class="font-bold text-emerald-800 text-xl mb-2 flex items-center gap-2">
+          <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6l4 2"></path></svg>
+          Objetivo del proyecto
+        </h3>
+        <p class="text-slate-700 mt-2 text-base">Centralizar la operación de la farmacia con procesos estandarizados y datos confiables para la toma de decisiones.</p>
+      </div>
+      <div class="p-8 rounded-2xl border bg-gradient-to-br from-emerald-50 via-white to-emerald-100 shadow-soft hover:shadow-lg transition hover:scale-105">
+        <h3 class="font-bold text-emerald-800 text-xl mb-2 flex items-center gap-2">
+          <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"></path></svg>
+          Alcance
+        </h3>
+        <p class="text-slate-700 mt-2 text-base">Cobertura en sucursales, bodegas y módulo de ventas. Integración con proveedores, control de inventario y reportes gerenciales.</p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+      <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
+        <div class="bg-emerald-100 rounded-full p-3 mb-3">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h3v4a1 1 0 001 1h3v4a1 1 0 001 1h3v-4a1 1 0 00-1-1h-3v-4a1 1 0 00-1-1H7V7a1 1 0 00-1-1H3z"></path></svg>
+        </div>
+        <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Módulos</h4>
+        <ul class="mt-2 text-sm space-y-2">
+          <li class="bg-emerald-50 rounded px-2 py-1">Inventarios y Kardex</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Compras y Proveedores</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Ventas y Caja</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Clientes y Programas</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Usuarios y Roles</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Reportes</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
+        <div class="bg-emerald-100 rounded-full p-3 mb-3">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6"></path></svg>
+        </div>
+        <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Procesos críticos</h4>
+        <ul class="mt-2 text-sm space-y-2">
+          <li class="bg-emerald-50 rounded px-2 py-1">Recepción con lote y caducidad</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Reabasto automático por mínimos</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Devoluciones y ajustes</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Conteos cíclicos</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Auditoría y bitácoras</li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
+        <div class="bg-emerald-100 rounded-full p-3 mb-3">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 00-10 0v2"></path></svg>
+        </div>
+        <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Reportes</h4>
+        <ul class="mt-2 text-sm space-y-2">
+          <li class="bg-emerald-50 rounded px-2 py-1">Rotación y quiebre</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Ventas por categoría</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Margen y utilidad</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Caducidades próximas</li>
+          <li class="bg-emerald-50 rounded px-2 py-1">Top productos y clientes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-10 flex justify-center">
+      <a class="btn btn-primary shadow transition-transform hover:scale-105 text-lg px-8 py-3" href="login.html">Iniciar sesión y entrar al sistema</a>
+    </div>
+  </section>
+
+  <!-- FOOTER DEL INDEX -->
+  <footer class="bg-emerald-700 text-emerald-50 mt-16 rounded-t-2xl shadow-lg">
+    <div class="container mx-auto px-4 py-10 grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <img src="img/logo_empresa.png" alt="Logo Farmacia" class="h-8 w-8 rounded-full bg-white p-1">
+          <span class="font-semibold">Farmacia Salud y Ahorro</span>
+        </div>
+        <p class="text-sm opacity-90">Tu salud es nuestra prioridad.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Enlaces</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="index.html">Inicio</a></li>
+          <li><a class="hover:underline" href="saif.html">Proyecto SAIF</a></li>
+          <li><a class="hover:underline" href="nosotros.html">Acerca de</a></li>
+          <li><a class="hover:underline" href="blog.html">Blog</a></li>
+          <li><a class="hover:underline" href="contacto.html">Contacto</a></li>
+          <li><a class="hover:underline" href="index.html#productos">Productos</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Categorías de Productos</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='marca';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento de marca</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='generico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento genérico</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='topico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto tópico</a></li>
+          <li><a class="hover:underline" href="index.html#productos" onclick="document.getElementById('menuCategoria')?.value='inyectado';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto inyectado</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Legal y Políticas</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="nosotros.html#politicas">Políticas de la empresa</a></li>
+          <li class="mt-2 font-bold text-emerald-200">Atención al Cliente</li>
+          <li>Teléfono y WhatsApp: +502 4321 1234</li>
+          <li>Privacidad y seguridad de datos</li>
+          <li>Métodos de pago: Tarjetas, Qpaypro, Contra entrega</li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/20">
+      <div class="container mx-auto px-4 py-4 text-xs opacity-90 flex items-center justify-between">
+        <span>© 2025 Farmacia Salud y Ahorro · Proyecto SAIF</span>
+        <span>Universidad Mariano Gálvez</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  // --- Carrusel automático (seguro con null checks) ---
+  (function(){
+    const slides = Array.from(document.querySelectorAll('[data-slide]'));
+    const nextBtn = document.getElementById('next');
+    const prevBtn = document.getElementById('prev');
+    const dotsWrap = document.getElementById('dots');
+    if (slides.length && nextBtn && prevBtn && dotsWrap){
+      let idx=0, timer=null;
+      slides.forEach((_,i)=>{
+        const b=document.createElement('button');
+        b.className='w-2.5 h-2.5 rounded-full bg-white/60 hover:bg-white transition';
+        b.addEventListener('click',()=>go(i,true));
+        dotsWrap.appendChild(b);
+      });
+      function paint(){
+        slides.forEach((s,i)=>{s.style.opacity=i===idx?1:0});
+        Array.from(dotsWrap.children).forEach((d,i)=>{d.style.background=i===idx?'#10B981':'rgba(255,255,255,.6)'});
+      }
+      function go(n,manual=false){
+        idx=(n+slides.length)%slides.length; paint();
+        if(manual){ restart(); }
+      }
+      function step(){ go(idx+1); }
+      function restart(){ clearInterval(timer); timer=setInterval(step,5000); }
+      nextBtn.addEventListener('click',()=>go(idx+1,true));
+      prevBtn.addEventListener('click',()=>go(idx-1,true));
+      restart(); paint();
+    }
+  })();
+</script>
+</body>
+</html>
