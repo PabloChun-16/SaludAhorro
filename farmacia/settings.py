@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     #Apps
+    'apps.home',
     'apps.accounts',
     'apps.ajustes_inventario',
     'apps.alertas_vencimientos',
