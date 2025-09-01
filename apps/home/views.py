@@ -1,7 +1,17 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-def home(request):
-    return HttpResponse("Welcome to the Home Page")
+def index(request):
+    return render(request, "home/index.html")
 
-# Create your views here.
+def blog(request):
+    return render(request, "home/blog.html")
+
+def contacto(request):
+    return render(request, "home/contacto.html")
+
+def nosotros(request):
+    return render(request, "home/nosotros.html")
+
+def saif(request):
+    return render(request, "home/saif.html")
