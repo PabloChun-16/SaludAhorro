@@ -141,6 +141,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración de login/logout (añadido por PabloChun)
 LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/app/"
+LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
+AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.ExternalUsuariosBackend',  # primero el tuyo
+    'django.contrib.auth.backends.ModelBackend',       # luego el de Django
+]
