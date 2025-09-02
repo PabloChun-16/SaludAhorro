@@ -1,0 +1,116 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Farmacia Salud y Ahorro{% endblock %}</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS propio -->
+  <link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+
+  {# Para que las páginas puedan añadir CSS/JS extra en <head> #}
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-white">
+
+  <!-- Header / Nav -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b shadow">
+    <nav class="container mx-auto px-4 h-16 flex items-center gap-4">
+      <a href="{% url 'home:index' %}" class="flex items-center gap-3">
+        <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="h-10 w-10 rounded-full bg-white p-1 shadow">
+        <div class="leading-tight">
+          <div class="font-extrabold tracking-wide text-emerald-700">FARMACIA SALUD Y AHORRO</div>
+          <div class="text-xs text-emerald-800/70">Cerca de ti</div>
+        </div>
+      </a>
+
+      <div class="ml-auto hidden md:flex items-center">
+        <a href="{% url 'home:index' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Inicio</a>
+        <a href="{% url 'home:saif' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Proyecto SAIF</a>
+        <a href="{% url 'home:nosotros' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Acerca de</a>
+        <a href="{% url 'home:blog' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Blog</a>
+        <a href="{% url 'home:contacto' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Contacto</a>
+        <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
+          <img src="{% static 'home/img/login_icon.png' %}" alt="Login" class="h-6 w-6 rounded-full bg-white p-1">
+          <span>Login</span>
+        </a>
+      </div>
+
+      {# Por si alguna página quiere poner algo extra a la derecha #}
+      {% block header_extra_right %}{% endblock %}
+    </nav>
+  </header>
+
+  <!-- Contenido dinámico -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-emerald-700 text-emerald-50 mt-16 rounded-t-2xl shadow-lg">
+    <div class="container mx-auto px-4 py-10 grid md:grid-cols-4 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="h-8 w-8 rounded-full bg-white p-1">
+          <span class="font-semibold">Farmacia Salud y Ahorro</span>
+        </div>
+        <p class="text-sm opacity-90">Tu salud es nuestra prioridad.</p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-2">Enlaces</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="{% url 'home:index' %}">Inicio</a></li>
+          <li><a class="hover:underline" href="{% url 'home:saif' %}">Proyecto SAIF</a></li>
+          <li><a class="hover:underline" href="{% url 'home:nosotros' %}">Acerca de</a></li>
+          <li><a class="hover:underline" href="{% url 'home:blog' %}">Blog</a></li>
+          <li><a class="hover:underline" href="{% url 'home:contacto' %}">Contacto</a></li>
+          <li><a class="hover:underline" href="{% url 'home:index' %}#productos">Productos</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-2">Categorías de Productos</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
+                 onclick="document.getElementById('menuCategoria')?.value='marca';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento de marca</a></li>
+          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
+                 onclick="document.getElementById('menuCategoria')?.value='generico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento genérico</a></li>
+          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
+                 onclick="document.getElementById('menuCategoria')?.value='topico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto tópico</a></li>
+          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
+                 onclick="document.getElementById('menuCategoria')?.value='inyectado';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto inyectado</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-2">Legal y Políticas</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a class="hover:underline" href="{% url 'home:nosotros' %}#politicas">Políticas de la empresa</a></li>
+          <li class="mt-2 font-bold text-emerald-200">Atención al Cliente</li>
+          <li>Teléfono y WhatsApp: +502 4321 1234</li>
+          <li>Privacidad y seguridad de datos</li>
+          <li>Métodos de pago: Tarjetas, Qpaypro, Contra entrega</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-white/20">
+      <div class="container mx-auto px-4 py-4 text-xs opacity-90 flex items-center justify-between">
+        <span>© 2025 Farmacia Salud y Ahorro · Proyecto SAIF</span>
+        <span>Universidad Mariano Gálvez</span>
+      </div>
+    </div>
+  </footer>
+
+  {# Para que cada página pueda meter sus scripts al final #}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

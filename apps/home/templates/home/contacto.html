@@ -1,0 +1,153 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Contacto · Farmacia Salud y Ahorro{% endblock %}
+
+{% block content %}
+<!-- CARRUSEL (Hero) -->
+<section id="hero" class="relative w-full overflow-hidden bg-green-700/5">
+  <div id="slider" class="relative h-[52vh] md:h-[64vh]">
+    <!-- Slides -->
+    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover" alt="Promoción 1"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span></h1>
+        <a href="#contacto" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Contáctanos</a>
+      </div>
+    </div>
+
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover" alt="Promoción 2"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h2 class="text-4xl md:text-6xl font-extrabold">Dudas y pedidos<br><span class="text-emerald-300">¡Estamos para ayudarte!</span></h2>
+        <a href="#contacto" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Escríbenos</a>
+      </div>
+    </div>
+
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover" alt="Promoción 3"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h2 class="text-4xl md:text-6xl font-extrabold">Atención personalizada<br><span class="text-emerald-300">¡Contáctanos hoy!</span></h2>
+        <a href="#contacto" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Enviar mensaje</a>
+      </div>
+    </div>
+  </div>
+  <!-- Controles -->
+  <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
+  <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
+  <!-- Indicadores -->
+  <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
+</section>
+
+<section id="contacto" class="bg-emerald-700 text-white py-14">
+  <div class="container mx-auto px-4">
+    <h1 class="text-3xl md:text-5xl font-extrabold">Contáctanos</h1>
+    <p class="mt-2 md:max-w-3xl">Escríbenos y te respondemos pronto.</p>
+  </div>
+</section>
+
+<section class="container mx-auto px-4 py-14 grid md:grid-cols-2 gap-10">
+  <form id="contact-form" class="p-6 rounded-xl border bg-white grid gap-4 border-emerald-600">
+    {% csrf_token %}
+    <div class="flex gap-4">
+      <input name="nombre" class="h-11 px-3 rounded-lg border w-1/2 border-emerald-300" placeholder="Nombre" required>
+      <input name="apellido" class="h-11 px-3 rounded-lg border w-1/2 border-emerald-300" placeholder="Apellido" required>
+    </div>
+    <input name="correo" type="email" class="h-11 px-3 rounded-lg border border-emerald-300" placeholder="Correo" required>
+    <textarea name="mensaje" rows="5" class="px-3 py-2 rounded-lg border border-emerald-300" placeholder="Mensaje" required></textarea>
+    <button id="submit-btn" class="btn btn-primary shadow transition-transform hover:scale-105" type="submit">Enviar</button>
+    <div id="success-message" class="text-center text-emerald-700 font-semibold opacity-0 transition-opacity">
+      ¡Formulario enviado correctamente!
+    </div>
+  </form>
+
+  <div class="p-6 rounded-xl border bg-emerald-50">
+    <h3 class="font-semibold">Información</h3>
+    <ul class="mt-3 text-slate-700 text-sm space-y-1">
+      <li><strong>PBX:</strong> 2339-9860</li>
+      <li><strong>Domicilios:</strong> 5248-887</li>
+      <li><strong>Correo:</strong> reclutamientoFSYA@gmail.com</li>
+    </ul>
+    <div class="mt-6 rounded-xl overflow-hidden">
+      <iframe class="w-full h-64" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps?q=Guatemala&output=embed"></iframe>
+    </div>
+  </div>
+</section>
+
+<div class="mb-8">
+  <h2 class="text-2xl font-extrabold text-emerald-700 mb-6 text-center">Visita nuestras redes sociales</h2>
+  <div class="flex flex-col items-center">
+    <div class="bg-white rounded-2xl border shadow-soft p-8 w-full max-w-xl hover:shadow-lg transition hover:scale-105">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2">
+        <a href="https://www.facebook.com/FarmaciasSaludyAhorro" target="_blank" class="bg-emerald-50 border border-emerald-200 rounded-xl shadow-soft p-5 flex flex-col items-center hover:bg-emerald-100 transition">
+          <img src="{% static 'home/img/facebook.png' %}" alt="Logo de Facebook" class="w-16 h-16 rounded-full mb-2">
+          <span class="font-semibold text-emerald-800">Facebook</span>
+        </a>
+        <a href="https://www.instagram.com/farmaciassaludyahorro?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw%3D%3D" target="_blank" class="bg-emerald-50 border border-emerald-200 rounded-xl shadow-soft p-5 flex flex-col items-center hover:bg-emerald-100 transition">
+          <img src="{% static 'home/img/instagram.png' %}" alt="Logo de Instagram" class="w-16 h-16 rounded-full mb-2">
+          <span class="font-semibold text-emerald-800">Instagram</span>
+        </a>
+        <a href="https://www.tiktok.com/@fsya_guat?is_from_webapp=1&sender_device=pc" target="_blank" class="bg-emerald-50 border border-emerald-200 rounded-xl shadow-soft p-5 flex flex-col items-center hover:bg-emerald-100 transition">
+          <img src="{% static 'home/img/tiktok.png' %}" alt="Logo de TikTok" class="w-16 h-16 rounded-full mb-2">
+          <span class="font-semibold text-emerald-800">TikTok</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Envío (simulado) del formulario -->
+<script>
+  const form = document.getElementById('contact-form');
+  const successMessage = document.getElementById('success-message');
+  const submitBtn = document.getElementById('submit-btn');
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    submitBtn.textContent = 'Enviando...';
+    submitBtn.disabled = true;
+
+    setTimeout(() => {
+      successMessage.style.opacity = '1';
+      form.reset();
+      submitBtn.textContent = 'Enviar';
+      submitBtn.disabled = false;
+      setTimeout(() => { successMessage.style.opacity = '0'; }, 5000);
+    }, 1500);
+  });
+</script>
+
+<!-- Carrusel -->
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('[data-slide]'));
+  const nextBtn = document.getElementById('next');
+  const prevBtn = document.getElementById('prev');
+  const dotsWrap = document.getElementById('dots');
+  if (slides.length && nextBtn && prevBtn && dotsWrap){
+    let idx=0, timer=null;
+    slides.forEach((_,i)=>{
+      const b=document.createElement('button');
+      b.className='w-2.5 h-2.5 rounded-full bg-white/60 hover:bg-white transition';
+      b.addEventListener('click',()=>go(i,true));
+      dotsWrap.appendChild(b);
+    });
+    function paint(){
+      slides.forEach((s,i)=>{s.style.opacity=i===idx?1:0});
+      Array.from(dotsWrap.children).forEach((d,i)=>{d.style.background=i===idx?'#10B981':'rgba(255,255,255,.6)'});
+    }
+    function go(n,manual=false){
+      idx=(n+slides.length)%slides.length; paint();
+      if(manual){ clearInterval(timer); timer=setInterval(step,5000); }
+    }
+    function step(){ go(idx+1); }
+    nextBtn.addEventListener('click',()=>go(idx+1,true));
+    prevBtn.addEventListener('click',()=>go(idx-1,true));
+    timer=setInterval(step,5000); paint();
+  }
+})();
+</script>
+{% endblock %}

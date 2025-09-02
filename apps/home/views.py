@@ -15,3 +15,6 @@ def nosotros(request):
 
 def saif(request):
     return render(request, "home/saif.html")
+
+def login_view(request):
+    return render(request, "home/login.html")

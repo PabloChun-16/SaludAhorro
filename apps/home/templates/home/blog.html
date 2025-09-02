@@ -1,0 +1,118 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Blog · Farmacia Salud y Ahorro{% endblock %}
+
+{% block content %}
+<!-- CARRUSEL (Hero) -->
+<section id="hero" class="relative w-full overflow-hidden bg-green-700/5">
+  <div id="slider" class="relative h-[52vh] md:h-[64vh]">
+    <!-- Slides -->
+    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover" alt="Promoción 1"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span></h1>
+        <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver artículos</a>
+      </div>
+    </div>
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover" alt="Promoción 2"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h2 class="text-4xl md:text-6xl font-extrabold">Tips y Salud<br><span class="text-emerald-300">Consejos profesionales</span></h2>
+        <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Leer más</a>
+      </div>
+    </div>
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
+      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover" alt="Promoción 3"/>
+      <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+      <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
+        <h2 class="text-4xl md:text-6xl font-extrabold">Novedades<br><span class="text-emerald-300">Productos y noticias</span></h2>
+        <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver novedades</a>
+      </div>
+    </div>
+  </div>
+  <!-- Controles -->
+  <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
+  <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
+  <!-- Indicadores -->
+  <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
+</section>
+
+<section id="blog" class="bg-emerald-700 text-white py-14">
+  <div class="container mx-auto px-4">
+    <h1 class="text-3xl md:text-5xl font-extrabold">Blog</h1>
+    <p class="mt-2 md:max-w-3xl">Tips de salud, lanzamientos y noticias.</p>
+  </div>
+</section>
+
+<section class="container mx-auto px-4 py-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://plus.unsplash.com/premium_photo-1679615911754-fafb37c81998?q=80&w=1926&auto=format&fit=crop&ixlib=rb-4.1.0" alt="Post 1">
+    <h3 class="font-semibold text-emerald-800">Cómo organizar tu botiquín</h3>
+    <p class="text-sm text-slate-700 mt-1">Mantener un botiquín bien organizado es esencial para enfrentar cualquier emergencia de salud en casa de forma rápida y eficiente. Más que un simple contenedor de medicamentos, tu botiquín es una herramienta vital que debe ser revisada y actualizada periódicamente.</p>
+  </article>
+
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/9742918/pexels-photo-9742918.jpeg" alt="Post 2">
+    <h3 class="font-semibold text-emerald-800">Vitaminas: ¿cuándo tomarlas?</h3>
+    <p class="text-sm text-slate-700 mt-1">Aunque esenciales para el cuerpo, el momento y la forma en que se toman las vitaminas pueden influir en su absorción y efectividad. Conocer el tipo de vitamina y sus características es clave para maximizar sus beneficios y asegurar que tu cuerpo las aproveche al máximo</p>
+  </article>
+
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop" alt="Post 3">
+    <h3 class="font-semibold text-emerald-800">Piel sana todo el año</h3>
+    <p class="text-sm text-slate-700 mt-1">Mantener una piel radiante y saludable no es solo cuestión de usar cremas, sino de una rutina de cuidado consistente que se adapta a las necesidades de cada temporada...</p>
+  </article>
+
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/4661292/pexels-photo-4661292.jpeg" alt="Post 4">
+    <h3 class="font-semibold text-emerald-800">Automedicación</h3>
+    <p class="text-sm text-slate-700 mt-1">La automedicación, aunque parece una solución rápida, implica riesgos: tratamientos incorrectos, efectos secundarios inesperados o resistencia a antibióticos.</p>
+  </article>
+
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/20783415/pexels-photo-20783415.jpeg" alt="Post 5">
+    <h3 class="font-semibold text-emerald-800">La Importancia de la Hidratación</h3>
+    <p class="text-sm text-slate-700 mt-1">Más allá de la sed, la hidratación es fundamental para el buen funcionamiento de cada sistema del cuerpo. También cuenta la comida rica en agua.</p>
+  </article>
+
+  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
+    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/5202460/pexels-photo-5202460.jpeg" alt="Post 6">
+    <h3 class="font-semibold text-emerald-800">Protección Solar y SPF</h3>
+    <p class="text-sm text-slate-700 mt-1">El FPS adecuado depende de tu tipo de piel, índice UV y actividad al aire libre. No siempre “más alto” es mejor si no se reaplica bien.</p>
+  </article>
+</section>
+
+<!-- JS Carrusel (mismo patrón que otras páginas) -->
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('[data-slide]'));
+  const nextBtn = document.getElementById('next');
+  const prevBtn = document.getElementById('prev');
+  const dotsWrap = document.getElementById('dots');
+  if (slides.length && nextBtn && prevBtn && dotsWrap){
+    let idx=0, timer=null;
+    slides.forEach((_,i)=>{
+      const b=document.createElement('button');
+      b.className='w-2.5 h-2.5 rounded-full bg-white/60 hover:bg-white transition';
+      b.addEventListener('click',()=>go(i,true));
+      dotsWrap.appendChild(b);
+    });
+    function paint(){
+      slides.forEach((s,i)=>{s.style.opacity=i===idx?1:0});
+      Array.from(dotsWrap.children).forEach((d,i)=>{d.style.background=i===idx?'#10B981':'rgba(255,255,255,.6)'});
+    }
+    function go(n,manual=false){
+      idx=(n+slides.length)%slides.length; paint();
+      if(manual){ clearInterval(timer); timer=setInterval(step,5000); }
+    }
+    function step(){ go(idx+1); }
+    nextBtn.addEventListener('click',()=>go(idx+1,true));
+    prevBtn.addEventListener('click',()=>go(idx-1,true));
+    timer=setInterval(step,5000); paint();
+  }
+})();
+</script>
+{% endblock %}

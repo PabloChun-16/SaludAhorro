@@ -1,0 +1,52 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Login · Farmacia Salud y Ahorro{% endblock %}
+
+{% block content %}
+<section id="login" class="min-h-[70vh] grid place-items-center bg-gradient-to-br from-emerald-50 to-white py-12">
+  <form method="post"
+        action="{% url 'login' %}"
+        class="w-full max-w-sm p-6 rounded-2xl border bg-white shadow-soft">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    <div class="flex items-center gap-2 mb-4">
+      <img src="{% static 'home/img/login_icon.png' %}" alt="Login" class="h-8 w-8 rounded-full bg-white p-1 border">
+      <h1 class="text-xl font-bold text-emerald-800">Iniciar sesión</h1>
+    </div>
+
+    {# Mensajes de error (messages framework) #}
+    {% if messages %}
+      <ul class="mb-3 text-sm">
+        {% for message in messages %}
+          <li class="text-red-600">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {# Errores del form de Django Auth (si usas LoginView) #}
+    {% if form and form.errors %}
+      <p class="mb-3 text-sm text-red-600">Usuario o contraseña incorrectos.</p>
+    {% endif %}
+
+    <label for="id_username" class="text-sm">Usuario</label>
+    <input id="id_username" name="username" autocomplete="username"
+           class="h-11 px-3 rounded-lg border w-full mb-3"
+           placeholder="usuario@correo.com" required>
+
+    <label for="id_password" class="text-sm">Contraseña</label>
+    <input id="id_password" name="password" type="password" autocomplete="current-password"
+           class="h-11 px-3 rounded-lg border w-full mb-4"
+           placeholder="••••••••" required>
+
+    <button class="btn btn-primary w-full shadow transition-transform hover:scale-105" type="submit">
+      Entrar al sistema
+    </button>
+
+    <p class="text-xs text-center mt-3 text-slate-500">
+      ¿No tienes cuenta? Solicita acceso al administrador.
+    </p>
+  </form>
+</section>
+{% endblock %}
