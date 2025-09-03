@@ -1,9 +1,12 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import render_to_string
+from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
+
 from .models import Usuario
 from .forms import UsuarioForm
+
 
 class UsuarioListView(ListView):
     model = Usuario
@@ -11,21 +14,64 @@ class UsuarioListView(ListView):
     context_object_name = "usuarios"
 
 
-class UsuarioCreateView(CreateView):
-    model = Usuario
-    form_class = UsuarioForm
-    template_name = "mantenimiento_usuarios/crear.html"
-    success_url = reverse_lazy("mantenimiento:mantenimiento_usuarios:lista")
+@require_http_methods(["GET", "POST"])
+def usuario_create_modal(request):
+    if request.method == "GET":
+        html = render_to_string(
+            "mantenimiento_usuarios/partials/_form.html",
+            {"form": UsuarioForm(), "titulo": "Nuevo Usuario", "action": request.path},
+            request=request,
+        )
+        return HttpResponse(html)
+
+    form = UsuarioForm(request.POST)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({"ok": True})
+    html = render_to_string(
+        "mantenimiento_usuarios/partials/_form.html",
+        {"form": form, "titulo": "Nuevo Usuario", "action": request.path},
+        request=request,
+    )
+    return JsonResponse({"ok": False, "html": html}, status=400)
 
 
-class UsuarioUpdateView(UpdateView):
-    model = Usuario
-    form_class = UsuarioForm
-    template_name = "mantenimiento_usuarios/editar.html"
-    success_url = reverse_lazy("mantenimiento:mantenimiento_usuarios:lista")
+@require_http_methods(["GET", "POST"])
+def usuario_update_modal(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == "GET":
+        html = render_to_string(
+            "mantenimiento_usuarios/partials/_form.html",
+            {"form": UsuarioForm(instance=usuario), "titulo": "Editar Usuario", "action": request.path},
+            request=request,
+        )
+        return HttpResponse(html)
+
+    form = UsuarioForm(request.POST, instance=usuario)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({"ok": True})
+    html = render_to_string(
+        "mantenimiento_usuarios/partials/_form.html",
+        {"form": form, "titulo": "Editar Usuario", "action": request.path},
+        request=request,
+    )
+    return JsonResponse({"ok": False, "html": html}, status=400)
 
 
-class UsuarioDeleteView(DeleteView):
-    model = Usuario
-    template_name = "mantenimiento_usuarios/eliminar.html"  # (no usamos el *_confirm_delete por defecto)
-    success_url = reverse_lazy("mantenimiento:mantenimiento_usuarios:lista")
+@require_http_methods(["GET", "POST"])
+def usuario_delete_modal(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == "GET":
+        html = render_to_string(
+            "mantenimiento_usuarios/partials/_confirm_delete.html",
+            {"obj": usuario, "titulo": "Eliminar Usuario", "action": request.path},
+            request=request,
+        )
+        return HttpResponse(html)
+
+    # Borrado físico (si quieres baja lógica, cambia a: usuario.estado=False; usuario.save())
+    usuario.delete()
+    return JsonResponse({"ok": True})

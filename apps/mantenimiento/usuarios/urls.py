@@ -5,7 +5,7 @@ app_name = "mantenimiento_usuarios"
 
 urlpatterns = [
     path("", views.UsuarioListView.as_view(), name="lista"),
-    path("nuevo/", views.UsuarioCreateView.as_view(), name="crear"),
-    path("<int:pk>/editar/", views.UsuarioUpdateView.as_view(), name="editar"),
-    path("<int:pk>/eliminar/", views.UsuarioDeleteView.as_view(), name="eliminar"),
+    path("nuevo/", views.usuario_create_modal, name="crear"),               # GET: form parcial · POST: crea
+    path("<int:pk>/editar/", views.usuario_update_modal, name="editar"),    # GET: form parcial · POST: actualiza
+    path("<int:pk>/eliminar/", views.usuario_delete_modal, name="eliminar"),# GET: confirm · POST: elimina (o baja lógica)
 ]

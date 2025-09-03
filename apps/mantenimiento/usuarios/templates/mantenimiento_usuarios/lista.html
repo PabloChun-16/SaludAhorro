@@ -4,13 +4,17 @@
 {% block title %}Usuarios · SAIF{% endblock %}
 
 {% block content %}
-  <h2>Gestión de Usuarios</h2>
+<section class="p-6 md:p-8">
+  <h2 class="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
 
-  <a href="{% url 'mantenimiento:mantenimiento_usuarios:crear' %}" class="btn btn-primary">
+  <button class="btn btn-primary mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#modalUsuario"
+          data-url="{% url 'mantenimiento:mantenimiento_usuarios:crear' %}">
     Nuevo Usuario
-  </a>
+  </button>
 
-  <table>
+  <table class="table">
     <thead>
       <tr>
         <th>Nombre</th>
@@ -21,22 +25,107 @@
       </tr>
     </thead>
     <tbody>
-      {% for u in object_list %}
-        <tr>
-          <td>{{ u.nombre }}</td>
-          <td>{{ u.apellido }}</td>
-          <td>{{ u.correo_electronico }}</td>
-          <td>{{ u.id_rol.nombre_rol }}</td>
-          <td>
-            <a href="{% url 'mantenimiento:mantenimiento_usuarios:editar' u.pk %}">Editar</a>
-            <a href="{% url 'mantenimiento:mantenimiento_usuarios:eliminar' u.pk %}">Eliminar</a>
-          </td>
-        </tr>
+      {% for u in usuarios %}
+      <tr>
+        <td>{{ u.nombre }}</td>
+        <td>{{ u.apellido }}</td>
+        <td>{{ u.correo_electronico }}</td>
+        <td>{{ u.id_rol.nombre_rol }}</td>
+        <td>
+          <button class="btn btn-sm btn-warning"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalUsuario"
+                  data-url="{% url 'mantenimiento:mantenimiento_usuarios:editar' u.pk %}">
+            Editar
+          </button>
+          <button class="btn btn-sm btn-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalUsuario"
+                  data-url="{% url 'mantenimiento:mantenimiento_usuarios:eliminar' u.pk %}">
+            Eliminar
+          </button>
+        </td>
+      </tr>
       {% empty %}
-        <tr>
-          <td colspan="5">No hay usuarios registrados.</td>
-        </tr>
+      <tr><td colspan="5">No hay usuarios registrados.</td></tr>
       {% endfor %}
     </tbody>
   </table>
+</section>
+
+<!-- Modal bootstrap (contenido se inyecta por fetch) -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" id="modal-usuario-content"></div>
+  </div>
+</div>
+{% endblock %}
+
+{# Si tu base tiene un bloque de scripts, usa ese. Si no, deja este debajo de content #}
+{% block extra_js %}
+<script>
+(function() {
+  let currentModalUrl = null; // recordaremos la URL del form actual
+  const modalEl = document.getElementById('modalUsuario');
+  const modalContent = document.getElementById('modal-usuario-content');
+
+  // Cargar el fragmento al abrir el modal
+  modalEl.addEventListener('show.bs.modal', function (event) {
+    const trigger = event.relatedTarget;
+    const url = trigger?.getAttribute('data-url');
+    if (!url) return;
+
+    currentModalUrl = url;
+    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+  });
+
+  // Limpiar contenido al cerrar
+  modalEl.addEventListener('hidden.bs.modal', function () {
+    currentModalUrl = null;
+    modalContent.innerHTML = '';
+  });
+
+  // Delegación: capturar submit de cualquier form dentro del modal
+  modalContent.addEventListener('submit', function (e) {
+    const form = e.target.closest('form');
+    if (!form) return;
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const actionUrl = form.getAttribute('action') || currentModalUrl || window.location.href;
+
+    fetch(actionUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+        // No definimos Content-Type: el propio browser lo setea para FormData
+      }
+    })
+    .then(async (r) => {
+      if (r.ok) return r.json();                 // {ok: true}
+      const data = await r.json().catch(() => ({})); // {ok:false, html: '...'}
+      if (data.html) modalContent.innerHTML = data.html; // errores de validación: re-render del form con errores
+      throw new Error('validation');
+    })
+    .then((data) => {
+      if (data.ok) {
+        // Opción simple y robusta: recargar página para ver lista actualizada
+        window.location.reload();
+      }
+    })
+    .catch((err) => {
+      if (err.message !== 'validation') {
+        modalContent.innerHTML = '<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>';
+      }
+    });
+  });
+
+})();
+</script>
 {% endblock %}
