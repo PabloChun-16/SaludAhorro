@@ -1,0 +1,45 @@
+:root {
+  --brand: #027740; /* verde oscuro para el botón */
+}
+
+html, body { height: 100%; }
+body { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; }
+
+/* 🔹 Imagen de fondo principal */
+main { background: url('../img/white.jpg') no-repeat center center/cover; }
+
+.login-card { max-width: 960px; border-radius: 1.25rem; }
+.login-card .col-md-6.bg-cover { min-height: 520px; }
+
+.bg-cover { background-size: cover; background-position: center; background-repeat: no-repeat; }
+
+/* 🔹 Estilo de inputs al hacer foco */
+.form-control:focus {
+  border-color: #76bc40 !important; /* verde claro */
+  box-shadow: 0 0 0 .25rem rgba(118,188,64,.25) !important;
+}
+
+/* 🔹 Botón "Entrar" en verde */
+.btn.btn-primary {
+  background-color: var(--brand) !important;
+  border-color: var(--brand) !important;
+}
+.btn.btn-primary:hover {
+  background-color: #026636 !important; /* tono más oscuro al pasar el mouse */
+  border-color: #026636 !important;
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.float-in { animation: float-in .6s cubic-bezier(.2,.6,.2,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .float-in { animation: none; }
+  .btn, .form-control { transition: none !important; }
+}
+
+@media (max-width: 991.98px) {
+  .login-card .col-md-6.bg-cover { min-height: 360px; }
+}
