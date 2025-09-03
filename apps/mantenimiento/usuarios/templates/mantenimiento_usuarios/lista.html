@@ -5,117 +5,150 @@
 
 {% block content %}
 <section class="p-6 md:p-8">
-  <h2 class="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
+  <h2 class="text-2xl font-bold mb-4 text-center">GESTIÓN DE USUARIOS</h2>
 
-  <button class="btn btn-primary mb-3"
+  <!-- Tabla con filtros -->
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered table-hover align-middle text-center" id="tablaUsuarios">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Correo</th>
+          <th>Rol</th>
+        </tr>
+        <tr>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Nombre"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Apellido"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Correo"></th>
+          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Rol"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr data-id="{{ u.pk }}">
+          <td>{{ u.nombre }}</td>
+          <td>{{ u.apellido }}</td>
+          <td>{{ u.correo_electronico }}</td>
+          <td>{{ u.id_rol.nombre_rol }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No hay usuarios registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Botones generales -->
+<div class="text-center">
+  <button id="btnCrear" class="btn btn-warning"
           data-bs-toggle="modal"
-          data-bs-target="#modalUsuario"
-          data-url="{% url 'mantenimiento:mantenimiento_usuarios:crear' %}">
-    Nuevo Usuario
+          data-bs-target="#modalUsuario">
+    <i class="bi bi-plus-circle"></i> CREAR
   </button>
+    
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Apellido</th>
-        <th>Correo</th>
-        <th>Rol</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for u in usuarios %}
-      <tr>
-        <td>{{ u.nombre }}</td>
-        <td>{{ u.apellido }}</td>
-        <td>{{ u.correo_electronico }}</td>
-        <td>{{ u.id_rol.nombre_rol }}</td>
-        <td>
-          <button class="btn btn-sm btn-warning"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalUsuario"
-                  data-url="{% url 'mantenimiento:mantenimiento_usuarios:editar' u.pk %}">
-            Editar
-          </button>
-          <button class="btn btn-sm btn-danger"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalUsuario"
-                  data-url="{% url 'mantenimiento:mantenimiento_usuarios:eliminar' u.pk %}">
-            Eliminar
-          </button>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">No hay usuarios registrados.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <button id="btnConsultar" class="btn btn-primary me-2" disabled>
+      <i class="bi bi-search"></i> CONSULTAR
+    </button>
+
+    <button id="btnEditar" class="btn btn-success me-2" disabled>
+      <i class="bi bi-pencil"></i> EDITAR
+    </button>
+
+    <button id="btnEliminar" class="btn btn-danger" disabled>
+      <i class="bi bi-x-circle"></i> ELIMINAR
+    </button>
+  </div>
 </section>
 
-<!-- Modal bootstrap (contenido se inyecta por fetch) -->
+<!-- Modal bootstrap -->
 <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+ <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-usuario-content"></div>
   </div>
 </div>
 {% endblock %}
 
-{# Si tu base tiene un bloque de scripts, usa ese. Si no, deja este debajo de content #}
 {% block extra_js %}
 <script>
-(function() {
-  let currentModalUrl = null; // recordaremos la URL del form actual
+document.addEventListener("DOMContentLoaded", function () {
+  const table = document.getElementById("tablaUsuarios");
+  const inputs = table.querySelectorAll("thead input");
+  let selectedUserId = null;
+
+  // --- Filtros por columna ---
+  inputs.forEach((input, i) => {
+    input.addEventListener("keyup", function () {
+      const filtro = input.value.toLowerCase();
+      const filas = table.querySelectorAll("tbody tr");
+
+      filas.forEach(fila => {
+        const celda = fila.cells[i];
+        if (celda) {
+          const texto = celda.textContent.toLowerCase();
+          fila.style.display = texto.includes(filtro) ? "" : "none";
+        }
+      });
+    });
+  });
+
+  // --- Selección de fila ---
+  table.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", function () {
+      table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-active"));
+      this.classList.add("table-active");
+      selectedUserId = this.getAttribute("data-id");
+
+      document.getElementById("btnConsultar").disabled = false;
+      document.getElementById("btnEditar").disabled = false;
+      document.getElementById("btnEliminar").disabled = false;
+    });
+  });
+
+  // --- Modal dinámico ---
   const modalEl = document.getElementById('modalUsuario');
   const modalContent = document.getElementById('modal-usuario-content');
+  const modalInstance = new bootstrap.Modal(modalEl); // Se crea una sola vez
+  let currentModalUrl = null;
 
-  // Cargar el fragmento al abrir el modal
-  modalEl.addEventListener('show.bs.modal', function (event) {
-    const trigger = event.relatedTarget;
-    const url = trigger?.getAttribute('data-url');
-    if (!url) return;
-
+  function abrirModal(url) {
     currentModalUrl = url;
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    modalInstance.show();
 
     fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
       .then(r => r.text())
       .then(html => { modalContent.innerHTML = html; })
       .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
-  });
+  }
 
-  // Limpiar contenido al cerrar
   modalEl.addEventListener('hidden.bs.modal', function () {
     currentModalUrl = null;
     modalContent.innerHTML = '';
   });
 
-  // Delegación: capturar submit de cualquier form dentro del modal
   modalContent.addEventListener('submit', function (e) {
     const form = e.target.closest('form');
     if (!form) return;
     e.preventDefault();
 
     const formData = new FormData(form);
-    const actionUrl = form.getAttribute('action') || currentModalUrl || window.location.href;
+    const actionUrl = form.getAttribute('action') || currentModalUrl;
 
     fetch(actionUrl, {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-        // No definimos Content-Type: el propio browser lo setea para FormData
-      }
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(async (r) => {
-      if (r.ok) return r.json();                 // {ok: true}
-      const data = await r.json().catch(() => ({})); // {ok:false, html: '...'}
-      if (data.html) modalContent.innerHTML = data.html; // errores de validación: re-render del form con errores
+      if (r.ok) return r.json();
+      const data = await r.json().catch(() => ({}));
+      if (data.html) modalContent.innerHTML = data.html;
       throw new Error('validation');
     })
     .then((data) => {
       if (data.ok) {
-        // Opción simple y robusta: recargar página para ver lista actualizada
         window.location.reload();
       }
     })
@@ -126,6 +159,22 @@
     });
   });
 
-})();
+  // --- Botones con acciones ---
+  document.getElementById("btnCrear").addEventListener("click", () => {
+    abrirModal(`/mantenimiento/usuarios/nuevo/`);
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/consultar/`);
+  });
+
+  document.getElementById("btnEditar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/editar/`);
+  });
+
+  document.getElementById("btnEliminar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/eliminar/`);
+  });
+});
 </script>
 {% endblock %}

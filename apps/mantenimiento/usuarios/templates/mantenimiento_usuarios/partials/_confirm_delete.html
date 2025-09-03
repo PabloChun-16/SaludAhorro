@@ -1,15 +1,32 @@
+{% load static %}
+
 <div class="modal-header">
-  <h5 class="modal-title">{{ titulo }}</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="d-flex align-items-center gap-2">
+    <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" width="24" height="24"
+         class="rounded-circle bg-white p-1">
+    <span class="fw-semibold">SAIF</span>
+  </div>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 
 <form method="post" id="form-eliminar" action="{{ action }}">
   <div class="modal-body">
     {% csrf_token %}
-    <p>¿Seguro que deseas eliminar a <strong>{{ obj.nombre }} {{ obj.apellido }}</strong>?</p>
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-0" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <span class="fw-semibold">¿Seguro que deseas eliminar a</span>
+        <strong>{{ obj.nombre }} {{ obj.apellido }}</strong>?
+      </div>
+    </div>
   </div>
+
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <i class="bi bi-x-circle me-1"></i> Cancelar
+    </button>
+    <button type="submit" class="btn btn-danger">
+      <i class="bi bi-trash me-1"></i> Eliminar
+    </button>
   </div>
 </form>

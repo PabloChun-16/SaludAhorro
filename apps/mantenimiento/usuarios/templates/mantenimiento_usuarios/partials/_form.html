@@ -1,15 +1,175 @@
-<div class="modal-header">
-  <h5 class="modal-title">{{ titulo }}</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{% load static %}
+
+<style>
+
+
+    /* Compactar un poco el modal */
+  .saif-modal .modal-body { padding-top: 1rem; padding-bottom: 0.75rem; }
+  .saif-modal .form-label { margin-bottom: .35rem; }
+  .saif-modal .input-group > .form-control,
+  .saif-modal .input-group > .form-select {
+    padding-top: .38rem;
+    padding-bottom: .38rem;
+  }
+  .saif-modal .input-group .btn { padding: .375rem .5rem; }
+  
+  /* --- Encabezado del modal --- */
+  .saif-modal .modal-header {
+    background: #0E7A3A;  /* Verde SAIF */
+    color: #fff;
+    border-bottom: 0;
+  }
+
+  /* --- Contenedor del modal --- */
+  .saif-modal .modal-content {
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
+  }
+
+  /* --- Cuerpo del modal --- */
+  .saif-modal .modal-body {
+    background: #f7fbf9;
+  }
+
+  /* --- Badge del título --- */
+  .saif-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .35);
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .82rem;
+  }
+
+  /* --- Campos de formulario personalizados --- */
+  .saif-modal .form-control,
+  .saif-modal .form-select {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;  /* gris suave */
+    transition: all .2s ease;
+  }
+
+  /* --- Focus verde --- */
+  .saif-modal .form-control:focus,
+  .saif-modal .form-select:focus {
+    border-color: #0E7A3A; /* Verde SAIF */
+    box-shadow: 0 0 0 0.2rem rgba(14, 122, 58, 0.25);
+    outline: none;
+  }
+
+  /* --- Botones en el footer --- */
+  .saif-modal .modal-footer .btn {
+    border-radius: 10px;
+    font-weight: 500;
+    padding: 0.45rem 1.2rem;
+  }
+</style>
+
+<div class="saif-modal">
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1"
+           style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Nuevo Usuario" }}</h5>
+      <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <form method="post" id="form-usuario" action="{{ action }}" novalidate autocomplete="off">
+    <div class="modal-body">
+      {% csrf_token %}
+      <div class="container-fluid">
+        <div class="row g-3">
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              {{ form.nombre }}
+            </div>
+            {% for e in form.nombre.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.apellido.id_for_label }}">Apellido</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+              {{ form.apellido }}
+            </div>
+            {% for e in form.apellido.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.correo_electronico.id_for_label }}">Correo electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              {{ form.correo_electronico }}
+            </div>
+            {% for e in form.correo_electronico.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.id_rol.id_for_label }}">Rol</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-gear"></i></span>
+              {{ form.id_rol }}
+            </div>
+            {% for e in form.id_rol.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.contrasena.id_for_label }}">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              {{ form.contrasena }}
+              <button class="btn btn-outline-secondary" type="button"
+                      data-toggle-password="#{{ form.contrasena.id_for_label }}"><i class="bi bi-eye"></i></button>
+            </div>
+            {% for e in form.contrasena.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label mb-1" for="{{ form.confirmar_contrasena.id_for_label }}">Confirmar contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              {{ form.confirmar_contrasena }}
+              <button class="btn btn-outline-secondary" type="button"
+                      data-toggle-password="#{{ form.confirmar_contrasena.id_for_label }}"><i class="bi bi-eye"></i></button>
+            </div>
+            {% for e in form.confirmar_contrasena.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer bg-white">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check2-circle"></i> Guardar
+      </button>
+    </div>
+  </form>
 </div>
 
-<form method="post" id="form-usuario" action="{{ action }}">
-  <div class="modal-body">
-    {% csrf_token %}
-    {{ form.as_p }}
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    <button type="submit" class="btn btn-primary">Guardar</button>
-  </div>
-</form>
+<script>
+  // Mostrar/ocultar contraseña
+  (function(scope){
+    scope.querySelectorAll('[data-toggle-password]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const target = scope.querySelector(btn.getAttribute('data-toggle-password'));
+        if (!target) return;
+        const isPwd = target.getAttribute('type') === 'password';
+        target.setAttribute('type', isPwd ? 'text' : 'password');
+        btn.querySelector('i').className = isPwd ? 'bi bi-eye-slash' : 'bi bi-eye';
+      });
+    });
+  })(document.currentScript.closest('.saif-modal') || document);
+</script>
