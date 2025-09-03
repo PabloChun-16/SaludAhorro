@@ -1,78 +1,116 @@
 {% extends "dashboard/base.html" %}
-
 {% load static %}
 
 {% block title %}Dashboard · SAIF{% endblock %}
 
 {% block content %}
 <section class="p-6 md:p-8">
-  <h1 class="text-3xl md:text-4xl font-extrabold text-center mb-8">Panel De Control</h1>
 
+  <!-- Encabezado cheto -->
+  <div class="mb-8 flex items-start justify-between gap-4">
+    <div>
+      <div class="text-sm text-slate-500">
+        Hola, {{ request.user.first_name|default:request.user.username }} 👋
+      </div>
+
+      <h1 class="cheto-title text-4xl md:text-5xl">Panel De Control</h1>
+
+      <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-emerald-700">
+          <i class="bi bi-lightning-charge"></i> Activo
+        </span>
+        <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-slate-700">
+          <i class="bi bi-clock"></i>
+          <span id="dash-clock"></span>
+        </span>
+        <span id="dash-tip" class="hidden sm:inline text-slate-500"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjetas -->
   <div class="grid gap-8 md:grid-cols-3">
     <!-- Inventario -->
-    <a href="/inventario/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <!-- clipboard boxes icon -->
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M9 3h6a2 2 0 012 2v2h-2V5H9v2H7V5a2 2 0 012-2z" fill="currentColor" opacity=".15"/><path d="M7 7h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2zm2 4h6M9 15h6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
-      </div>
-      <div class="font-semibold">Gestión de Inventario</div>
+    <a href="/inventario/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-clipboard2 text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Gestión de Inventario</div>
     </a>
 
-    <!-- Recepción -->
-    <a href="/recepcion_almacenamiento/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M3 10l9-6 9 6v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 10l9 6 9-6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
-      </div>
-      <div class="font-semibold">Recepción y Almacenamiento</div>
+    <!-- Recepción y Almacenamiento -->
+    <a href="/recepcion_almacenamiento/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-box-seam text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Recepción y Almacenamiento</div>
     </a>
 
-    <!-- Salidas -->
-    <a href="/salidas_devoluciones/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M3 12h13m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="16" y="5" width="5" height="14" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
-      </div>
-      <div class="font-semibold">Salidas y Devoluciones</div>
+    <!-- Salidas y Devoluciones -->
+    <a href="/salidas_devoluciones/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-box-arrow-right text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Salidas y Devoluciones</div>
     </a>
 
-    <!-- Alertas -->
-    <a href="/alertas_vencimientos/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M12 3l9 16H3L12 3z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="16" r="1" fill="currentColor"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.5"/></svg>
-      </div>
-      <div class="font-semibold">Alertas y Vencimientos</div>
+    <!-- Alertas y Vencimientos -->
+    <a href="/alertas_vencimientos/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-exclamation-triangle text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Alertas y Vencimientos</div>
     </a>
 
-    <!-- Solicitudes -->
-    <a href="/solicitudes_bodega_central/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M6 3h12v4H6zM4 7h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 11h8M8 15h5" stroke="currentColor" stroke-width="1.5"/></svg>
-      </div>
-      <div class="font-semibold">Solicitudes a Bodega Central</div>
+    <!-- Solicitudes a Bodega Central -->
+    <a href="/solicitudes_bodega_central/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-inboxes text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Solicitudes a Bodega Central</div>
     </a>
 
-    <!-- Conteo y ajustes -->
-    <a href="/ajustes_inventario/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 9h8M8 13h6" stroke="currentColor" stroke-width="1.5"/></svg>
-      </div>
-      <div class="font-semibold">Conteo Físico y Ajuste</div>
+    <!-- Conteo Físico y Ajuste -->
+    <a href="/ajustes_inventario/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-sliders2-vertical text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Conteo Físico y Ajuste</div>
     </a>
 
-    <!-- Recetas -->
-    <a href="/recetas/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M7 4h8a2 2 0 012 2v14l-5-3-5 3V6a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
-      </div>
-      <div class="font-semibold">Gestión de Recetas</div>
+    <!-- Gestión de Recetas -->
+    <a href="/recetas/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-bookmark text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Gestión de Recetas</div>
     </a>
 
     <!-- Mantenimiento -->
-    <a href="/mantenimiento/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
-      <div class="mx-auto w-28 h-28 mb-3">
-        <svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="1.5"/></svg>
-      </div>
-      <div class="font-semibold">Mantenimiento</div>
+    <a href="/mantenimiento/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
+      <i class="bi bi-gear-wide-connected text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      <div class="mt-4 font-semibold text-slate-800">Mantenimiento</div>
     </a>
   </div>
+
+  <!-- JS: reloj y tips -->
+  <script>
+    (function () {
+      // Reloj
+      const clockEl = document.getElementById('dash-clock');
+      function tick(){
+        const d = new Date();
+        try {
+          clockEl.textContent = d.toLocaleString('es-GT', { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+          clockEl.textContent = d.toLocaleTimeString().slice(0,5);
+        }
+      }
+      tick(); setInterval(tick, 1000);
+
+      // Tips rotativos
+      const tips = [
+        "Tip: Revisa Alertas y Vencimientos cada mañana.",
+        "Tip: Solicitudes a Bodega Central agiliza el surtido.",
+        "Tip: En Conteo Físico y Ajuste mantén el kardex al día."
+      ];
+      const tipEl = document.getElementById('dash-tip');
+      if (tipEl){
+        let i = 0;
+        tipEl.textContent = tips[i];
+        setInterval(() => {
+          i = (i + 1) % tips.length;
+          tipEl.textContent = tips[i];
+        }, 5000);
+      }
+    })();
+  </script>
+
 </section>
 {% endblock %}
