@@ -1,5 +1,7 @@
 from django.db import models
-from apps.mantenimiento.models import Usuarios, Estado_Recepcion
+from apps.mantenimiento.models import Estado_Recepcion
+from apps.mantenimiento.usuarios.models import Usuario
+
 from apps.inventario.models import Lotes
 
 # Create your models here.
@@ -9,7 +11,7 @@ class Recepciones_Envio(models.Model):
     numero_envio_bodega = models.CharField(max_length=100, null=True, blank=True)
     
     # Relaciones de llave foránea
-    id_usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     estado_recepcion = models.ForeignKey(Estado_Recepcion, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):

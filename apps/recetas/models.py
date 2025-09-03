@@ -1,5 +1,6 @@
 from django.db import models
-from apps.mantenimiento.models import Usuarios, Estado_Envio_Receta
+from apps.mantenimiento.models import Estado_Envio_Receta
+from apps.mantenimiento.usuarios.models import Usuario
 from apps.inventario.models import Productos
 
 # Create your models here.
@@ -10,7 +11,7 @@ class Recetas_Medicas(models.Model):
 
     # Relaciones de llave foránea
     id_producto = models.ForeignKey(Productos, on_delete=models.CASCADE)
-    id_usuario_venta = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    id_usuario_venta = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     
     def __str__(self):
         return f'Receta {self.id} - Factura {self.referencia_factura}'
@@ -25,7 +26,7 @@ class Envios_Recetas(models.Model):
     nombre_reporte = models.CharField(max_length=255, null=True, blank=True)
 
     # Relaciones de llave foránea
-    id_usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_estado_envio = models.ForeignKey(Estado_Envio_Receta, on_delete=models.CASCADE)
 
     def __str__(self):

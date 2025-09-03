@@ -1,5 +1,5 @@
 from django.db import models
-from apps.mantenimiento.models import Usuarios
+from apps.mantenimiento.usuarios.models import Usuario
 from apps.inventario.models import Lotes
 
 # Create your models here.
@@ -8,7 +8,7 @@ class Inventario_Fisico(models.Model):
     estado = models.CharField(max_length=50)
 
     # Relación de llave foránea
-    id_usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     
     def __str__(self):
         return f'Conteo Físico {self.id} - {self.fecha_conteo}'

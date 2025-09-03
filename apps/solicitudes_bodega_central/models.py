@@ -1,6 +1,8 @@
 from django.db import models
-from apps.mantenimiento.models import Usuarios, Estado_Solicitud
+from apps.mantenimiento.models import Estado_Solicitud
 from apps.inventario.models import Productos
+from apps.mantenimiento.usuarios.models import Usuario
+
 
 
 # Create your models here.
@@ -9,7 +11,7 @@ class Solicitudes_Faltantes(models.Model):
     nombre_documento = models.CharField(max_length=255)
     
     # Relaciones de llave foránea
-    id_usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_estado_solicitud = models.ForeignKey(Estado_Solicitud, on_delete=models.CASCADE)
     
     def __str__(self):

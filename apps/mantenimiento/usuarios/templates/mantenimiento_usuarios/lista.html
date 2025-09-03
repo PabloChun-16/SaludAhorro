@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Usuarios · SAIF{% endblock %}
+
+{% block content %}
+  <h2>Gestión de Usuarios</h2>
+
+  <a href="{% url 'mantenimiento:mantenimiento_usuarios:crear' %}" class="btn btn-primary">
+    Nuevo Usuario
+  </a>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in object_list %}
+        <tr>
+          <td>{{ u.nombre }}</td>
+          <td>{{ u.apellido }}</td>
+          <td>{{ u.correo_electronico }}</td>
+          <td>{{ u.id_rol.nombre_rol }}</td>
+          <td>
+            <a href="{% url 'mantenimiento:mantenimiento_usuarios:editar' u.pk %}">Editar</a>
+            <a href="{% url 'mantenimiento:mantenimiento_usuarios:eliminar' u.pk %}">Eliminar</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">No hay usuarios registrados.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

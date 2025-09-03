@@ -51,6 +51,10 @@ INSTALLED_APPS = [
     'apps.recetas',
     'apps.salidas_devoluciones',
     'apps.solicitudes_bodega_central',
+
+    #Apps Mantenimiento
+    'apps.mantenimiento.usuarios',
+
 ]
 
 MIDDLEWARE = [
@@ -59,6 +63,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
+    'farmacia.middleware.LoginRequiredMiddleware',
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -148,3 +155,38 @@ AUTHENTICATION_BACKENDS = [
     'apps.accounts.backends.ExternalUsuariosBackend',  # primero el tuyo
     'django.contrib.auth.backends.ModelBackend',       # luego el de Django
 ]
+
+
+
+
+from django.urls import reverse_lazy
+
+# Exentas exactas (comparación por igualdad)
+LOGIN_EXEMPT_EXACT = [
+    reverse_lazy("home:index"),      # "/"  (tu página de inicio)
+    reverse_lazy("login"),           # "/accounts/login/"
+    reverse_lazy("logout"),          # "/accounts/logout/"
+]
+
+# Exentas por prefijo (rutas públicas con subpáginas)
+LOGIN_EXEMPT_PREFIXES = [
+    "/blog/",
+    "/contacto/",
+    "/nosotros/",
+    "/saif/",
+    # agrega otras públicas si existen
+]
+
+
+
+
+# Mantener la sesión (8 horas)
+SESSION_COOKIE_AGE = 8 * 60 * 60
+
+# Cerrar sesión al cerrar navegador (si quieres)
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Cookies un poco más seguras (en producción con HTTPS)
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000

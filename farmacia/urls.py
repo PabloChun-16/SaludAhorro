@@ -30,7 +30,10 @@ urlpatterns = [
     path('recetas/', include('apps.recetas.urls')),
     path('salidas_devoluciones/', include('apps.salidas_devoluciones.urls')),
     path('solicitudes_bodega_central/', include('apps.solicitudes_bodega_central.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.urls')),
+    
+
+     # Mantenimiento (padre) con su propio namespace
+    path('mantenimiento/', include(('apps.mantenimiento.urls', 'mantenimiento'), namespace='mantenimiento')),
 ]
 
 

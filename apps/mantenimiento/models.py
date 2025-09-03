@@ -1,4 +1,5 @@
 from django.db import models
+from apps.mantenimiento.usuarios.models import Usuario
 
 # Create your models here.
 class Roles(models.Model):
@@ -175,33 +176,17 @@ class Tipo_Alerta(models.Model):
         verbose_name = 'Tipo de Alerta'
         verbose_name_plural = 'Tipos de Alerta'
 
-class Usuarios(models.Model):
-    nombre = models.CharField(max_length=100)
-    apellido = models.CharField(max_length=100)
-    correo_electronico = models.CharField(max_length=255, unique=True)
-    password_hash = models.CharField(max_length=255)
-    # Relación de llave foránea a la tabla Roles en la misma aplicación
-    id_rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.nombre} {self.apellido}'
-    
-    class Meta:
-        verbose_name = 'Usuario'
-        verbose_name_plural = 'Usuarios'
-
 
 class Auditoria(models.Model):
     accion = models.CharField(max_length=255)
     fecha_hora = models.DateTimeField(auto_now_add=True)
     tabla_afectada = models.CharField(max_length=100, null=True, blank=True)
     id_registro_afectado = models.IntegerField(null=True, blank=True)
-    # Relación de llave foránea a la tabla Usuarios
-    id_usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
-    
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)  # 👈 cambio aquí
+
     def __str__(self):
         return f'{self.accion} - {self.fecha_hora}'
-        
+    
     class Meta:
         verbose_name = 'Auditoría'
         verbose_name_plural = 'Auditorías'
