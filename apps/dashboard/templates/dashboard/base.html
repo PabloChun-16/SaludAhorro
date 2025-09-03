@@ -23,6 +23,11 @@
 
   </script>
 
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+
    <!-- CSS -->
 
 <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
@@ -42,8 +47,13 @@
            class="h-8 w-8 rounded-full bg-white p-1">
       <span class="text-2xl font-extrabold tracking-wide">SAIF</span>
     </a>
+
+
     <div class="ml-auto flex items-center gap-4">
-      <a href="{% url 'home:index' %}" class="hover:underline">Sitio público</a>
+      <a href="{% url 'logout' %}" class="flex items-center gap-2 hover:underline">
+  <i class="bi bi-box-arrow-right"></i>
+  Logout
+</a>
       {% if request.user.is_authenticated %}
         <span class="text-white/80 text-sm hidden sm:inline">Hola, {{ request.user.get_username }}</span>
       {% endif %}
