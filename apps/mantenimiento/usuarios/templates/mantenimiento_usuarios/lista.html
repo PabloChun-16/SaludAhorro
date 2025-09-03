@@ -4,114 +4,208 @@
 {% block title %}Usuarios · SAIF{% endblock %}
 
 {% block content %}
+
+<!-- ===== Estilos de la tabla / card ===== -->
+<style>
+  /* Card contenedora */
+  .saif-card {
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(14,122,58,.12);
+    background: #fff;
+  }
+  .saif-card .saif-card-header {
+    background: #0E7A3A;
+    color: #fff;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    border-bottom: 0;
+  }
+  .saif-card .saif-card-header h3 {
+    font-size: 1.15rem;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+
+  /* Tabla */
+  .table-saif {
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .table-saif thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #0E7A3A !important; /* verde */
+    color: #fff !important;
+    font-weight: 700;
+    border: none !important;
+  }
+  .table-saif thead .filter-row th {
+    background: #0f8557 !important; /* tono más claro para filtros */
+    border-top: 1px solid rgba(255,255,255,.25) !important;
+  }
+  .table-saif tbody tr { border-bottom: 1px solid #eef2f4; }
+  .table-saif tbody tr:nth-child(even) { background: #fbfdfc; }
+  .table-saif tbody tr:hover { background: #f0faf4; }
+  .table-saif td, .table-saif th { vertical-align: middle; }
+
+  /* Inputs de filtro */
+  .table-saif .form-control,
+  .table-saif .form-select {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.55);
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    height: 36px;
+    padding: .35rem .7rem;
+  }
+  .table-saif .form-control::placeholder { color: rgba(255,255,255,.9); }
+  .table-saif .form-control:focus,
+  .table-saif .form-select:focus {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(255,255,255,.25);
+    border-color: #fff;
+    background: rgba(255,255,255,.25);
+    color: #fff;
+  }
+
+  /* Badge de Rol */
+  .badge-role {
+    background: #e9f7ef;
+    color: #0E7A3A;
+    border: 1px solid #cfeede;
+    font-weight: 600;
+    padding: .35rem .6rem;
+    border-radius: 999px;
+  }
+
+  /* Scroll horizontal suave en móviles */
+  .table-wrap {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Realce al seleccionar fila (opcional) */
+  .table-saif tbody tr.table-active {
+    box-shadow: inset 0 0 0 2px rgba(14,122,58,.45);
+  }
+</style>
+
 <section class="p-6 md:p-8">
-  <h2 class="text-2xl font-bold mb-4 text-center">GESTIÓN DE USUARIOS</h2>
 
-  <!-- Tabla con filtros -->
-  <div class="table-responsive mb-4">
-    <table class="table table-bordered table-hover align-middle text-center" id="tablaUsuarios">
-      <thead class="table-light">
-        <tr>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Correo</th>
-          <th>Rol</th>
-        </tr>
-        <tr>
-          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Nombre"></th>
-          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Apellido"></th>
-          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Correo"></th>
-          <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Rol"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in usuarios %}
-        <tr data-id="{{ u.pk }}">
-          <td>{{ u.nombre }}</td>
-          <td>{{ u.apellido }}</td>
-          <td>{{ u.correo_electronico }}</td>
-          <td>{{ u.id_rol.nombre_rol }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4">No hay usuarios registrados.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-people"></i>
+      <h3>Gestión de Usuarios</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table table-saif align-middle text-center" id="tablaUsuarios">
+        <thead>
+          <tr>
+            <th style="min-width: 220px;">Nombre</th>
+            <th style="min-width: 220px;">Apellido</th>
+            <th style="min-width: 260px;">Correo</th>
+            <th style="min-width: 180px;">Rol</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Nombre"></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Apellido"></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Correo"></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Rol"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+          <tr data-id="{{ u.pk }}">
+            <td class="text-capitalize">{{ u.nombre }}</td>
+            <td class="text-capitalize">{{ u.apellido }}</td>
+            <td class="text-nowrap"><i class="bi bi-envelope text-muted me-1"></i>{{ u.correo_electronico }}</td>
+            <td><span class="badge-role"><i class="bi bi-shield-lock me-1"></i>{{ u.id_rol.nombre_rol }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="py-4 text-muted">No hay usuarios registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear" class="btn btn-warning me-2"
+              data-bs-toggle="modal" data-bs-target="#modalUsuario">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+
+      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+
+      <button id="btnEditar" class="btn btn-success me-2" disabled>
+        <i class="bi bi-pencil"></i> EDITAR
+      </button>
+
+      <button id="btnEliminar" class="btn btn-danger" disabled>
+        <i class="bi bi-x-circle"></i> ELIMINAR
+      </button>
+    </div>
   </div>
 
-  <!-- Botones generales -->
-<div class="text-center">
-  <button id="btnCrear" class="btn btn-warning"
-          data-bs-toggle="modal"
-          data-bs-target="#modalUsuario">
-    <i class="bi bi-plus-circle"></i> CREAR
-  </button>
-    
-
-    <button id="btnConsultar" class="btn btn-primary me-2" disabled>
-      <i class="bi bi-search"></i> CONSULTAR
-    </button>
-
-    <button id="btnEditar" class="btn btn-success me-2" disabled>
-      <i class="bi bi-pencil"></i> EDITAR
-    </button>
-
-    <button id="btnEliminar" class="btn btn-danger" disabled>
-      <i class="bi bi-x-circle"></i> ELIMINAR
-    </button>
-  </div>
 </section>
 
 <!-- Modal bootstrap -->
 <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
- <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-usuario-content"></div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const table = document.getElementById("tablaUsuarios");
-  const inputs = table.querySelectorAll("thead input");
-  let selectedUserId = null;
+  const table         = document.getElementById("tablaUsuarios");
+  const inputs        = table.querySelectorAll("thead input");
+  const modalEl       = document.getElementById('modalUsuario');
+  const modalContent  = document.getElementById('modal-usuario-content');
+  const modalInstance = new bootstrap.Modal(modalEl);
 
-  // --- Filtros por columna ---
+  let selectedUserId = null;
+  let currentModalUrl = null;
+
+  /* ---------- Filtros por columna ---------- */
   inputs.forEach((input, i) => {
     input.addEventListener("keyup", function () {
       const filtro = input.value.toLowerCase();
       const filas = table.querySelectorAll("tbody tr");
-
       filas.forEach(fila => {
         const celda = fila.cells[i];
-        if (celda) {
-          const texto = celda.textContent.toLowerCase();
-          fila.style.display = texto.includes(filtro) ? "" : "none";
-        }
+        if (!celda) return;
+        const texto = celda.textContent.toLowerCase();
+        fila.style.display = texto.includes(filtro) ? "" : "none";
       });
     });
   });
 
-  // --- Selección de fila ---
+  /* ---------- Selección de fila ---------- */
   table.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", function () {
       table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-active"));
       this.classList.add("table-active");
       selectedUserId = this.getAttribute("data-id");
-
       document.getElementById("btnConsultar").disabled = false;
-      document.getElementById("btnEditar").disabled = false;
-      document.getElementById("btnEliminar").disabled = false;
+      document.getElementById("btnEditar").disabled    = false;
+      document.getElementById("btnEliminar").disabled  = false;
     });
   });
 
-  // --- Modal dinámico ---
-  const modalEl = document.getElementById('modalUsuario');
-  const modalContent = document.getElementById('modal-usuario-content');
-  const modalInstance = new bootstrap.Modal(modalEl); // Se crea una sola vez
-  let currentModalUrl = null;
-
+  /* ---------- Abrir modal y cargar parcial ---------- */
   function abrirModal(url) {
     currentModalUrl = url;
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
@@ -123,11 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
   }
 
-  modalEl.addEventListener('hidden.bs.modal', function () {
+  modalEl.addEventListener('hidden.bs.modal', () => {
     currentModalUrl = null;
     modalContent.innerHTML = '';
   });
 
+  /* ---------- Envío del form del modal (delegación) ---------- */
   modalContent.addEventListener('submit', function (e) {
     const form = e.target.closest('form');
     if (!form) return;
@@ -142,16 +237,12 @@ document.addEventListener("DOMContentLoaded", function () {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(async (r) => {
-      if (r.ok) return r.json();
-      const data = await r.json().catch(() => ({}));
-      if (data.html) modalContent.innerHTML = data.html;
+      if (r.ok) return r.json();              // { ok: true }
+      const data = await r.json().catch(() => ({})); // { ok:false, html:'...' }
+      if (data.html) modalContent.innerHTML = data.html; // re-render form con errores
       throw new Error('validation');
     })
-    .then((data) => {
-      if (data.ok) {
-        window.location.reload();
-      }
-    })
+    .then((data) => { if (data.ok) window.location.reload(); })
     .catch((err) => {
       if (err.message !== 'validation') {
         modalContent.innerHTML = '<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>';
@@ -159,19 +250,48 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // --- Botones con acciones ---
+  /* ---------- “Ojito” mostrar/ocultar password (delegación) ---------- */
+  modalContent.addEventListener('click', function (ev) {
+    const btn = ev.target.closest('[data-toggle-password]');
+    if (!btn) return;
+
+    const selector = btn.getAttribute('data-toggle-password');
+    const input = modalContent.querySelector(selector);
+    if (!input) return;
+
+    const icon = btn.querySelector('i');
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    icon.classList.toggle('bi-eye', !isHidden);
+    icon.classList.toggle('bi-eye-slash', isHidden);
+  });
+
+  /* ---------- Validación live de confirmación de password ---------- */
+  modalContent.addEventListener('input', function () {
+    const pass  = modalContent.querySelector('[data-pass]');
+    const pass2 = modalContent.querySelector('[data-pass-confirm]');
+    if (!pass || !pass2) return;
+
+    if (pass2.value.length === 0) {
+      pass2.classList.remove('is-valid','is-invalid'); return;
+    }
+    if (pass.value === pass2.value) {
+      pass2.classList.add('is-valid');  pass2.classList.remove('is-invalid');
+    } else {
+      pass2.classList.add('is-invalid'); pass2.classList.remove('is-valid');
+    }
+  });
+
+  /* ---------- Botones ---------- */
   document.getElementById("btnCrear").addEventListener("click", () => {
     abrirModal(`/mantenimiento/usuarios/nuevo/`);
   });
-
   document.getElementById("btnConsultar").addEventListener("click", () => {
     if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/consultar/`);
   });
-
   document.getElementById("btnEditar").addEventListener("click", () => {
     if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/editar/`);
   });
-
   document.getElementById("btnEliminar").addEventListener("click", () => {
     if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/eliminar/`);
   });

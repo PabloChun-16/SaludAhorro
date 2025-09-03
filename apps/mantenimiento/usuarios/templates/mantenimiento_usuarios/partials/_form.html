@@ -160,16 +160,27 @@
 </div>
 
 <script>
-  // Mostrar/ocultar contraseña
-  (function(scope){
-    scope.querySelectorAll('[data-toggle-password]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const target = scope.querySelector(btn.getAttribute('data-toggle-password'));
-        if (!target) return;
-        const isPwd = target.getAttribute('type') === 'password';
-        target.setAttribute('type', isPwd ? 'text' : 'password');
-        btn.querySelector('i').className = isPwd ? 'bi bi-eye-slash' : 'bi bi-eye';
-      });
-    });
-  })(document.currentScript.closest('.saif-modal') || document);
+/* Este script vive dentro del parcial y usa delegación,
+   por lo que funciona aunque el HTML se inserte dinámicamente */
+(function () {
+  // limitamos el alcance al bloque del modal que está en este mismo parcial
+  const root = document.currentScript.closest('.saif-modal') || document;
+
+  root.addEventListener('click', function (ev) {
+    const btn = ev.target.closest('[data-toggle-password]');
+    if (!btn) return;
+
+    const selector = btn.getAttribute('data-toggle-password'); // ej: "#id_contrasena"
+    const input = root.querySelector(selector);
+    if (!input) return;
+
+    const icon = btn.querySelector('i');
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+
+    // alternamos iconos
+    icon.classList.toggle('bi-eye', !show);
+    icon.classList.toggle('bi-eye-slash', show);
+  });
+})();
 </script>
