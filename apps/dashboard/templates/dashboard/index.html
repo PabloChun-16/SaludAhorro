@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+
+{% load static %}
+
+{% block title %}Dashboard · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <h1 class="text-3xl md:text-4xl font-extrabold text-center mb-8">¡Bienvenido!</h1>
+
+  <div class="grid gap-8 md:grid-cols-3">
+    <!-- Inventario -->
+    <a href="/inventario/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <!-- clipboard boxes icon -->
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M9 3h6a2 2 0 012 2v2h-2V5H9v2H7V5a2 2 0 012-2z" fill="currentColor" opacity=".15"/><path d="M7 7h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2zm2 4h6M9 15h6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <div class="font-semibold">Gestión de Inventario</div>
+    </a>
+
+    <!-- Recepción -->
+    <a href="/recepcion_almacenamiento/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M3 10l9-6 9 6v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 10l9 6 9-6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <div class="font-semibold">Recepción y Almacenamiento</div>
+    </a>
+
+    <!-- Salidas -->
+    <a href="/salidas_devoluciones/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M3 12h13m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="16" y="5" width="5" height="14" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <div class="font-semibold">Salidas y Devoluciones</div>
+    </a>
+
+    <!-- Alertas -->
+    <a href="/alertas_vencimientos/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M12 3l9 16H3L12 3z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="16" r="1" fill="currentColor"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="font-semibold">Alertas y Vencimientos</div>
+    </a>
+
+    <!-- Solicitudes -->
+    <a href="/solicitudes_bodega_central/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M6 3h12v4H6zM4 7h16v12a2 2 0 01-2 2H6a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 11h8M8 15h5" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="font-semibold">Solicitudes a Bodega Central</div>
+    </a>
+
+    <!-- Conteo y ajustes -->
+    <a href="/ajustes_inventario/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 9h8M8 13h6" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="font-semibold">Conteo Físico y Ajuste</div>
+    </a>
+
+    <!-- Recetas -->
+    <a href="/recetas/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><path d="M7 4h8a2 2 0 012 2v14l-5-3-5 3V6a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <div class="font-semibold">Gestión de Recetas</div>
+    </a>
+
+    <!-- Mantenimiento -->
+    <a href="/mantenimiento/" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+      <div class="mx-auto w-28 h-28 mb-3">
+        <svg viewBox="0 0 24 24" class="w-full h-full"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="1.5"/></svg>
+      </div>
+      <div class="font-semibold">Mantenimiento</div>
+    </a>
+  </div>
+</section>
+{% endblock %}

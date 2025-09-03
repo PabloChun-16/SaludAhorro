@@ -1,0 +1,87 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}SAIF · Dashboard{% endblock %}</title>
+
+   
+
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: { DEFAULT: '#0E7A3A' } },
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] }
+        }
+      }
+    }
+
+  </script>
+
+   <!-- CSS -->
+
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+
+    <!-- Google Fonts: Inter -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body class="font-sans text-slate-800">
+
+  <!-- TOPBAR -->
+<!-- TOPBAR -->
+<header class="bg-brand text-white">
+  <div class="h-14 px-4 flex items-center gap-3">
+    <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo SAIF"
+           class="h-8 w-8 rounded-full bg-white p-1">
+      <span class="text-2xl font-extrabold tracking-wide">SAIF</span>
+    </a>
+    <div class="ml-auto flex items-center gap-4">
+      <a href="{% url 'home:index' %}" class="hover:underline">Sitio público</a>
+      {% if request.user.is_authenticated %}
+        <span class="text-white/80 text-sm hidden sm:inline">Hola, {{ request.user.get_username }}</span>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+
+  <div class="grid grid-cols-[260px_1fr] min-h-[calc(100vh-56px)]">
+    <!-- SIDEBAR -->
+    <aside class="bg-emerald-900 text-emerald-50">
+      <nav class="p-3 space-y-2 text-sm">
+        
+        {% url 'dashboard:index' as dash_url %}
+<a href="{{ dash_url }}"
+   class="block px-3 py-2 rounded hover:bg-emerald-800 {% if request.path == dash_url %}bg-emerald-800{% endif %}">
+  Inicio
+</a>
+
+        <a href="/inventario/" class="block px-3 py-2 rounded hover:bg-emerald-800">Gestión de Inventario</a>
+        <a href="/recepcion_almacenamiento/" class="block px-3 py-2 rounded hover:bg-emerald-800">Recepción y Almacenamiento</a>
+        <a href="/salidas_devoluciones/" class="block px-3 py-2 rounded hover:bg-emerald-800">Salidas y Devoluciones</a>
+        <a href="/alertas_vencimientos/" class="block px-3 py-2 rounded hover:bg-emerald-800">Alertas y Vencimientos</a>
+        <a href="/solicitudes_bodega_central/" class="block px-3 py-2 rounded hover:bg-emerald-800">Solicitudes a Bodega Central</a>
+        <a href="/ajustes_inventario/" class="block px-3 py-2 rounded hover:bg-emerald-800">Conteo Físico y Ajustes</a>
+        <a href="/recetas/" class="block px-3 py-2 rounded hover:bg-emerald-800">Gestión de Recetas</a>
+        <a href="/mantenimiento/" class="block px-3 py-2 rounded hover:bg-emerald-800">Mantenimiento</a>
+      </nav>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="bg-white">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <footer class="border-t text-xs text-slate-600 px-4 py-3">
+    SAIF | © 2025 Todos los derechos reservados.
+  </footer>
+</body>
+</html>
