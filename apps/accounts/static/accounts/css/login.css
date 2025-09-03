@@ -11,7 +11,7 @@ main { background: url('../img/white.jpg') no-repeat center center/cover; }
 .login-card { max-width: 960px; border-radius: 1.25rem; }
 .login-card .col-md-6.bg-cover { min-height: 520px; }
 
-.bg-cover { background-size: cover; background-position: center; background-repeat: no-repeat; }
+.bg-cover { background-image: url('../img/2.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; }
 
 /* 🔹 Estilo de inputs al hacer foco */
 .form-control:focus {
