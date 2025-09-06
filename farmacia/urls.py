@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.contrib.auth.views import LogoutView
+from django.conf import settings
     
 
 urlpatterns = [
@@ -23,6 +25,7 @@ urlpatterns = [
     path('', include('apps.home.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path('accounts/', include('apps.accounts.urls')),
+    path("accounts/logout/", LogoutView.as_view(next_page=settings.LOGOUT_REDIRECT_URL), name="logout"),
 
     path('ajustes_inventario/', include('apps.ajustes_inventario.urls')),
     path('alertas_vencimientos/', include('apps.alertas_vencimientos.urls')),
