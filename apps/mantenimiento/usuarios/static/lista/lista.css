@@ -1,0 +1,239 @@
+/* ===== Card ===== */
+.saif-card {
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(14,122,58,.12);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.saif-card .saif-card-header {
+  background: #0E7A3A;
+  color: #fff;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  border-bottom: 0;
+    text-align: center;
+  
+
+}
+.saif-card .saif-card-header h3 {
+  font-size: 1.6rem;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.saif-card .saif-card-header i {
+  font-size: 1.8rem;   /* agranda el ícono */
+  line-height: 1;      /* alinea verticalmente */
+}
+
+
+/* ===== Paginador ===== */
+.saif-pager{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:.6rem;
+  padding:12px;
+  border-top:1px solid #e5e7eb;
+  background:#fff;
+  width:100%;
+  margin-top:10px;
+}
+.saif-pager .page-btn{
+  border:0;
+  background:#0E7A3A;
+  color:#fff;
+  border-radius:8px;
+  padding:.45rem .9rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:background .2s ease;
+}
+.saif-pager .page-btn:hover{ background:#0c6b32; }
+.saif-pager .page-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+.saif-pager .info{ color:#374151; font-size:.9rem; }
+
+/* ===== Layout general ===== */
+html, body{ height:100%; }
+section.p-6, section.p-8{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.table-wrap{
+  flex:1;
+  display:flex;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ===== Tabla ===== */
+:root{ --saif-row-h: 48px; }
+
+.table-saif{
+  width:100%;
+  border-collapse:collapse !important;
+  margin:0;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+.table-saif thead{
+  display:table;
+  width:100%;
+  table-layout:fixed;
+}
+.table-saif th,
+.table-saif td{
+  border:1px solid #d1d5db !important;
+  padding:.65rem .8rem !important;
+  text-align:center;
+  vertical-align:middle !important;
+  background:#fff;
+}
+
+/* Encabezado */
+.table-saif thead th{
+  background:#0E7A3A !important;
+  color:#fff !important;
+  font-weight:700 !important;
+  border:1px solid #0b5c2c !important;
+}
+
+/* Fila de filtros */
+.table-saif thead .filter-row th{
+  background:#0f8557 !important;
+  border:1px solid #0b5c2c !important;
+  padding:.4rem !important;
+}
+.table-saif thead .filter-row input{
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid #cbd5e1 !important;
+  border-radius:6px;
+  padding:.3rem .5rem;
+  font-size:.85rem;
+  width:100%;
+}
+
+/* Tbody que se estira y pinta líneas */
+.table-saif tbody{
+  flex:1;
+  display:block;
+  position:relative;
+}
+
+/* Líneas horizontales y verticales de fondo (4 columnas) */
+.table-saif tbody::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--saif-row-h) - 1px),
+      #e5e7eb calc(var(--saif-row-h) - 1px),
+      #e5e7eb var(--saif-row-h)
+    ),
+    linear-gradient(#e5e7eb,#e5e7eb),
+    linear-gradient(#e5e7eb,#e5e7eb),
+    linear-gradient(#e5e7eb,#e5e7eb);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-position: left top, 25% 0, 50% 0, 75% 0;
+  background-size: auto auto, 1px 100%, 1px 100%, 1px 100%;
+}
+
+/* Filas reales con altura fija */
+.table-saif tbody tr{
+  display:table;
+  width:100%;
+  table-layout:fixed;
+  height:var(--saif-row-h);
+  position:relative;
+  z-index:1;
+}
+
+/* Zebra + hover */
+.table-saif tbody tr:nth-child(even){ background:#f9fafb; }
+.table-saif tbody tr:hover{ background:#eefcf4; }
+
+/* Badge rol */
+.badge-role{
+  background:#e9f7ef;
+  color:#0E7A3A;
+  border:1px solid #cfeede;
+  font-weight:600;
+  padding:.35rem .6rem;
+  border-radius:999px;
+  font-size:.85rem;
+}
+
+/* Selección */
+.table-saif tbody tr.table-active{
+  box-shadow: inset 0 0 0 2px rgba(14,122,58,.45);
+}
+
+/* Utilidad para paginación */
+.hidden-by-pagination{ display:none !important; }
+
+/* Inputs */
+.table-saif .form-control,
+.table-saif .form-select {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  height: 36px;
+  padding: .35rem .7rem;
+}
+.table-saif .form-control::placeholder { color: rgba(255,255,255,.9); }
+.table-saif .form-control:focus,
+.table-saif .form-select:focus {
+  outline: 0;
+  box-shadow: 0 0 0 .2rem rgba(255,255,255,.25);
+  border-color: #fff;
+  background: rgba(255,255,255,.25);
+  color: #fff;
+}
+
+
+/* Quita el padding inferior del section que envuelve la card */
+section.p-6, section.p-8{
+  padding-bottom: 0 !important;
+}
+
+/* La card no deja “cola” */
+.saif-card{
+  margin-bottom: 0 !important;
+}
+
+/* El paginador ya está centrado: quita su margen superior si quieres pegarlos más */
+.saif-pager{
+  margin-top: 0; /* antes 10px */
+}
+
+/* Bloque de botones pegado al paginador (opcional) */
+.saif-card > .px-3.py-3.text-center{
+  margin-top: 0 !important;
+}
+
+/* Si tienes un footer fijo, ajusta la altura mínima del section para no “reservar” hueco extra:
+   sustituye 56px por la altura real de tu topbar/footer si aplica */
+@media (min-width: 768px){
+  section.p-6, section.p-8{
+    min-height: calc(100vh - 0px); /* sin reservas adicionales */
+  }
+}
+
+
