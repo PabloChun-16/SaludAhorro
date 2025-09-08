@@ -1,0 +1,251 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Unidades de Medida · SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-rulers"></i>
+      <h3>Unidades de Medida</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table table-saif align-middle text-center" id="tablaUnidades">
+        <thead>
+          <tr>
+            <th style="min-width: 260px;">Nombre</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar nombre"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for u in unidades %}
+          <tr data-id="{{ u.pk }}">
+            <td class="text-capitalize">{{ u.nombre_unidad }}</td>
+          </tr>
+          {% empty %}
+          <tr data-empty-row="true">
+            <td class="py-4 text-muted">No hay datos.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="pagerUnidades" class="saif-pager"></div>
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear"
+              class="btn btn-warning me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#modalUnidad"
+              data-url="{% url 'mantenimiento:unidadesmedida:crear' %}">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+
+      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+
+      <button id="btnEditar" class="btn btn-success me-2" disabled>
+        <i class="bi bi-pencil"></i> EDITAR
+      </button>
+
+      <button id="btnEliminar" class="btn btn-danger" disabled>
+        <i class="bi bi-x-circle"></i> ELIMINAR
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal -->
+<div class="modal fade" id="modalUnidad" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-unidad-content"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const table         = document.getElementById("tablaUnidades");
+  const inputs        = table.querySelectorAll("thead input");
+  const tbody         = table.querySelector("tbody");
+  const pagerEl       = document.getElementById("pagerUnidades");
+  const modalEl       = document.getElementById("modalUnidad");
+  const modalContent  = document.getElementById("modal-unidad-content");
+  const modalInstance = new bootstrap.Modal(modalEl);
+
+  let selectedId = null;
+  let currentModalUrl = null;
+
+  /* ---- Filtro por columna (solo una) ---- */
+  inputs.forEach((input, i) => {
+    input.addEventListener("keyup", function () {
+      const filtro = input.value.toLowerCase();
+      const filas = tbody.querySelectorAll("tr");
+      filas.forEach(fila => {
+        if (fila.hasAttribute("data-empty-row")) return;
+        const celda = fila.cells[i];
+        if (!celda) return;
+        const texto = celda.textContent.toLowerCase();
+        fila.style.display = texto.includes(filtro) ? "" : "none";
+      });
+      currentPage = 1;
+      recomputarPageSize();
+      applyPagination();
+    });
+  });
+
+  /* ---- Selección de fila ---- */
+  tbody.addEventListener("click", (ev) => {
+    const row = ev.target.closest("tr");
+    if (!row || row.hasAttribute("data-empty-row")) return;
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = false;
+    document.getElementById("btnEditar").disabled    = false;
+    document.getElementById("btnEliminar").disabled  = false;
+  });
+
+  /* ---- Modal (cargar parcial por fetch) ---- */
+  function abrirModal(url) {
+    currentModalUrl = url;
+    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    modalInstance.show();
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+  }
+
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    currentModalUrl = null;
+    modalContent.innerHTML = '';
+  });
+
+  /* ---- Envío del form dentro del modal ---- */
+  modalContent.addEventListener('submit', function (e) {
+    const form = e.target.closest('form');
+    if (!form) return;
+    e.preventDefault();
+
+    const action = form.getAttribute('action') || currentModalUrl;
+    const data   = new FormData(form);
+
+    fetch(action, {
+      method: 'POST',
+      body: data,
+      headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(async (r) => {
+      if (r.ok) return r.json();           // { ok: true }
+      const json = await r.json().catch(() => ({})); // { ok:false, html:'...' }
+      if (json.html) modalContent.innerHTML = json.html;
+      throw new Error('validation');
+    })
+    .then((json) => { if (json.ok) window.location.reload(); })
+    .catch((err) => {
+      if (err.message !== 'validation') {
+        modalContent.innerHTML = '<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>';
+      }
+    });
+  });
+
+  /* ---- Botones ---- */
+  document.getElementById("btnCrear").addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
+    abrirModal(url);
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/mantenimiento/unidadesmedida/${selectedId}/consultar/`);
+  });
+
+  document.getElementById("btnEditar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/mantenimiento/unidadesmedida/${selectedId}/editar/`);
+  });
+
+  document.getElementById("btnEliminar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/mantenimiento/unidadesmedida/${selectedId}/eliminar/`);
+  });
+
+  /* ---- Paginación “inteligente” (mismo patrón que usuarios) ---- */
+  let currentPage = 1;
+  let pageSize    = 20;
+  const rowHeight = 45;
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr => !tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
+  }
+
+  function recomputarPageSize() {
+    const rect  = tbody.getBoundingClientRect();
+    const margenInf = 160;
+    const espacio = window.innerHeight - rect.top - margenInf;
+    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+  }
+
+  function applyPagination(){
+    const rows       = getDataRows();
+    const total      = rows.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * pageSize;
+    const end   = start + pageSize;
+
+    rows.forEach((tr, idx) => {
+      tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end));
+    });
+
+    renderPager(totalPages);
+  }
+
+  function renderPager(totalPages){
+    if (totalPages <= 1){
+      pagerEl.innerHTML = "";
+      pagerEl.style.display = "none";
+      return;
+    }
+    pagerEl.style.display = "flex";
+    pagerEl.innerHTML = "";
+
+    const prev = document.createElement("button");
+    prev.className = "page-btn";
+    prev.textContent = "←";
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { currentPage--; applyPagination(); };
+
+    const info = document.createElement("span");
+    info.className = "info";
+    info.textContent = `Página ${currentPage} de ${totalPages}`;
+
+    const next = document.createElement("button");
+    next.className = "page-btn";
+    next.textContent = "→";
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => { currentPage++; applyPagination(); };
+
+    pagerEl.append(prev, info, next);
+  }
+
+  // init
+  tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+  recomputarPageSize();
+  applyPagination();
+  window.addEventListener("resize", () => { recomputarPageSize(); applyPagination(); });
+});
+</script>
+{% endblock %}

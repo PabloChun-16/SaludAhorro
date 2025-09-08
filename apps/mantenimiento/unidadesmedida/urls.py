@@ -4,6 +4,10 @@ from . import views
 app_name = "mantenimiento_unidadesmedida"
 
 urlpatterns = [
-    path("", views.IndexView.as_view(), name="index"),
-    path("lista/", views.UnidadMedidaListView.as_view(), name="lista"),
+    path("", views.unidades_list, name="lista"),
+    path("crear/", views.unidades_create, name="crear"),
+    path("<int:pk>/consultar/", views.unidades_detail, name="consultar"),
+    path("<int:pk>/editar/", views.unidades_edit, name="editar"),
+    path("<int:pk>/eliminar/", views.unidades_delete, name="eliminar"),
 ]
+
