@@ -1,0 +1,1 @@
+from apps.mantenimiento.models import Laboratorio

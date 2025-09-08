@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 
     #Apps Mantenimiento
     'apps.mantenimiento.usuarios',
+    'apps.mantenimiento.laboratorios', 
 
 ]
 

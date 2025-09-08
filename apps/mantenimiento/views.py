@@ -12,9 +12,6 @@ def usuarios(request):
 def roles(request):
     return HttpResponse("Gestión de Roles")
 
-def laboratorios(request):
-    return HttpResponse("Gestión de Laboratorios")
-
 def presentaciones(request):
     return HttpResponse("Gestión de Presentaciones")
 

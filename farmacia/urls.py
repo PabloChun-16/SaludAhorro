@@ -33,7 +33,8 @@ urlpatterns = [
     
 
      # Mantenimiento (padre) con su propio namespace
-    path('mantenimiento/', include(('apps.mantenimiento.urls', 'mantenimiento'), namespace='mantenimiento')),
+    path('mantenimiento/', include('apps.mantenimiento.urls')),
+    path('mantenimiento/laboratorios/', include('apps.mantenimiento.laboratorios.urls')),
 ]
 
 
