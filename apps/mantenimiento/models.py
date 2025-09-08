@@ -12,16 +12,16 @@ class Roles(models.Model):
         verbose_name = 'Rol'
         verbose_name_plural = 'Roles'
 
-class Laboratorios(models.Model):
+class Laboratorio(models.Model):
     nombre_laboratorio = models.CharField(max_length=255, unique=True)
-    
+
+    class Meta:
+        db_table = "mantenimiento_laboratorios"
+        verbose_name = "Laboratorio"
+        verbose_name_plural = "Laboratorios"
+
     def __str__(self):
         return self.nombre_laboratorio
-        
-    class Meta:
-        verbose_name = 'Laboratorio'
-        verbose_name_plural = 'Laboratorios'
-
 
 class Presentaciones(models.Model):
     nombre_presentacion = models.CharField(max_length=100)

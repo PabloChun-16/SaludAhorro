@@ -59,8 +59,6 @@ INSTALLED_APPS = [
     'apps.mantenimiento.presentaciones',
     'apps.mantenimiento.unidadesmedida',
     'apps.mantenimiento.condicionesalmacenamiento',
-    
-
 ]
 
 MIDDLEWARE = [

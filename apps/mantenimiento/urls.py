@@ -6,23 +6,11 @@ app_name = "mantenimiento"
 
 urlpatterns = [
     path("", views.index, name="index"),
-
-    path("usuarios/",
-         include(("apps.mantenimiento.usuarios.urls", "mantenimiento_usuarios"),
-                 namespace="mantenimiento_usuarios")),
-    path("roles/",
-         include(("apps.mantenimiento.roles.urls", "mantenimiento_roles"),
-                 namespace="mantenimiento_roles")),
-    path("laboratorios/",
-         include(("apps.mantenimiento.laboratorios.urls", "mantenimiento_laboratorios"),
-                 namespace="mantenimiento_laboratorios")),
-    path("presentaciones/",
-         include(("apps.mantenimiento.presentaciones.urls", "mantenimiento_presentaciones"),
-                 namespace="mantenimiento_presentaciones")),
-    path("unidades-medida/",
-         include(("apps.mantenimiento.unidadesmedida.urls", "mantenimiento_unidadesmedida"),
-                 namespace="mantenimiento_unidadesmedida")),
-    path("condiciones-almacenamiento/",
-         include(("apps.mantenimiento.condicionesalmacenamiento.urls", "mantenimiento_condicionesalmacenamiento"),
-                 namespace="mantenimiento_condicionesalmacenamiento")),
+    path("laboratorios/", include(("apps.mantenimiento.laboratorios.urls", "laboratorios"), namespace="mantenimiento_laboratorios")),
+    path("roles/", include(("apps.mantenimiento.roles.urls", "roles"), namespace="mantenimiento_roles")),
+    path("usuarios/", include(("apps.mantenimiento.usuarios.urls", "usuarios"), namespace="mantenimiento_usuarios")),
+    path("presentaciones/", include(("apps.mantenimiento.presentaciones.urls", "presentaciones"), namespace="mantenimiento_presentaciones")),
+    path("unidadesmedida/", include(("apps.mantenimiento.unidadesmedida.urls", "unidadesmedida"), namespace="mantenimiento_unidadesmedida")),
+    path("condicionesalmacenamiento/", include(("apps.mantenimiento.condicionesalmacenamiento.urls", "condicionesalmacenamiento"), namespace="mantenimiento_condicionesalmacenamiento")),
 ]
+

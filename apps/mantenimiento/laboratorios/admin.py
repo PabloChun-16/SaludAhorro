@@ -1,3 +1,4 @@
 from django.contrib import admin
 
-# Register your models here.
+# El modelo Laboratorio ya se registra en apps/mantenimiento/admin.py
+# Aquí no es necesario volver a registrarlo.

@@ -1,6 +1,6 @@
 from django.db import models
-from apps.mantenimiento.models import Laboratorios, Presentaciones, Unidades_Medida, Condiciones_Almacenamiento, Estado_Producto, Estado_Lote
- 
+from apps.mantenimiento.models import Laboratorio, Presentaciones, Unidades_Medida, Condiciones_Almacenamiento, Estado_Producto, Estado_Lote
+
 
 # Create your models here.
 class Productos(models.Model):
@@ -13,7 +13,7 @@ class Productos(models.Model):
     stock_minimo = models.IntegerField(default=0, null=True, blank=True)
     
     # Relaciones de llave foránea a las tablas de Mantenimiento
-    id_laboratorio = models.ForeignKey(Laboratorios, on_delete=models.SET_NULL, null=True, blank=True)
+    id_laboratorio = models.ForeignKey(Laboratorio, on_delete=models.SET_NULL, null=True, blank=True)
     id_unidad_medida = models.ForeignKey(Unidades_Medida, on_delete=models.CASCADE)
     id_presentacion = models.ForeignKey(Presentaciones, on_delete=models.CASCADE)
     id_condicion_almacenamiento = models.ForeignKey(Condiciones_Almacenamiento, on_delete=models.SET_NULL, null=True, blank=True)
