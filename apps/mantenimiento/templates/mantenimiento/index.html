@@ -20,7 +20,7 @@
     </a>
 
     <!-- Roles -->
-    <a href="{% url 'mantenimiento:roles' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+    <a href="{% url 'mantenimiento:mantenimiento_roles:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-person-badge text-4xl text-emerald-700 text-slate-800 group-hover:text-emerald-700 transition "></i>
       </div>
@@ -28,7 +28,11 @@
     </a>
 
     <!-- Laboratorios -->
+<<<<<<< HEAD
     <a href="{% url 'laboratorios:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+=======
+    <a href="{% url 'mantenimiento:mantenimiento_laboratorios:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+>>>>>>> 8f1bf632157c62fc82b9665437497b376869f702
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-building text-4xl text-emerald-700 text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
@@ -36,7 +40,7 @@
     </a>
     
     <!-- Presentaciones -->
-    <a href="{% url 'mantenimiento:presentaciones' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+    <a href="{% url 'mantenimiento:mantenimiento_presentaciones:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-box text-4xl text-emerald-700 text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
@@ -44,7 +48,7 @@
     </a>
 
     <!-- Unidades de medida -->
-    <a href="{% url 'mantenimiento:unidades_medida' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+    <a href="{% url 'mantenimiento:mantenimiento_unidadesmedida:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-rulers text-4xl text-emerald-700 text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
@@ -52,7 +56,7 @@
     </a>
 
     <!-- Condiciones de almacenamiento -->
-    <a href="{% url 'mantenimiento:condiciones_almacenamiento' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
+    <a href="{% url 'mantenimiento:mantenimiento_condicionesalmacenamiento:lista' %}" class="group border rounded-xl p-6 text-center hover:shadow-lg transition">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-thermometer-snow text-4xl text-emerald-700 text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>

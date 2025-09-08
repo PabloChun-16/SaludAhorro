@@ -54,7 +54,16 @@ INSTALLED_APPS = [
 
     #Apps Mantenimiento
     'apps.mantenimiento.usuarios',
+<<<<<<< HEAD
     'apps.mantenimiento.laboratorios', 
+=======
+    'apps.mantenimiento.roles',
+    'apps.mantenimiento.laboratorios',
+    'apps.mantenimiento.presentaciones',
+    'apps.mantenimiento.unidadesmedida',
+    'apps.mantenimiento.condicionesalmacenamiento',
+    
+>>>>>>> 8f1bf632157c62fc82b9665437497b376869f702
 
 ]
 

@@ -4,98 +4,7 @@
 {% block title %}Usuarios · SAIF{% endblock %}
 
 {% block content %}
-
-<!-- ===== Estilos de la tabla / card ===== -->
-<style>
-  /* Card contenedora */
-  .saif-card {
-    border: 0;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 16px 40px rgba(14,122,58,.12);
-    background: #fff;
-  }
-  .saif-card .saif-card-header {
-    background: #0E7A3A;
-    color: #fff;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    border-bottom: 0;
-  }
-  .saif-card .saif-card-header h3 {
-    font-size: 1.15rem;
-    margin: 0;
-    font-weight: 700;
-    letter-spacing: .2px;
-  }
-
-  /* Tabla */
-  .table-saif {
-    margin: 0;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-  .table-saif thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #0E7A3A !important; /* verde */
-    color: #fff !important;
-    font-weight: 700;
-    border: none !important;
-  }
-  .table-saif thead .filter-row th {
-    background: #0f8557 !important; /* tono más claro para filtros */
-    border-top: 1px solid rgba(255,255,255,.25) !important;
-  }
-  .table-saif tbody tr { border-bottom: 1px solid #eef2f4; }
-  .table-saif tbody tr:nth-child(even) { background: #fbfdfc; }
-  .table-saif tbody tr:hover { background: #f0faf4; }
-  .table-saif td, .table-saif th { vertical-align: middle; }
-
-  /* Inputs de filtro */
-  .table-saif .form-control,
-  .table-saif .form-select {
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,.55);
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    height: 36px;
-    padding: .35rem .7rem;
-  }
-  .table-saif .form-control::placeholder { color: rgba(255,255,255,.9); }
-  .table-saif .form-control:focus,
-  .table-saif .form-select:focus {
-    outline: 0;
-    box-shadow: 0 0 0 .2rem rgba(255,255,255,.25);
-    border-color: #fff;
-    background: rgba(255,255,255,.25);
-    color: #fff;
-  }
-
-  /* Badge de Rol */
-  .badge-role {
-    background: #e9f7ef;
-    color: #0E7A3A;
-    border: 1px solid #cfeede;
-    font-weight: 600;
-    padding: .35rem .6rem;
-    border-radius: 999px;
-  }
-
-  /* Scroll horizontal suave en móviles */
-  .table-wrap {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Realce al seleccionar fila (opcional) */
-  .table-saif tbody tr.table-active {
-    box-shadow: inset 0 0 0 2px rgba(14,122,58,.45);
-  }
-</style>
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <section class="p-6 md:p-8">
 
@@ -105,6 +14,7 @@
       <h3>Gestión de Usuarios</h3>
     </div>
 
+    <!-- SOLO UNA table-wrap -->
     <div class="table-wrap">
       <table class="table table-saif align-middle text-center" id="tablaUsuarios">
         <thead>
@@ -121,35 +31,51 @@
             <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar Rol"></th>
           </tr>
         </thead>
+
         <tbody>
           {% for u in usuarios %}
           <tr data-id="{{ u.pk }}">
             <td class="text-capitalize">{{ u.nombre }}</td>
             <td class="text-capitalize">{{ u.apellido }}</td>
-            <td class="text-nowrap"><i class="bi bi-envelope text-muted me-1"></i>{{ u.correo_electronico }}</td>
-            <td><span class="badge-role"><i class="bi bi-shield-lock me-1"></i>{{ u.id_rol.nombre_rol }}</span></td>
+            <td class="text-nowrap">
+              <i class="bi bi-envelope text-muted me-1"></i>{{ u.correo_electronico }}
+            </td>
+            <td>
+              <span class="badge-role">
+                {% if u.id_rol.nombre_rol == "Administrador" %}
+                  <i class="bi bi-shield-lock me-1"></i>
+                {% elif u.id_rol.nombre_rol == "Empleado" %}
+                  <i class="bi bi-person-badge me-1"></i>
+                {% else %}
+                  <i class="bi bi-people me-1"></i>
+                {% endif %}
+                {{ u.id_rol.nombre_rol }}
+              </span>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="py-4 text-muted">No hay usuarios registrados.</td></tr>
+          <tr>
+            <td colspan="4" class="py-4 text-muted">No hay usuarios registrados.</td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
+    <!-- Paginador: centrado y con ancho completo -->
+    <div id="pagerUsuarios" class="saif-pager"></div>
+
+    <!-- Botones -->
     <div class="px-3 py-3 text-center">
-      <button id="btnCrear" class="btn btn-warning me-2"
-              data-bs-toggle="modal" data-bs-target="#modalUsuario">
+      <button id="btnCrear" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalUsuario">
         <i class="bi bi-plus-circle"></i> CREAR
       </button>
-
       <button id="btnConsultar" class="btn btn-primary me-2" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
-
       <button id="btnEditar" class="btn btn-success me-2" disabled>
         <i class="bi bi-pencil"></i> EDITAR
       </button>
-
       <button id="btnEliminar" class="btn btn-danger" disabled>
         <i class="bi bi-x-circle"></i> ELIMINAR
       </button>
@@ -164,14 +90,17 @@
     <div class="modal-content" id="modal-usuario-content"></div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
+
+{{ block.super }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const table         = document.getElementById("tablaUsuarios");
   const inputs        = table.querySelectorAll("thead input");
+  const tbody         = table.querySelector("tbody");
+  const pagerEl       = document.getElementById("pagerUsuarios");
   const modalEl       = document.getElementById('modalUsuario');
   const modalContent  = document.getElementById('modal-usuario-content');
   const modalInstance = new bootstrap.Modal(modalEl);
@@ -183,26 +112,30 @@ document.addEventListener("DOMContentLoaded", function () {
   inputs.forEach((input, i) => {
     input.addEventListener("keyup", function () {
       const filtro = input.value.toLowerCase();
-      const filas = table.querySelectorAll("tbody tr");
+      const filas = tbody.querySelectorAll("tr");
       filas.forEach(fila => {
+        if (fila.hasAttribute("data-empty-row")) return;
         const celda = fila.cells[i];
         if (!celda) return;
         const texto = celda.textContent.toLowerCase();
         fila.style.display = texto.includes(filtro) ? "" : "none";
       });
+      currentPage = 1;
+      recomputarPageSize();
+      applyPagination();
     });
   });
 
   /* ---------- Selección de fila ---------- */
-  table.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", function () {
-      table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-active"));
-      this.classList.add("table-active");
-      selectedUserId = this.getAttribute("data-id");
-      document.getElementById("btnConsultar").disabled = false;
-      document.getElementById("btnEditar").disabled    = false;
-      document.getElementById("btnEliminar").disabled  = false;
-    });
+  tbody.addEventListener("click", (ev) => {
+    const row = ev.target.closest("tr");
+    if (!row || row.hasAttribute("data-empty-row")) return;
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedUserId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = false;
+    document.getElementById("btnEditar").disabled    = false;
+    document.getElementById("btnEliminar").disabled  = false;
   });
 
   /* ---------- Abrir modal y cargar parcial ---------- */
@@ -239,7 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .then(async (r) => {
       if (r.ok) return r.json();              // { ok: true }
       const data = await r.json().catch(() => ({})); // { ok:false, html:'...' }
-      if (data.html) modalContent.innerHTML = data.html; // re-render form con errores
+      if (data.html) modalContent.innerHTML = data.html;
       throw new Error('validation');
     })
     .then((data) => { if (data.ok) window.location.reload(); })
@@ -250,7 +183,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  /* ---------- “Ojito” mostrar/ocultar password (delegación) ---------- */
+  
+
+  /* ---------- Botones ---------- */
+  document.getElementById("btnCrear").addEventListener("click", () => {
+    abrirModal(`/mantenimiento/usuarios/nuevo/`);
+  });
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/consultar/`);
+  });
+  document.getElementById("btnEditar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/editar/`);
+  });
+  document.getElementById("btnEliminar").addEventListener("click", () => {
+    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/eliminar/`);
+  });
+
+
+
+/* ---------- “Ojito” mostrar/ocultar password (delegación) ---------- */
   modalContent.addEventListener('click', function (ev) {
     const btn = ev.target.closest('[data-toggle-password]');
     if (!btn) return;
@@ -282,19 +233,114 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* ---------- Botones ---------- */
-  document.getElementById("btnCrear").addEventListener("click", () => {
-    abrirModal(`/mantenimiento/usuarios/nuevo/`);
-  });
-  document.getElementById("btnConsultar").addEventListener("click", () => {
-    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/consultar/`);
-  });
-  document.getElementById("btnEditar").addEventListener("click", () => {
-    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/editar/`);
-  });
-  document.getElementById("btnEliminar").addEventListener("click", () => {
-    if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/eliminar/`);
-  });
+
+  /* ---------- Paginación dinámica ---------- */
+  let currentPage = 1;
+  let pageSize    = 20; // valor inicial; luego se recalcula
+  const rowHeight = 45; // igual a --saif-row-h del CSS
+
+  function recomputarPageSize() {
+    const rect  = tbody.getBoundingClientRect();
+    const margenInf = 160; // espacio para paginador + botones (ajústalo si cambias layout)
+    const espacio = window.innerHeight - rect.top - margenInf;
+    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+  }
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr => !tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
+  }
+
+  function applyPagination(){
+    const rows       = getDataRows();
+    const total      = rows.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * pageSize;
+    const end   = start + pageSize;
+
+    rows.forEach((tr, idx) => {
+      tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end));
+    });
+
+    renderPager(totalPages, total);
+  }
+
+  function renderPager(totalPages, total){
+    if (totalPages <= 1){
+      pagerEl.innerHTML = "";
+      pagerEl.style.display = "none";
+      return;
+    }
+    pagerEl.style.display = "flex";
+    pagerEl.innerHTML = "";
+
+    const prev = document.createElement("button");
+    prev.className = "page-btn";
+    prev.textContent = "←";
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { currentPage--; applyPagination(); };
+
+    const info = document.createElement("span");
+    info.className = "info";
+    info.textContent = `Página ${currentPage} de ${totalPages}`;
+
+    const next = document.createElement("button");
+    next.className = "page-btn";
+    next.textContent = "→";
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => { currentPage++; applyPagination(); };
+
+    pagerEl.append(prev, info, next);
+  }
+
+  function rellenarHastaAbajo(){
+    // elimina relleno anterior
+    tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+
+    const rect  = tbody.getBoundingClientRect();
+    const margenInf = 160;
+    const espacio = window.innerHeight - rect.top - margenInf;
+
+    const visibles = Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr => tr.style.display !== "none" && !tr.classList.contains("hidden-by-pagination"));
+
+    const usados = visibles.length * rowHeight;
+    const faltan = Math.max(0, Math.ceil((espacio - usados) / rowHeight));
+    for (let i = 0; i < faltan; i++){
+      const tr = document.createElement("tr");
+      tr.setAttribute("data-empty-row", "true");
+      tr.innerHTML = `<td colspan="4">&nbsp;</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+
+  // Inicial: limpia posibles rellenos antiguos, calcula y pagina
+tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+recomputarPageSize();
+applyPagination();
+
+// Recalcular en resize
+window.addEventListener("resize", () => {
+  recomputarPageSize();
+  applyPagination();
 });
+
+// Inicial: limpia posibles rellenos antiguos, calcula y pagina
+tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+recomputarPageSize();
+applyPagination();
+
+// Recalcular en resize
+window.addEventListener("resize", () => {
+  recomputarPageSize();
+  applyPagination();
+});
+
+});
+
+
 </script>
 {% endblock %}

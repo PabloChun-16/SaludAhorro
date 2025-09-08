@@ -1,13 +1,14 @@
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import ExternalUsuario
-import bcrypt
+from django.contrib.auth.hashers import check_password, make_password, identify_hasher
+from .models import ExternalUsuario  # si en realidad es Usuario, importa ese
 
 class ExternalUsuariosBackend(BaseBackend):
     """
     Autentica contra la tabla externa mantenimiento_usuarios.
-    El 'username' que recibe será el email del usuario.
+    El 'username' es el email.
+    Usa el sistema de hash de Django (pbkdf2_sha256 por defecto).
     """
 
     def authenticate(self, request, username=None, password=None, **kwargs):
@@ -19,40 +20,46 @@ class ExternalUsuariosBackend(BaseBackend):
         except ExternalUsuario.DoesNotExist:
             return None
 
-        # Verifica el hash (ajusta si tu hash no es bcrypt)
-        try:
-            if not bcrypt.checkpw(password.encode("utf-8"), ext.password_hash.encode("utf-8")):
-                return None
-        except ValueError:
-            # Si el formato del hash no es válido para bcrypt
+        # 1) Verificar contraseña con el hasher de Django
+        if not check_password(password, ext.password_hash):
             return None
 
-        # Mapea rol a permisos básicos de Django (ajústalo a tu lógica)
-        is_staff = bool(ext.id_rol_id == 1)   # p.ej. rol 1 = admin
-        is_superuser = False                  # ajusta si procede
+        # 2) (Opcional pero recomendado) Actualizar el hash si el formato viejo no es el actual
+        #    p.ej., si venía de otro algoritmo o texto plano
+        try:
+            hasher = identify_hasher(ext.password_hash)
+        except Exception:
+            hasher = None  # hash inválido o texto plano (si ya pasó check_password, era texto plano)
+        # Si el hasher no es el default actual, re-hashear
+        # Nota: podrías usar hasher.must_update(...) si quieres granularidad.
+        if hasher is None or hasher.algorithm != "pbkdf2_sha256":
+            ext.password_hash = make_password(password)  # usa el default (pbkdf2_sha256)
+            ext.save(update_fields=["password_hash"])
 
-        # Crea/actualiza el usuario de Django “espejo”
+        # 3) Mapear a usuario "espejo" de Django
+        is_staff = bool(ext.id_rol_id == 1)   # ajusta tu lógica
+        is_superuser = False
+
         with transaction.atomic():
             user, created = User.objects.get_or_create(
                 username=ext.correo_electronico,
                 defaults={
-                    "first_name": ext.nombre[:150],
-                    "last_name": ext.apellido[:150],
+                    "first_name": (ext.nombre or "")[:150],
+                    "last_name": (ext.apellido or "")[:150],
                     "email": ext.correo_electronico,
                     "is_active": True,
                     "is_staff": is_staff,
                     "is_superuser": is_superuser,
                 },
             )
-            # Sincroniza datos cada login (opcional)
             if not created:
-                user.first_name = ext.nombre[:150]
-                user.last_name = ext.apellido[:150]
+                user.first_name = (ext.nombre or "")[:150]
+                user.last_name = (ext.apellido or "")[:150]
                 user.email = ext.correo_electronico
                 user.is_active = True
                 user.is_staff = is_staff
                 user.is_superuser = is_superuser
-                user.save()
+                user.save(update_fields=["first_name", "last_name", "email", "is_active", "is_staff", "is_superuser"])
 
         return user
 

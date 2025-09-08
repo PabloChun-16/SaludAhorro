@@ -1,4 +1,5 @@
 from django.test import TestCase
+<<<<<<< HEAD
 from .models import Laboratorio
 
 class LaboratorioModelTest(TestCase):
@@ -10,3 +11,7 @@ class LaboratorioModelTest(TestCase):
             email="lab@correo.com"
         )
         self.assertEqual(str(lab), "Laboratorio Central")
+=======
+
+# Create your tests here.
+>>>>>>> 8f1bf632157c62fc82b9665437497b376869f702
