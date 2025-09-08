@@ -6,10 +6,11 @@ app_name = "mantenimiento"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("usuarios/", include("apps.mantenimiento.usuarios.urls", namespace="mantenimiento_usuarios")),
-    path("roles/", views.roles, name="roles"),
-    path('laboratorios/', include(('apps.mantenimiento.laboratorios.urls', 'laboratorios'), namespace='laboratorios')),
-    path("presentaciones/", views.presentaciones, name="presentaciones"),
-    path("unidades_medida/", views.unidades_medida, name="unidades_medida"),
-    path("condiciones_almacenamiento/", views.condiciones_almacenamiento, name="condiciones_almacenamiento"),
+    path("laboratorios/", include(("apps.mantenimiento.laboratorios.urls", "laboratorios"), namespace="mantenimiento_laboratorios")),
+    path("roles/", include(("apps.mantenimiento.roles.urls", "roles"), namespace="mantenimiento_roles")),
+    path("usuarios/", include(("apps.mantenimiento.usuarios.urls", "usuarios"), namespace="mantenimiento_usuarios")),
+    path("presentaciones/", include(("apps.mantenimiento.presentaciones.urls", "presentaciones"), namespace="mantenimiento_presentaciones")),
+    path("unidadesmedida/", include(("apps.mantenimiento.unidadesmedida.urls", "unidadesmedida"), namespace="mantenimiento_unidadesmedida")),
+    path("condicionesalmacenamiento/", include(("apps.mantenimiento.condicionesalmacenamiento.urls", "condicionesalmacenamiento"), namespace="mantenimiento_condicionesalmacenamiento")),
 ]
+
