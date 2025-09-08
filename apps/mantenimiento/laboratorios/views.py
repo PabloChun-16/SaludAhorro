@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
@@ -80,16 +79,3 @@ def eliminar_laboratorio(request, pk):
         return HttpResponse(html)
 
     return redirect("laboratorios:lista")
-=======
-from django.views.generic import TemplateView, ListView
-from apps.mantenimiento.models import Laboratorios
-
-class IndexView(TemplateView):
-    template_name = "mantenimiento/laboratorios/index.html"
-
-class LaboratorioListView(ListView):
-    model = Laboratorios
-    template_name = "mantenimiento_laboratorios/lista.html"
-    context_object_name = "items"
-    paginate_by = 20
->>>>>>> 8f1bf632157c62fc82b9665437497b376869f702
