@@ -183,6 +183,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  
+
   /* ---------- Botones ---------- */
   document.getElementById("btnCrear").addEventListener("click", () => {
     abrirModal(`/mantenimiento/usuarios/nuevo/`);
@@ -196,6 +198,41 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btnEliminar").addEventListener("click", () => {
     if (selectedUserId) abrirModal(`/mantenimiento/usuarios/${selectedUserId}/eliminar/`);
   });
+
+
+
+/* ---------- “Ojito” mostrar/ocultar password (delegación) ---------- */
+  modalContent.addEventListener('click', function (ev) {
+    const btn = ev.target.closest('[data-toggle-password]');
+    if (!btn) return;
+
+    const selector = btn.getAttribute('data-toggle-password');
+    const input = modalContent.querySelector(selector);
+    if (!input) return;
+
+    const icon = btn.querySelector('i');
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    icon.classList.toggle('bi-eye', !isHidden);
+    icon.classList.toggle('bi-eye-slash', isHidden);
+  });
+
+  /* ---------- Validación live de confirmación de password ---------- */
+  modalContent.addEventListener('input', function () {
+    const pass  = modalContent.querySelector('[data-pass]');
+    const pass2 = modalContent.querySelector('[data-pass-confirm]');
+    if (!pass || !pass2) return;
+
+    if (pass2.value.length === 0) {
+      pass2.classList.remove('is-valid','is-invalid'); return;
+    }
+    if (pass.value === pass2.value) {
+      pass2.classList.add('is-valid');  pass2.classList.remove('is-invalid');
+    } else {
+      pass2.classList.add('is-invalid'); pass2.classList.remove('is-valid');
+    }
+  });
+
 
   /* ---------- Paginación dinámica ---------- */
   let currentPage = 1;
