@@ -1,8 +1,24 @@
+
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.views.generic import ListView
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
+
+
+@require_http_methods(["GET"])
+def usuario_consultar_modal(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+    html = render_to_string(
+        "mantenimiento_usuarios/partials/_consultar.html",
+        {"usuario": usuario},
+        request=request
+    )
+    # Si es petición AJAX, retorna solo el HTML parcial
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return HttpResponse(html)
+    # Si no, retorna el HTML completo (fallback)
+    return HttpResponse(html)
 
 from .models import Usuario
 from .forms import UsuarioForm
