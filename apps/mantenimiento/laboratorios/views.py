@@ -1,108 +1,81 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from apps.mantenimiento.models import Laboratorio
 from .forms import LaboratorioForm
 
 
-def _is_ajax(request):
-    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
-
-# LISTA
+# Listado de laboratorios
 def lista_laboratorios(request):
-    laboratorios = Laboratorio.objects.order_by("nombre_laboratorio")
+    laboratorios = Laboratorio.objects.all().order_by("nombre_laboratorio")
     return render(
         request,
         "mantenimiento_laboratorios/lista.html",
-        {"laboratorios": laboratorios},
+        {"laboratorios": laboratorios}
     )
 
-
-# CREAR (contrato JSON => {"ok": true})
+# Crear laboratorio
 def crear_laboratorio(request):
-    if not _is_ajax(request):
-        return HttpResponseBadRequest("Solo AJAX")
-
     form = LaboratorioForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return JsonResponse({"success": True})
 
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            return JsonResponse({"ok": True})
-        # POST inválido -> devolver el parcial con errores
+    # Si es GET o POST inválido, devolver HTML para el modal
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
             "mantenimiento_laboratorios/partials/_form.html",
             {"form": form, "titulo": "Crear Laboratorio", "action": request.path},
-            request=request,
+            request=request
         )
-        return JsonResponse({"ok": False, "html": html}, status=400)
+        return HttpResponse(html)
 
-    # GET -> devolver el parcial vacío
-    html = render_to_string(
-        "mantenimiento_laboratorios/partials/_form.html",
-        {"form": form, "titulo": "Crear Laboratorio", "action": request.path},
-        request=request,
-    )
-    return HttpResponse(html)
+    return redirect("laboratorios:lista")
 
-
-# CONSULTAR (solo HTML)
+# Consultar laboratorio
 def consultar_laboratorio(request, pk):
-    if not _is_ajax(request):
-        return HttpResponseBadRequest("Solo AJAX")
-
     lab = get_object_or_404(Laboratorio, pk=pk)
-    html = render_to_string(
-        "mantenimiento_laboratorios/partials/_consultar.html",
-        {"lab": lab, "titulo": "Detalle de Laboratorio"},
-        request=request,
-    )
-    return HttpResponse(html)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        html = render_to_string(
+            "mantenimiento_laboratorios/partials/_consultar.html",
+            {"lab": lab},
+            request=request
+        )
+        return HttpResponse(html)
+    return redirect("laboratorios:lista")
 
 
-# EDITAR (contrato JSON => {"ok": true})
+# Editar laboratorio
 def editar_laboratorio(request, pk):
-    if not _is_ajax(request):
-        return HttpResponseBadRequest("Solo AJAX")
-
     lab = get_object_or_404(Laboratorio, pk=pk)
     form = LaboratorioForm(request.POST or None, instance=lab)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return JsonResponse({"success": True})
 
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            return JsonResponse({"ok": True})
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html = render_to_string(
             "mantenimiento_laboratorios/partials/_form.html",
             {"form": form, "titulo": "Editar Laboratorio", "action": request.path},
-            request=request,
+            request=request
         )
-        return JsonResponse({"ok": False, "html": html}, status=400)
+        return HttpResponse(html)
 
-    html = render_to_string(
-        "mantenimiento_laboratorios/partials/_form.html",
-        {"form": form, "titulo": "Editar Laboratorio", "action": request.path},
-        request=request,
-    )
-    return HttpResponse(html)
+    return redirect("laboratorios:lista")
 
 
-# ELIMINAR (contrato JSON => {"ok": true})
+# Eliminar laboratorio
 def eliminar_laboratorio(request, pk):
-    if not _is_ajax(request):
-        return HttpResponseBadRequest("Solo AJAX")
-
     lab = get_object_or_404(Laboratorio, pk=pk)
-
     if request.method == "POST":
         lab.delete()
-        return JsonResponse({"ok": True})
 
-    # GET -> confirmar
-    html = render_to_string(
-        "mantenimiento_laboratorios/partials/_confirm_delete.html",
-        {"lab": lab, "titulo": "Eliminar Laboratorio", "action": request.path},
-        request=request,
-    )
-    return HttpResponse(html)
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        html = render_to_string(
+            "mantenimiento_laboratorios/partials/_confirm_delete.html",
+            {"lab": lab},
+            request=request
+        )
+        return HttpResponse(html)
+
+    return redirect("laboratorios:lista")

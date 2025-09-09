@@ -1,0 +1,75 @@
+{% load static %}
+
+<div class="saif-modal">
+    <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" width="24" height="24" class="rounded-circle bg-white p-1">
+            <h5 class="modal-title mb-0 fw-bold">Eliminar Presentación</h5>
+            <span class="fw-semibold">SAIF</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    </div>
+
+    <form method="post" id="form-eliminar-presentacion" action="{% url 'mantenimiento_presentaciones:eliminar' pk=presentacion.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+            <div class="alert alert-danger d-flex align-items-center gap-2 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <span class="fw-semibold">¿Seguro que deseas eliminar la presentación</span>
+                    <strong>{{ presentacion.nombre_presentacion }}</strong>?
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i> Eliminar
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const formEliminar = document.getElementById("form-eliminar-presentacion");
+        if (formEliminar) {
+            formEliminar.addEventListener("submit", function(e) {
+                e.preventDefault();
+
+                fetch(this.action, {
+                        method: "POST",
+                        body: new FormData(this),
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Respuesta del servidor no exitosa.");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById("modalPresentacion"));
+                            if (modal) {
+                                modal.hide();
+                            }
+                            location.reload();
+                        } else {
+                            alert('Error al eliminar: ' + (data.error || 'Mensaje de error desconocido.'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error en la petición de eliminación:", error);
+                        alert("Ocurrió un error inesperado al intentar eliminar. Por favor, inténtelo de nuevo.");
+                    });
+            });
+        }
+    });
+</script>
