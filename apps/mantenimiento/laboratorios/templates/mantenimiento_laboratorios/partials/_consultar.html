@@ -1,15 +1,47 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'consult/consult.css' %}">
+
 <div class="saif-modal">
-  <div class="modal-header bg-info text-white">
-    <h5 class="modal-title"><i class="bi bi-search"></i> Consultar Laboratorio</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <!-- Header -->
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" 
+           alt="Logo" class="rounded-circle bg-white p-1"
+           style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">
+        {{ titulo|default:"Detalle de Laboratorio" }}
+      </h5>
+      <span class="saif-badge ms-2">
+        <i class="bi bi-shield-check"></i> SAIF
+      </span>
+    </div>
+    <button type="button" class="btn-close btn-close-white"
+            data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
+  <!-- Body -->
   <div class="modal-body">
-    <p><strong>ID:</strong> {{ lab.id }}</p>
-    <p><strong>Nombre:</strong> {{ lab.nombre_laboratorio }}</p>
+    <div class="container-fluid">
+      <div class="row g-3">
+        
+        <div class="col-12 col-md-6">
+          <label class="form-label mb-1">Nombre del Laboratorio</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-building"></i></span>
+            <input class="form-control readonly-control"
+                   value="{{ lab.nombre_laboratorio }}" readonly>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+  <!-- Footer -->
+  <div class="modal-footer bg-white">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg"></i> Cerrar
+    </button>
   </div>
 </div>

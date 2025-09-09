@@ -1,0 +1,43 @@
+/* ===== Formularios (crear/editar usuario) ===== */
+.saif-modal .modal-header {
+  background: #0E7A3A;
+  color: #fff;
+  border-bottom: 0;
+}
+
+.saif-modal .modal-content {
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
+}
+
+.saif-modal .modal-body {
+  background: #f7fbf9;
+}
+
+.saif-modal .form-label {
+  font-weight: 600;
+  margin-bottom: .35rem;
+}
+
+.saif-modal .form-control,
+.saif-modal .form-select {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  transition: all .2s ease;
+}
+
+.saif-modal .form-control:focus,
+.saif-modal .form-select:focus {
+  border-color: #0E7A3A;
+  box-shadow: 0 0 0 0.2rem rgba(14, 122, 58, 0.25);
+  outline: none;
+}
+
+/* Botones */
+.saif-modal .modal-footer .btn {
+  border-radius: 10px;
+  font-weight: 500;
+  padding: 0.45rem 1.2rem;
+}

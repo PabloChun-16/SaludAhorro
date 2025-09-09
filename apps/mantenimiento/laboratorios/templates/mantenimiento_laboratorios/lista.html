@@ -4,77 +4,7 @@
 {% block title %}Laboratorios · SAIF{% endblock %}
 
 {% block content %}
-
-<style>
-  .saif-card {
-    border: 0;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 16px 40px rgba(14,122,58,.12);
-    background: #fff;
-  }
-  .saif-card .saif-card-header {
-    background: #0E7A3A;
-    color: #fff;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    border-bottom: 0;
-  }
-  .saif-card .saif-card-header h3 {
-    font-size: 1.15rem;
-    margin: 0;
-    font-weight: 700;
-  }
-
-  /* --- Tabla --- */
-  .table-saif {
-    margin: 0;
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    text-align: center;
-  }
-  .table-saif thead th {
-    background: #0E7A3A !important;
-    color: #fff !important;
-    font-weight: 700;
-    border: none !important;
-    text-align: center;
-  }
-  .table-saif thead .filter-row th {
-    background: #0f8557 !important;
-  }
-  .table-saif tbody td {
-    padding: 0.8rem;
-    text-align: center;
-    vertical-align: middle;
-    white-space: nowrap; /* evita que se estiren demasiado */
-  }
-  .table-saif tbody tr:nth-child(even) { background: #fbfdfc; }
-  .table-saif tbody tr:hover { background: #f0faf4; }
-
-  /* --- Botones CRUD centrados y uniformes --- */
-  .crud-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    margin: 1.2rem 0;
-  }
-  .crud-buttons .btn {
-    min-width: 110px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 10px;
-    padding: 0.4rem 0.75rem;
-  }
-  .crud-buttons .btn i {
-    margin-right: 4px;
-    font-size: 0.9rem;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <section class="p-6 md:p-8">
 
@@ -84,44 +14,46 @@
       <h3>Gestión de Laboratorios</h3>
     </div>
 
+    <!-- Tabla -->
     <div class="table-wrap">
       <table class="table table-saif align-middle text-center" id="tablaLaboratorios">
         <thead>
           <tr>
-            <th>Nombre del Laboratorio</th>
+            <th style="min-width: 260px;">Nombre del Laboratorio</th>
           </tr>
           <tr class="filter-row">
             <th><input type="text" class="form-control form-control-sm text-center" placeholder="Filtrar Nombre"></th>
           </tr>
         </thead>
+
         <tbody>
           {% for lab in laboratorios %}
           <tr data-id="{{ lab.pk }}">
             <td class="text-capitalize">{{ lab.nombre_laboratorio }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="1" class="py-4 text-muted">No hay laboratorios registrados.</td></tr>
+          <tr>
+            <td colspan="1" class="py-4 text-muted">No hay laboratorios registrados.</td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <!-- Botones CRUD centrados -->
-    <div class="crud-buttons">
-      <button id="btnCrear" class="btn btn-warning"
-            data-bs-toggle="modal" data-bs-target="#modalLaboratorio"
-            data-url="{% url 'laboratorios:crear_laboratorio' %}">
+    <!-- Paginador -->
+    <div id="pagerLaboratorios" class="saif-pager"></div>
+
+    <!-- Botones CRUD -->
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#modalLaboratorio">
         <i class="bi bi-plus-circle"></i> CREAR
       </button>
-
-      <button id="btnConsultar" class="btn btn-primary" disabled>
+      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
-
-      <button id="btnEditar" class="btn btn-success" disabled>
+      <button id="btnEditar" class="btn btn-success me-2" disabled>
         <i class="bi bi-pencil"></i> EDITAR
       </button>
-
       <button id="btnEliminar" class="btn btn-danger" disabled>
         <i class="bi bi-x-circle"></i> ELIMINAR
       </button>
@@ -136,14 +68,16 @@
     <div class="modal-content" id="modal-laboratorio-content"></div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const table         = document.getElementById("tablaLaboratorios");
   const inputs        = table.querySelectorAll("thead input");
+  const tbody         = table.querySelector("tbody");
+  const pagerEl       = document.getElementById("pagerLaboratorios");
   const modalEl       = document.getElementById('modalLaboratorio');
   const modalContent  = document.getElementById('modal-laboratorio-content');
   const modalInstance = new bootstrap.Modal(modalEl);
@@ -151,33 +85,37 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedLabId = null;
   let currentModalUrl = null;
 
-  /* ---------- Filtros ---------- */
+  /* ---------- Filtros por columna ---------- */
   inputs.forEach((input, i) => {
     input.addEventListener("keyup", function () {
       const filtro = input.value.toLowerCase();
-      const filas = table.querySelectorAll("tbody tr");
+      const filas = tbody.querySelectorAll("tr");
       filas.forEach(fila => {
+        if (fila.hasAttribute("data-empty-row")) return;
         const celda = fila.cells[i];
         if (!celda) return;
         const texto = celda.textContent.toLowerCase();
         fila.style.display = texto.includes(filtro) ? "" : "none";
       });
+      currentPage = 1;
+      recomputarPageSize();
+      applyPagination();
     });
   });
 
   /* ---------- Selección de fila ---------- */
-  table.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", function () {
-      table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-active"));
-      this.classList.add("table-active");
-      selectedLabId = this.getAttribute("data-id");
-      document.getElementById("btnConsultar").disabled = false;
-      document.getElementById("btnEditar").disabled    = false;
-      document.getElementById("btnEliminar").disabled  = false;
-    });
+  tbody.addEventListener("click", (ev) => {
+    const row = ev.target.closest("tr");
+    if (!row || row.hasAttribute("data-empty-row")) return;
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedLabId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = false;
+    document.getElementById("btnEditar").disabled    = false;
+    document.getElementById("btnEliminar").disabled  = false;
   });
 
-  /* ---------- Abrir modal ---------- */
+  /* ---------- Modal (cargar parcial) ---------- */
   function abrirModal(url) {
     currentModalUrl = url;
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
@@ -194,7 +132,35 @@ document.addEventListener("DOMContentLoaded", function () {
     modalContent.innerHTML = '';
   });
 
-  /* ---------- Botones CRUD ---------- */
+  /* ---------- Envío del form ---------- */
+  modalContent.addEventListener('submit', function (e) {
+    const form = e.target.closest('form');
+    if (!form) return;
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const actionUrl = form.getAttribute('action') || currentModalUrl;
+
+    fetch(actionUrl, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(async (r) => {
+      if (r.ok) return r.json();
+      const data = await r.json().catch(() => ({}));
+      if (data.html) modalContent.innerHTML = data.html;
+      throw new Error('validation');
+    })
+    .then((data) => { if (data.ok) window.location.reload(); })
+    .catch((err) => {
+      if (err.message !== 'validation') {
+        modalContent.innerHTML = '<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>';
+      }
+    });
+  });
+
+  /* ---------- Botones ---------- */
   document.getElementById("btnCrear").addEventListener("click", () => {
     abrirModal(`/mantenimiento/laboratorios/crear/`);
   });
@@ -208,30 +174,72 @@ document.addEventListener("DOMContentLoaded", function () {
     if (selectedLabId) abrirModal(`/mantenimiento/laboratorios/${selectedLabId}/eliminar/`);
   });
 
-  /* ---------- Captura de envío de formularios ---------- */
-  document.addEventListener("submit", function (e) {
-    if (e.target && e.target.id === "form-laboratorio") {
-      e.preventDefault();
-      const form = e.target;
+  /* ---------- Paginación dinámica ---------- */
+  let currentPage = 1;
+  let pageSize    = 20;
+  const rowHeight = 45;
 
-      fetch(form.action || window.location.href, {
-        method: "POST",
-        body: new FormData(form),
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const modal = bootstrap.Modal.getInstance(modalEl);
-          modal.hide();
-          location.reload(); // ✅ Refresca la tabla automáticamente
-        } else if (data.html) {
-          modalContent.innerHTML = data.html;
-        }
-      })
-      .catch(err => console.error("Error al enviar formulario:", err));
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr => !tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
+  }
+
+  function recomputarPageSize() {
+    const rect  = tbody.getBoundingClientRect();
+    const margenInf = 160;
+    const espacio = window.innerHeight - rect.top - margenInf;
+    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+  }
+
+  function applyPagination(){
+    const rows       = getDataRows();
+    const total      = rows.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * pageSize;
+    const end   = start + pageSize;
+
+    rows.forEach((tr, idx) => {
+      tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end));
+    });
+
+    renderPager(totalPages);
+  }
+
+  function renderPager(totalPages){
+    if (totalPages <= 1){
+      pagerEl.innerHTML = "";
+      pagerEl.style.display = "none";
+      return;
     }
-  });
+    pagerEl.style.display = "flex";
+    pagerEl.innerHTML = "";
+
+    const prev = document.createElement("button");
+    prev.className = "page-btn";
+    prev.textContent = "←";
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { currentPage--; applyPagination(); };
+
+    const info = document.createElement("span");
+    info.className = "info";
+    info.textContent = `Página ${currentPage} de ${totalPages}`;
+
+    const next = document.createElement("button");
+    next.className = "page-btn";
+    next.textContent = "→";
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => { currentPage++; applyPagination(); };
+
+    pagerEl.append(prev, info, next);
+  }
+
+  // init
+  tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+  recomputarPageSize();
+  applyPagination();
+  window.addEventListener("resize", () => { recomputarPageSize(); applyPagination(); });
 });
 </script>
 {% endblock %}
