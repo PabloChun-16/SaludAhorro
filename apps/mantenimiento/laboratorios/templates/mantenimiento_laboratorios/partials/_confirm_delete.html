@@ -1,41 +1,42 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
+
 <div class="saif-modal">
-  <div class="modal-header bg-danger text-white">
-    <h5 class="modal-title"><i class="bi bi-x-circle"></i> Eliminar Laboratorio</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">
+        {{ titulo|default:"Eliminar Laboratorio" }}
+      </h5>
+      <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
-  <form method="post" id="form-eliminar-laboratorio"
-        action="{% url 'laboratorios:eliminar_laboratorio' lab.pk %}">
+  <form method="post" id="form-eliminar-laboratorio" action="{{ action }}">
     <div class="modal-body">
       {% csrf_token %}
-      <p>¿Seguro que deseas eliminar el laboratorio <strong>{{ lab.nombre_laboratorio }}</strong>?</p>
+
+      <p class="mb-3">
+        ¿Seguro que deseas eliminar el siguiente laboratorio?
+      </p>
+
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-building"></i></span>
+        <input type="text" class="form-control readonly-control" value="{{ lab.nombre_laboratorio }}" readonly>
+      </div>
     </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <button type="submit" class="btn btn-danger">Eliminar</button>
+
+    <div class="modal-footer bg-white">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Eliminar
+      </button>
     </div>
   </form>
 </div>
 
-<script>
-document.querySelector("#form-eliminar-laboratorio")?.addEventListener("submit", function(e) {
-  e.preventDefault();
-
-  fetch(this.action, {
-    method: "POST",
-    body: new FormData(this),
-    headers: { "X-Requested-With": "XMLHttpRequest" }
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      // Eliminar fila de la tabla si existe
-      const fila = document.querySelector(`#tablaLaboratorios tr[data-id="${data.id}"]`);
-      if (fila) fila.remove();
-
-      // Cerrar modal
-      bootstrap.Modal.getInstance(document.getElementById("modalLaboratorio")).hide();
-    }
-  });
-});
-</script>

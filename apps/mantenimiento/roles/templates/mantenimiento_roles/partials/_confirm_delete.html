@@ -1,0 +1,42 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
+
+<div class="saif-modal">
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">
+        {{ titulo|default:"Eliminar Rol" }}
+      </h5>
+      <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <form method="post" id="form-eliminar-rol" action="{{ action }}">
+    <div class="modal-body">
+      {% csrf_token %}
+
+      <p class="mb-3">
+        ¿Seguro que deseas eliminar el siguiente rol?
+      </p>
+
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+        <input type="text" class="form-control readonly-control" value="{{ rol.nombre_rol }}" readonly>
+      </div>
+
+     
+
+    <div class="modal-footer bg-white">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Eliminar
+      </button>
+    </div>
+  </form>
+</div>

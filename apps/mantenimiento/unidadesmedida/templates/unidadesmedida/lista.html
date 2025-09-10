@@ -29,9 +29,9 @@
           <tr data-id="{{ u.pk }}">
             <td class="text-capitalize">{{ u.nombre_unidad }}</td>
           </tr>
-          {% empty %}
-          <tr data-empty-row="true">
-            <td class="py-4 text-muted">No hay datos.</td>
+         {% empty %}
+          <tr>
+            <td colspan="1" class="py-4 text-muted">No hay Unidades De Medida registrados.</td>
           </tr>
           {% endfor %}
         </tbody>
