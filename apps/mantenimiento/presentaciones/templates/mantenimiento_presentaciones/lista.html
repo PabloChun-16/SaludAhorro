@@ -1,0 +1,227 @@
+{% extends "dashboard/base.html" %} {% load static %} {% block title %}Presentaciones · SAIF{% endblock %} {% block content %}
+
+<style>
+    .saif-card {
+        border: 0;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(14, 122, 58, .12);
+        background: #fff;
+    }
+    
+    .saif-card .saif-card-header {
+        background: #0E7A3A;
+        color: #fff;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        border-bottom: 0;
+    }
+    
+    .saif-card .saif-card-header h3 {
+        font-size: 1.15rem;
+        margin: 0;
+        font-weight: 700;
+    }
+    /* --- Tabla --- */
+    
+    .table-saif {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .table-saif thead th {
+        background: #0E7A3A !important;
+        color: #fff !important;
+        font-weight: 700;
+        border: none !important;
+        text-align: center;
+    }
+    
+    .table-saif thead .filter-row th {
+        background: #0f8557 !important;
+    }
+    
+    .table-saif tbody td {
+        padding: 0.8rem;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+        /* evita que se estiren demasiado */
+    }
+    
+    .table-saif tbody tr:nth-child(even) {
+        background: #fbfdfc;
+    }
+    
+    .table-saif tbody tr:hover {
+        background: #f0faf4;
+    }
+    /* --- Botones CRUD centrados y uniformes --- */
+    
+    .crud-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        margin: 1.2rem 0;
+    }
+    
+    .crud-buttons .btn {
+        min-width: 110px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.4rem 0.75rem;
+    }
+    
+    .crud-buttons .btn i {
+        margin-right: 4px;
+        font-size: 0.9rem;
+    }
+</style>
+<section class="p-6 md:p-8">
+
+    <div class="saif-card mb-4">
+        <div class="saif-card-header">
+            <i class="bi bi-box-seam"></i>
+            <h3>Gestión de Presentaciones</h3>
+        </div>
+
+        <div class="table-wrap">
+            <table class="table table-saif align-middle text-center" id="tablaPresentaciones">
+                <thead>
+                    <tr>
+                        <th>Nombre de la Presentación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for presentacion in presentaciones %} {% include 'mantenimiento_presentaciones/partials/_presentacion_row.html' with presentacion=presentacion %} {% empty %}
+                    <tr>
+                        <td colspan="2" class="py-4 text-muted">No hay presentaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="crud-buttons">
+            <button id="btnCrear" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalPresentacion">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+
+            <button id="btnConsultar" class="btn btn-primary" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+
+            <button id="btnEditar" class="btn btn-success" disabled>
+        <i class="bi bi-pencil"></i> EDITAR
+      </button>
+
+            <button id="btnEliminar" class="btn btn-danger" disabled>
+        <i class="bi bi-x-circle"></i> ELIMINAR
+      </button>
+        </div>
+    </div>
+
+</section>
+
+<div class="modal fade" id="modalPresentacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="modal-presentacion-content"></div>
+    </div>
+</div>
+
+{% endblock %} {% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const table = document.getElementById("tablaPresentaciones");
+        const inputs = table.querySelectorAll("thead input");
+        const modalEl = document.getElementById('modalPresentacion');
+        const modalContent = document.getElementById('modal-presentacion-content');
+        const modalInstance = new bootstrap.Modal(modalEl);
+
+        let selectedId = null;
+
+        /* ---------- Selección de fila ---------- */
+        table.querySelectorAll("tbody tr").forEach(row => {
+            row.addEventListener("click", function() {
+                table.querySelectorAll("tbody tr").forEach(r => r.classList.remove("table-active"));
+                this.classList.add("table-active");
+                selectedId = this.getAttribute("data-id");
+                document.getElementById("btnConsultar").disabled = false;
+                document.getElementById("btnEditar").disabled = false;
+                document.getElementById("btnEliminar").disabled = false;
+            });
+        });
+
+        /* ---------- Abrir modal ---------- */
+        function abrirModal(url) {
+            modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+            modalInstance.show();
+
+            fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(() => {
+                    modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>';
+                });
+        }
+
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            modalContent.innerHTML = '';
+        });
+
+        /* ---------- Botones CRUD ---------- */
+        document.getElementById("btnCrear").addEventListener("click", () => {
+            abrirModal(`{% url 'mantenimiento_presentaciones:crear' %}`);
+        });
+        document.getElementById("btnConsultar").addEventListener("click", () => {
+            if (selectedId) abrirModal(`/mantenimiento/presentaciones/${selectedId}/consultar/`);
+        });
+        document.getElementById("btnEditar").addEventListener("click", () => {
+            if (selectedId) abrirModal(`{% url 'mantenimiento_presentaciones:editar' pk=0 %}`.replace('0', selectedId));
+        });
+        document.getElementById("btnEliminar").addEventListener("click", () => {
+            if (selectedId) abrirModal(`{% url 'mantenimiento_presentaciones:eliminar' pk=0 %}`.replace('0', selectedId));
+        });
+
+        /* ---------- Captura de envío de formularios ---------- */
+        document.addEventListener("submit", function(e) {
+            if (e.target && (e.target.id === "form-presentacion" || e.target.id === "form-eliminar-presentacion")) {
+                e.preventDefault();
+                const form = e.target;
+
+                fetch(form.action || window.location.href, {
+                        method: "POST",
+                        body: new FormData(form),
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            modal.hide();
+                            location.reload();
+                        } else if (data.html) {
+                            modalContent.innerHTML = data.html;
+                        }
+                    })
+                    .catch(err => console.error("Error al enviar formulario:", err));
+            }
+        });
+    });
+</script>
+{% endblock %}

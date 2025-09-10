@@ -1,3 +1,3 @@
-from django.db import models
+from apps.mantenimiento.models import Presentaciones
 
 # Create your models here.
