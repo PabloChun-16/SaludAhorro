@@ -10,7 +10,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
     </div>
 
-    <form method="post" id="form-eliminar-presentacion" action="{% url 'mantenimiento_presentaciones:eliminar' pk=presentacion.pk %}">
+    <form method="post" id="form-eliminar-presentacion" action="{% url 'mantenimiento:mantenimiento_presentaciones:eliminar' pk=presentacion.pk %}">
         {% csrf_token %}
         <div class="modal-body">
             <div class="alert alert-danger d-flex align-items-center gap-2 mb-0" role="alert">
