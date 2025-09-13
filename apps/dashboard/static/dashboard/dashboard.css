@@ -1,77 +1,104 @@
 /* --- Estilos generales --- */
 body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #f9f9f9;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f9f9f9;
 }
 
 /* --- Barra lateral --- */
 .sidebar {
-    width: 220px;
-    height: 100vh;
-    background-color: #006b3c; /* verde */
-    color: white;
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding-top: 20px;
+  width: 220px;
+  height: 100vh;
+  background-color: #006b3c; /* verde base */
+  color: #fff;
+  position: fixed;
+  inset: 0 auto 0 0; /* top:0; left:0; bottom:0 */
+  padding-top: 20px;
 }
 
 .sidebar h2 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 20px;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 20px;
 }
 
 .sidebar ul {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.sidebar ul li {
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: background 0.3s;
+.sidebar ul li { margin: 0; }
+
+/* Haz los items enlaces en bloque para controlar estados correctamente */
+.sidebar ul li a {
+  display: block;
+  padding: 12px 20px;
+  color: #fff;
+  text-decoration: none;
+  outline: none;
+  /* Transición solo de color de fondo (evita glitches) */
+  transition: background-color .2s ease-in-out;
 }
 
-.sidebar ul li:hover {
-    background: #004d2a;
+/* Efectos hover SOLO donde existe hover (evita “hover pegado” en táctiles) */
+@media (hover: hover) and (pointer: fine) {
+  .sidebar ul li a:hover {
+    background-color: #004d2a;
+  }
+}
+
+/* Estados de teclado/clic (no dejan color pegado) */
+.sidebar ul li a:focus-visible {
+  background-color: #005c31; /* sutil para foco accesible */
+}
+
+.sidebar ul li a:active {
+  background-color: #004120; /* mientras está presionado */
+}
+
+/* Si manejas una ruta activa, usa una clase .active controlada por tu router */
+.sidebar ul li a.active {
+  background-color: #004d2a;
 }
 
 /* --- Contenido principal --- */
 .content {
-    margin-left: 220px; /* dejar espacio al sidebar */
-    padding: 20px;
+  margin-left: 220px; /* espacio del sidebar */
+  padding: 20px;
 }
 
 .content h1 {
-    color: #333;
-    margin-bottom: 20px;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 /* --- Tarjetas de módulos --- */
 .modules {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.card:hover {
-    transform: scale(1.05);
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+/* Hover de tarjetas solo en equipos con mouse */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.12);
+  }
 }
 
 .card img {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 10px;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 12px;
 }
