@@ -1,0 +1,105 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Stock de Productos · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-box-seam"></i>
+      <h3>Stock de Productos</h3>
+    </div>
+
+    <div class="table-wrap">
+  <table class="table table-saif align-middle text-center" id="tablaStock">
+    <thead class="table-saif-header">
+      <tr>
+        <th>Código</th>
+        <th>Nombre Producto</th>
+        <th>Descripción</th>
+        <th>Presentación</th>
+        <th>Disponible</th>
+        <th>Lote</th>
+        <th>Fecha Caducidad</th>
+        <th>Estado Lote</th>
+        <th>Precio Compra</th>
+        <th>Precio Venta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lote in lotes %}
+      <tr data-id="{{ lote.id }}">
+        <td>{{ lote.id_producto.codigo_producto }}</td>
+        <td>{{ lote.id_producto.nombre }}</td>
+        <td>{{ lote.id_producto.descripcion }}</td>
+        <td>{{ lote.id_producto.id_presentacion.nombre_presentacion }}</td>
+        <td>{{ lote.cantidad_disponible }}</td>
+        <td>{{ lote.numero_lote }}</td>
+        <td>{{ lote.fecha_caducidad }}</td>
+        <td>{{ lote.id_estado_lote.nombre_estado }}</td>
+        <td>{{ lote.precio_compra }}</td>
+        <td>{{ lote.precio_venta }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" class="py-4 text-muted">No hay lotes registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+      <a href="{% url 'inventario:stock:exportar_pdf' %}" class="btn btn-success">
+        <i class="bi bi-file-earmark-pdf"></i> EXPORTAR PDF
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modalStock" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-stock-content"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tbody         = document.querySelector("#tablaStock tbody");
+  const modalEl       = document.getElementById("modalStock");
+  const modalContent  = document.getElementById("modal-stock-content");
+  const modalInstance = new bootstrap.Modal(modalEl);
+
+  let selectedId = null;
+
+  function abrirModal(url) {
+    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    modalInstance.show();
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el detalle.</div>'; });
+  }
+
+  tbody.addEventListener("click", (ev) => {
+    const row = ev.target.closest("tr");
+    if (!row) return;
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = false;
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/inventario/stock/${selectedId}/consultar/`);
+  });
+});
+</script>
+{% endblock %}

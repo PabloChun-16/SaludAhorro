@@ -59,6 +59,10 @@ INSTALLED_APPS = [
     'apps.mantenimiento.presentaciones',
     'apps.mantenimiento.unidadesmedida',
     'apps.mantenimiento.condicionesalmacenamiento',
+
+    #Apps Gestion Inventario
+    'apps.inventario.productos',
+    'apps.inventario.stock',
 ]
 
 MIDDLEWARE = [
@@ -181,6 +185,11 @@ LOGIN_EXEMPT_PREFIXES = [
     # agrega otras públicas si existen
 ]
 
+# Media files (user-uploaded content)
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Media files (user-uploaded content)
 
 
 

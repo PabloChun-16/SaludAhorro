@@ -1,0 +1,151 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
+
+<div class="saif-modal">
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1"
+           style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Nuevo Producto" }}</h5>
+      <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <form method="post" id="form-producto" action="{{ action }}" novalidate autocomplete="off">
+    <div class="modal-body">
+      {% csrf_token %}
+      <div class="container-fluid">
+        <div class="row g-3">
+
+          <!-- Código -->
+          <div class="col-md-6">
+            <label class="form-label mb-1" for="{{ form.codigo_producto.id_for_label }}">Código</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+              {{ form.codigo_producto }}
+            </div>
+            {% for e in form.codigo_producto.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Nombre -->
+          <div class="col-md-6">
+            <label class="form-label mb-1" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-tag"></i></span>
+              {{ form.nombre }}
+            </div>
+            {% for e in form.nombre.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Descripción -->
+          <div class="col-12">
+            <label class="form-label mb-1" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+              {{ form.descripcion }}
+            </div>
+            {% for e in form.descripcion.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Laboratorio -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Laboratorio</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-buildings"></i></span>
+              {{ form.id_laboratorio }}
+            </div>
+            {% for e in form.id_laboratorio.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Presentación -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Presentación</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-box"></i></span>
+              {{ form.id_presentacion }}
+            </div>
+            {% for e in form.id_presentacion.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Unidad de Medida -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Unidad de Medida</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-rulers"></i></span>
+              {{ form.id_unidad_medida }}
+            </div>
+            {% for e in form.id_unidad_medida.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Condición de Almacenamiento -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Condición de Almacenamiento</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-thermometer-half"></i></span>
+              {{ form.id_condicion_almacenamiento }}
+            </div>
+            {% for e in form.id_condicion_almacenamiento.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Stock Mínimo -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">Stock Mínimo</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-boxes"></i></span>
+              {{ form.stock_minimo }}
+            </div>
+            {% for e in form.stock_minimo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Requiere receta -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">¿Requiere receta?</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-file-earmark-medical"></i></span>
+              {{ form.requiere_receta }}
+            </div>
+            {% for e in form.requiere_receta.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Es controlado -->
+          <div class="col-md-6">
+            <label class="form-label mb-1">¿Es controlado?</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+              {{ form.es_controlado }}
+            </div>
+            {% for e in form.es_controlado.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+      <!-- Imagen -->
+        <div class="col-12">
+          <label class="form-label">Imagen del Producto</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-image"></i></span>
+            {{ form.imagen_url }}
+          </div>
+          {% for e in form.imagen_url.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+
+          {% if form.instance.imagen_url %}
+          <div class="mt-2">
+            <img src="{{ form.instance.imagen_url.url }}" alt="Imagen Producto" class="img-thumbnail" style="max-height: 120px;">
+          </div>
+          {% endif %}
+        </div>
+
+    <div class="modal-footer bg-white">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check2-circle"></i> Guardar
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,217 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Productos · SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-box-seam"></i>
+      <h3>Gestión de Productos</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table table-saif align-middle text-center" id="tablaProductos">
+  <thead>
+    <tr>
+      <th>Código</th>
+      <th>Nombre</th>
+      <th>Descripción</th>
+      <th>Laboratorio</th>
+      <th>Presentación</th>
+      <th>Unidad</th>
+      <th>Condición de Almacenamiento</th>
+      <th>Receta</th>
+      <th>Controlado</th>
+      <th>Stock Mínimo</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in productos %}
+  <tr data-id="{{ p.id }}" data-estado="{{ p.id_estado_producto.nombre_estado }}">
+    <td>{{ p.codigo_producto }}</td>
+    <td>{{ p.nombre }}</td>
+    <td>{{ p.descripcion }}</td>
+    <td>{{ p.id_laboratorio.nombre_laboratorio }}</td>
+    <td>{{ p.id_presentacion.nombre_presentacion }}</td>
+    <td>{{ p.id_unidad_medida.nombre_unidad }}</td>
+    <td>{{ p.id_condicion_almacenamiento.nombre_condicion }}</td>
+    <td>{{ p.requiere_receta|yesno:"Sí,No" }}</td>
+    <td>{{ p.es_controlado|yesno:"Sí,No" }}</td>
+    <td>{{ p.stock_minimo }}</td>
+    <td>{{ p.id_estado_producto.nombre_estado }}</td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="11" class="py-4 text-muted">No hay productos registrados.</td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+</table>
+
+    </div>
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear"
+              class="btn btn-warning me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#modalProducto"
+              data-url="{% url 'inventario:productos:crear' %}">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+      <button id="btnEditar" class="btn btn-success me-2" disabled>
+        <i class="bi bi-pencil"></i> EDITAR
+      </button>
+      <button id="btnEliminar" class="btn btn-danger" disabled>
+        <i class="bi bi-x-circle"></i> INACTIVAR
+      </button>
+      <button id="btnActivar" class="btn btn-secondary" disabled>
+        <i class="bi bi-check-circle"></i> ACTIVAR
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-producto-content"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tbody         = document.querySelector("#tablaProductos tbody");
+  const modalEl       = document.getElementById("modalProducto");
+  const modalContent  = document.getElementById("modal-producto-content");
+  const modalInstance = new bootstrap.Modal(modalEl);
+
+  let selectedId = null;
+
+  function abrirModal(url) {
+    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    modalInstance.show();
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+  }
+
+ tbody.addEventListener("click", (ev) => {
+  const row = ev.target.closest("tr");
+  if (!row || row.hasAttribute("data-empty-row")) return;
+
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+  row.classList.add("table-active");
+
+  selectedId = row.getAttribute("data-id");
+  const estado = row.getAttribute("data-estado");
+
+  // Habilitar siempre consultar/editar
+  document.getElementById("btnConsultar").disabled = false;
+  document.getElementById("btnEditar").disabled    = false;
+
+  // Si está Activo -> habilita Inactivar y deshabilita Activar
+  if (estado === "Activo") {
+    document.getElementById("btnEliminar").disabled = false;
+    document.getElementById("btnActivar").disabled  = true;
+  }
+  // Si está Inactivo -> habilita Activar y deshabilita Inactivar
+  else if (estado === "Inactivo") {
+    document.getElementById("btnEliminar").disabled = true;
+    document.getElementById("btnActivar").disabled  = false;
+  }
+  // Si el estado es otro, deshabilita ambos
+  else {
+    document.getElementById("btnEliminar").disabled = true;
+    document.getElementById("btnActivar").disabled  = true;
+  }
+});
+
+
+  document.getElementById("btnCrear").addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
+    abrirModal(url);
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`);
+  });
+  document.getElementById("btnEditar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/editar/`);
+  });
+  document.getElementById("btnEliminar").addEventListener("click", () => {
+    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/inactivar/`);
+  });
+
+  document.getElementById("btnActivar").addEventListener("click", () => {
+  if (selectedId) {
+    fetch(`/inventario/productos/${selectedId}/activar/`, {
+      method: "POST",
+      headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": getCookie("csrftoken") }
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("Error: " + (data.error || "No se pudo activar el producto"));
+        }
+      });
+  }
+});
+
+
+
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+
+
+
+  modalContent.addEventListener("submit", function (e) {
+    const form = e.target.closest("form");
+    if (!form) return;
+    e.preventDefault();
+    fetch(form.action || window.location.href, {
+      method: "POST",
+      body: new FormData(form),
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok || data.success) {
+        modalInstance.hide();
+        window.location.reload();
+      } else if (data.html) {
+        modalContent.innerHTML = data.html;
+      }
+    })
+    .catch(err => console.error(err));
+  });
+});
+</script>
+{% endblock %}

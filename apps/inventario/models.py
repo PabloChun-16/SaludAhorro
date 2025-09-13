@@ -7,7 +7,7 @@ class Productos(models.Model):
     codigo_producto = models.CharField(max_length=255)
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField(null=True, blank=True)
-    imagen_url = models.CharField(max_length=255, null=True, blank=True)
+    imagen_url = models.ImageField(upload_to="productos/", blank=True, null=True)
     requiere_receta = models.BooleanField(null=True, blank=True)
     es_controlado = models.BooleanField(null=True, blank=True)
     stock_minimo = models.IntegerField(default=0, null=True, blank=True)
@@ -17,7 +17,13 @@ class Productos(models.Model):
     id_unidad_medida = models.ForeignKey(Unidades_Medida, on_delete=models.CASCADE)
     id_presentacion = models.ForeignKey(Presentaciones, on_delete=models.CASCADE)
     id_condicion_almacenamiento = models.ForeignKey(Condiciones_Almacenamiento, on_delete=models.SET_NULL, null=True, blank=True)
-    id_estado_producto = models.ForeignKey(Estado_Producto, on_delete=models.SET_NULL, null=True, blank=True)
+    id_estado_producto = models.ForeignKey(
+        Estado_Producto,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=1   # 🔹 Asumiendo que el ID=1 es "Activo"
+    )
     
     def __str__(self):
         return self.nombre

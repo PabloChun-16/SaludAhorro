@@ -1,0 +1,56 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'consult/consult.css' %}">
+
+<div class="saif-modal">
+  <div class="modal-header py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1"
+           style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">Detalle de Producto</h5>
+      <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row g-3">
+
+      <!-- Imagen del producto -->
+      <div class="col-md-4 text-center">
+        {% if producto.imagen_url %}
+          <img src="{{ producto.imagen_url.url }}" alt="Imagen del Producto"
+              class="img-fluid rounded border"
+              style="max-height:200px; object-fit:contain;">
+        {% else %}
+          <img src="{% static 'home/img/no-image.png' %}" alt="Sin imagen"
+              class="img-fluid rounded border"
+              style="max-height:200px; object-fit:contain;">
+        {% endif %}
+      </div>
+
+      <!-- Datos del producto -->
+      <div class="col-md-8">
+        <div class="row g-3">
+          <div class="col-md-6"><b>Código:</b> {{ producto.codigo_producto }}</div>
+          <div class="col-md-6"><b>Nombre:</b> {{ producto.nombre }}</div>
+          <div class="col-12"><b>Descripción:</b> {{ producto.descripcion }}</div>
+          <div class="col-md-6"><b>Laboratorio:</b> {{ producto.id_laboratorio.nombre_laboratorio }}</div>
+          <div class="col-md-6"><b>Presentación:</b> {{ producto.id_presentacion.nombre_presentacion }}</div>
+          <div class="col-md-6"><b>Unidad de Medida:</b> {{ producto.id_unidad_medida.nombre_unidad }}</div>
+          <div class="col-md-6"><b>Condición de Almacenamiento:</b> {{ producto.id_condicion_almacenamiento.nombre_condicion }}</div>
+          <div class="col-md-6"><b>Estado:</b> {{ producto.id_estado_producto.nombre_estado }}</div>
+          <div class="col-md-6"><b>Stock Mínimo:</b> {{ producto.stock_minimo }}</div>
+          <div class="col-md-6"><b>Requiere receta:</b> {{ producto.requiere_receta|yesno:"Sí,No" }}</div>
+          <div class="col-md-6"><b>Es controlado:</b> {{ producto.es_controlado|yesno:"Sí,No" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer bg-white">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg"></i> Cerrar
+    </button>
+  </div>
+</div>
