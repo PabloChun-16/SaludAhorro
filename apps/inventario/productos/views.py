@@ -93,14 +93,30 @@ def inactivar_producto(request, pk):
     )
     return HttpResponse(html)
 
-#Activar
+# Activar
+@require_http_methods(["GET", "POST"])
 def activar_producto(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
 
-    try:
-        estado_activo = Estado_Producto.objects.get(nombre_estado="Activo")
-        producto.id_estado_producto = estado_activo
-        producto.save()
-        return JsonResponse({"success": True})
-    except Estado_Producto.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Estado 'Activo' no existe"}, status=500)
+    if request.method == "POST":
+        try:
+            estado_activo = Estado_Producto.objects.get(nombre_estado="Activo")
+            # idempotente: si ya está activo, igual devolvemos ok
+            if producto.id_estado_producto_id == estado_activo.id:
+                return JsonResponse({"success": True, "message": "El producto ya estaba activo"})
+            producto.id_estado_producto = estado_activo
+            producto.save(update_fields=["id_estado_producto"])
+            return JsonResponse({"success": True})
+        except Estado_Producto.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "error": "Estado 'Activo' no existe"},
+                status=500
+            )
+
+    # GET: render del modal de confirmación
+    html = render_to_string(
+        "productos/partials/_confirm_activar.html",
+        {"producto": producto, "action": request.path},
+        request=request,
+    )
+    return HttpResponse(html)

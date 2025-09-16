@@ -4,91 +4,208 @@
 {% block title %}Blog · Farmacia Salud y Ahorro{% endblock %}
 
 {% block content %}
-<!-- CARRUSEL (Hero) -->
+<!-- =============== HERO / CARRUSEL =============== -->
 <section id="hero" class="relative w-full overflow-hidden bg-green-700/5">
-  <div id="slider" class="relative h-[52vh] md:h-[64vh]">
+  <div
+    id="slider"
+    class="relative h-[52vh] md:h-[64vh]"
+    role="region"
+    aria-roledescription="carrusel"
+    aria-label="Promociones y novedades"
+  >
     <!-- Slides -->
-    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover" alt="Promoción 1"/>
+    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide aria-hidden="false">
+      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover" alt="Promoción 1" loading="eager" />
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
         <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span></h1>
         <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver artículos</a>
       </div>
     </div>
-    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover" alt="Promoción 2"/>
+
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide aria-hidden="true">
+      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover" alt="Promoción 2" loading="lazy" />
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
         <h2 class="text-4xl md:text-6xl font-extrabold">Tips y Salud<br><span class="text-emerald-300">Consejos profesionales</span></h2>
         <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Leer más</a>
       </div>
     </div>
-    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover" alt="Promoción 3"/>
+
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide aria-hidden="true">
+      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover" alt="Promoción 3" loading="lazy" />
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
         <h2 class="text-4xl md:text-6xl font-extrabold">Novedades<br><span class="text-emerald-300">Productos y noticias</span></h2>
         <a href="#blog" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver novedades</a>
       </div>
     </div>
+
+    <!-- Controles -->
+    <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow focus:outline-none focus:ring-2 focus:ring-emerald-500/40" aria-label="Anterior">
+      <span aria-hidden="true">❮</span>
+    </button>
+    <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow focus:outline-none focus:ring-2 focus:ring-emerald-500/40" aria-label="Siguiente">
+      <span aria-hidden="true">❯</span>
+    </button>
+
+    <!-- Indicadores -->
+    <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2" aria-label="Indicadores"></div>
   </div>
-  <!-- Controles -->
-  <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
-  <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
-  <!-- Indicadores -->
-  <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
 </section>
 
+<!-- =============== CABECERA BLOG =============== -->
 <section id="blog" class="bg-emerald-700 text-white py-14">
   <div class="container mx-auto px-4">
     <h1 class="text-3xl md:text-5xl font-extrabold">Blog</h1>
-    <p class="mt-2 md:max-w-3xl">Tips de salud, lanzamientos y noticias.</p>
+    <p class="mt-2 md:max-w-3xl opacity-90">Tips de salud, lanzamientos y noticias.</p>
   </div>
 </section>
 
-<section class="container mx-auto px-4 py-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://plus.unsplash.com/premium_photo-1679615911754-fafb37c81998?q=80&w=1926&auto=format&fit=crop&ixlib=rb-4.1.0" alt="Post 1">
-    <h3 class="font-semibold text-emerald-800">Cómo organizar tu botiquín</h3>
-    <p class="text-sm text-slate-700 mt-1">Mantener un botiquín bien organizado es esencial para enfrentar cualquier emergencia de salud en casa de forma rápida y eficiente. Más que un simple contenedor de medicamentos, tu botiquín es una herramienta vital que debe ser revisada y actualizada periódicamente.</p>
-  </article>
-
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/9742918/pexels-photo-9742918.jpeg" alt="Post 2">
-    <h3 class="font-semibold text-emerald-800">Vitaminas: ¿cuándo tomarlas?</h3>
-    <p class="text-sm text-slate-700 mt-1">Aunque esenciales para el cuerpo, el momento y la forma en que se toman las vitaminas pueden influir en su absorción y efectividad. Conocer el tipo de vitamina y sus características es clave para maximizar sus beneficios y asegurar que tu cuerpo las aproveche al máximo</p>
-  </article>
-
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop" alt="Post 3">
-    <h3 class="font-semibold text-emerald-800">Piel sana todo el año</h3>
-    <p class="text-sm text-slate-700 mt-1">Mantener una piel radiante y saludable no es solo cuestión de usar cremas, sino de una rutina de cuidado consistente que se adapta a las necesidades de cada temporada...</p>
-  </article>
-
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/4661292/pexels-photo-4661292.jpeg" alt="Post 4">
-    <h3 class="font-semibold text-emerald-800">Automedicación</h3>
-    <p class="text-sm text-slate-700 mt-1">La automedicación, aunque parece una solución rápida, implica riesgos: tratamientos incorrectos, efectos secundarios inesperados o resistencia a antibióticos.</p>
-  </article>
-
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/20783415/pexels-photo-20783415.jpeg" alt="Post 5">
-    <h3 class="font-semibold text-emerald-800">La Importancia de la Hidratación</h3>
-    <p class="text-sm text-slate-700 mt-1">Más allá de la sed, la hidratación es fundamental para el buen funcionamiento de cada sistema del cuerpo. También cuenta la comida rica en agua.</p>
-  </article>
-
-  <article class="p-5 border rounded-xl bg-emerald-50 hover:shadow-lg transition hover:scale-105">
-    <img class="rounded-lg mb-3 w-1/2 block mx-auto" src="https://images.pexels.com/photos/5202460/pexels-photo-5202460.jpeg" alt="Post 6">
-    <h3 class="font-semibold text-emerald-800">Protección Solar y SPF</h3>
-    <p class="text-sm text-slate-700 mt-1">El FPS adecuado depende de tu tipo de piel, índice UV y actividad al aire libre. No siempre “más alto” es mejor si no se reaplica bien.</p>
-  </article>
+<!-- =============== BARRA DE FILTROS =============== -->
+<section class="container mx-auto px-4 -mt-6">
+  <div class="card shadow-soft p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+    <div class="w-full md:w-1/2">
+      <label for="buscar" class="sr-only">Buscar artículo</label>
+      <input id="buscar" class="input w-full" type="text" placeholder="Buscar por título o contenido..." />
+    </div>
+    <div class="flex items-center gap-2">
+      <label for="categoria" class="sr-only">Categoría</label>
+      <select id="categoria" class="input min-w-[180px]">
+        <option value="">Todas las categorías</option>
+        <option value="hogar">Hogar</option>
+        <option value="vitaminas">Vitaminas</option>
+        <option value="piel">Cuidado de la piel</option>
+        <option value="seguridad">Seguridad</option>
+        <option value="hidratacion">Hidratación</option>
+        <option value="sol">Protección solar</option>
+      </select>
+      <button id="limpiarFiltros" class="btn btn-ghost">Limpiar</button>
+    </div>
+  </div>
 </section>
 
-<!-- JS Carrusel (mismo patrón que otras páginas) -->
+<!-- =============== GRID DE POSTS (CONTENIDO COMPLETO) =============== -->
+<section class="container mx-auto px-4 py-10">
+  <div id="gridPosts" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Post 1 -->
+    <article class="card p-0 overflow-hidden group" data-cat="hogar">
+      <img class="w-full h-48 object-cover"
+           src="https://plus.unsplash.com/premium_photo-1679615911754-fafb37c81998?q=80&w=1926&auto=format&fit=crop&ixlib=rb-4.1.0"
+           alt="Cómo organizar tu botiquín" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">12 Ene 2025 · por Equipo Salud</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">Cómo organizar tu botiquín</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>Mantener un botiquín bien organizado es esencial para enfrentar cualquier emergencia de salud en casa de forma rápida y eficiente. Revisa caducidades cada 3–6 meses, separa por categorías (analgésicos, curaciones, digestivos), incluye termómetro y tijeras y guarda todo en un lugar fresco y seco, fuera del alcance de niñas y niños.</p>
+          <ul class="list-disc pl-5">
+            <li>Ten a mano una tarjeta con teléfonos de emergencia.</li>
+            <li>Evita duplicados y desecha lo vencido con responsabilidad.</li>
+            <li>Incluye vendas elásticas, gasas estériles, antiséptico y guantes.</li>
+          </ul>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Hogar</span>
+          <span class="chip">Primeros auxilios</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 2 -->
+    <article class="card p-0 overflow-hidden group" data-cat="vitaminas">
+      <img class="w-full h-48 object-cover" src="https://images.pexels.com/photos/9742918/pexels-photo-9742918.jpeg" alt="Vitaminas: ¿cuándo tomarlas?" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">24 Ene 2025 · por Farmacéutica Ana</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">Vitaminas: ¿cuándo tomarlas?</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>El momento y la forma en que se toman las vitaminas influyen en su absorción y efectividad. Las <strong>liposolubles</strong> (A, D, E y K) se absorben mejor con alimentos que contengan grasa saludable; las <strong>hidrosolubles</strong> (C y complejo B) suelen tolerarse bien en ayunas o con poca comida.</p>
+          <p>Evita combinarlas sin criterio con medicamentos: el calcio, hierro y magnesio interfieren con algunos antibióticos y con la levotiroxina. Siempre consulta con personal de salud si tienes tratamientos en curso.</p>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Vitaminas</span>
+          <span class="chip">Suplementos</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 3 -->
+    <article class="card p-0 overflow-hidden group" data-cat="piel">
+      <img class="w-full h-48 object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop" alt="Piel sana todo el año" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">02 Feb 2025 · por Dermatóloga Luisa</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">Piel sana todo el año</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>Una piel sana es resultado de hábitos consistentes: limpieza suave, hidratación adecuada y uso diario de protector solar. Ajusta texturas y activos a la temporada: fórmulas ligeras en clima cálido; cremas más nutritivas en épocas frías.</p>
+          <p>Evita exfoliar en exceso y prueba nuevos productos de a uno para identificar reacciones. Si hay enrojecimiento persistente, consulta con dermatología.</p>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Cuidado de la piel</span>
+          <span class="chip">Rutinas</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 4 -->
+    <article class="card p-0 overflow-hidden group" data-cat="seguridad">
+      <img class="w-full h-48 object-cover" src="https://images.pexels.com/photos/4661292/pexels-photo-4661292.jpeg" alt="Automedicación" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">10 Feb 2025 · por Equipo Salud</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">Automedicación</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>La automedicación puede implicar riesgos: diagnósticos tardíos, efectos secundarios inesperados o interacciones. En especial, los <strong>antibióticos</strong> requieren receta; su uso inadecuado favorece la resistencia bacteriana.</p>
+          <p>Si un síntoma es nuevo, intenso o persiste, evita “tapar” con fármacos y busca valoración profesional.</p>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Seguridad</span>
+          <span class="chip">Antibióticos</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 5 -->
+    <article class="card p-0 overflow-hidden group" data-cat="hidratacion">
+      <img class="w-full h-48 object-cover" src="https://images.pexels.com/photos/20783415/pexels-photo-20783415.jpeg" alt="La Importancia de la Hidratación" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">18 Feb 2025 · por Nutrióloga Sofía</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">La Importancia de la Hidratación</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>Más allá de la sed, la hidratación es clave para la temperatura corporal, la digestión y el rendimiento cognitivo. Complementa el agua con alimentos ricos en agua (pepino, sandía, cítricos) y ajusta la ingesta a clima y actividad física.</p>
+          <p>En ejercicio o clima caluroso puede requerirse reposición de electrolitos. Consulta si hay enfermedades renales o cardiacas.</p>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Hidratación</span>
+          <span class="chip">Bienestar</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Post 6 -->
+    <article class="card p-0 overflow-hidden group" data-cat="sol">
+      <img class="w-full h-48 object-cover" src="https://images.pexels.com/photos/5202460/pexels-photo-5202460.jpeg" alt="Protección Solar y SPF" loading="lazy">
+      <div class="p-5">
+        <div class="text-xs text-slate-500 mb-1">25 Feb 2025 · por Dermatóloga Luisa</div>
+        <h3 class="font-extrabold text-xl text-emerald-800">Protección Solar y SPF</h3>
+        <div class="mt-2 space-y-2 text-sm text-slate-700">
+          <p>El FPS adecuado depende de tu tipo de piel, índice UV y actividad al aire libre. Aplica una cantidad suficiente (dos dedos para rostro), 15–20 minutos antes de exponerte y <strong>reaplica</strong> cada 2 horas o tras nadar/sudar.</p>
+          <p>Complementa con sombrero, gafas, sombra y ropa con filtro UV. Recuerda que “más alto” no sustituye la reaplicación correcta.</p>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="chip"><span class="dot"></span> Protección solar</span>
+          <span class="chip">SPF</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- =============== JS: Carrusel + Filtros =============== -->
 <script>
 (function(){
-  const slides = Array.from(document.querySelectorAll('[data-slide]'));
+  // --- Carrusel ---
+  const root = document.getElementById('slider');
+  const slides = Array.from(root.querySelectorAll('[data-slide]'));
   const nextBtn = document.getElementById('next');
   const prevBtn = document.getElementById('prev');
   const dotsWrap = document.getElementById('dots');
@@ -97,22 +214,58 @@
     slides.forEach((_,i)=>{
       const b=document.createElement('button');
       b.className='w-2.5 h-2.5 rounded-full bg-white/60 hover:bg-white transition';
+      b.setAttribute('aria-label', 'Ir al slide ' + (i+1));
       b.addEventListener('click',()=>go(i,true));
       dotsWrap.appendChild(b);
     });
     function paint(){
-      slides.forEach((s,i)=>{s.style.opacity=i===idx?1:0});
-      Array.from(dotsWrap.children).forEach((d,i)=>{d.style.background=i===idx?'#10B981':'rgba(255,255,255,.6)'});
+      slides.forEach((s,i)=>{
+        const active = i===idx;
+        s.style.opacity = active?1:0;
+        s.setAttribute('aria-hidden', String(!active));
+      });
+      Array.from(dotsWrap.children).forEach((d,i)=>{
+        d.style.background = i===idx ? '#10B981' : 'rgba(255,255,255,.6)';
+      });
     }
     function go(n,manual=false){
       idx=(n+slides.length)%slides.length; paint();
-      if(manual){ clearInterval(timer); timer=setInterval(step,5000); }
+      if(manual){ restart(); }
     }
     function step(){ go(idx+1); }
+    function restart(){ clearInterval(timer); timer=setInterval(step,5000); }
     nextBtn.addEventListener('click',()=>go(idx+1,true));
     prevBtn.addEventListener('click',()=>go(idx-1,true));
+    root.addEventListener('keydown', (e)=>{
+      if(e.key==='ArrowRight') go(idx+1,true);
+      if(e.key==='ArrowLeft') go(idx-1,true);
+    });
+    root.addEventListener('mouseenter', ()=>clearInterval(timer));
+    root.addEventListener('mouseleave', restart);
+
     timer=setInterval(step,5000); paint();
   }
+
+  // --- Filtros (cliente) ---
+  const buscar = document.getElementById('buscar');
+  const categoria = document.getElementById('categoria');
+  const limpiar = document.getElementById('limpiarFiltros');
+  const cards = Array.from(document.querySelectorAll('#gridPosts article'));
+
+  function filtrar(){
+    const q = (buscar.value || '').toLowerCase().trim();
+    const cat = (categoria.value || '').toLowerCase();
+    cards.forEach(card=>{
+      const text = card.innerText.toLowerCase();
+      const c = (card.getAttribute('data-cat')||'').toLowerCase();
+      const okText = !q || text.includes(q);
+      const okCat = !cat || c === cat;
+      card.style.display = (okText && okCat) ? '' : 'none';
+    });
+  }
+  buscar?.addEventListener('input', filtrar);
+  categoria?.addEventListener('change', filtrar);
+  limpiar?.addEventListener('click', ()=>{ buscar.value=''; categoria.value=''; filtrar(); });
 })();
 </script>
 {% endblock %}

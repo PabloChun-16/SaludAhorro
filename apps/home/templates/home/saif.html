@@ -4,153 +4,257 @@
 {% block title %}Proyecto SAIF · Farmacia Salud y Ahorro{% endblock %}
 
 {% block content %}
-<!-- CARRUSEL (Hero) -->
+<!-- =============== HERO / CARRUSEL =============== -->
 <section id="hero" class="relative w-full overflow-hidden bg-green-700/5">
-  <div id="slider" class="relative h-[52vh] md:h-[64vh]">
-    <!-- Slides -->
-    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover" alt="Promoción 1"/>
+  <div
+    id="slider"
+    class="relative aspect-[25/9] min-h-[52vh] md:min-h-[60vh]"
+    role="region"
+    aria-roledescription="carrusel"
+    aria-label="Proyecto SAIF"
+    tabindex="0"
+  >
+    <!-- Slide 1 -->
+    <div class="absolute inset-0 opacity-100 transition-opacity duration-700 ease-out" data-slide aria-hidden="false">
+      <img src="{% static 'home/img/carusel 1.jpg' %}" class="w-full h-full object-cover object-[25%_center]" alt="Promoción 1" loading="eager"/>
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
-        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span></h1>
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
+          Bienvenidos<br><span class="text-emerald-300">Tu salud es prioridad</span>
+        </h1>
         <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Conoce SAIF</a>
       </div>
     </div>
 
-    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover" alt="Promoción 2"/>
+    <!-- Slide 2 -->
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide aria-hidden="true">
+      <img src="{% static 'home/img/carusel 2.jpg' %}" class="w-full h-full object-cover object-[25%_center]" alt="Promoción 2" loading="lazy"/>
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
-        <h2 class="text-4xl md:text-6xl font-extrabold">Gestión Total<br><span class="text-emerald-300">Inventario y ventas</span></h2>
+        <h2 class="text-4xl md:text-6xl font-extrabold">
+          Gestión Total<br><span class="text-emerald-300">Inventario y ventas</span>
+        </h2>
         <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Ver módulos</a>
       </div>
     </div>
 
-    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide>
-      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover" alt="Promoción 3"/>
+    <!-- Slide 3 -->
+    <div class="absolute inset-0 opacity-0 transition-opacity duration-700 ease-out" data-slide aria-hidden="true">
+      <img src="{% static 'home/img/carusel 3.jpg' %}" class="w-full h-full object-cover object-[25%_center]" alt="Promoción 3" loading="lazy"/>
       <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
       <div class="absolute left-6 md:left-16 top-1/2 -translate-y-1/2 text-white max-w-xl">
-        <h2 class="text-4xl md:text-6xl font-extrabold">Optimiza tu farmacia<br><span class="text-emerald-300">SAIF es la solución</span></h2>
-        <a href="#saif" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Entrar al sistema</a>
+        <h2 class="text-4xl md:text-6xl font-extrabold">
+          Optimiza tu farmacia<br><span class="text-emerald-300">SAIF es la solución</span>
+        </h2>
+        <a href="#cta" class="btn btn-primary mt-5 inline-block shadow transition-transform hover:scale-105">Entrar al sistema</a>
       </div>
     </div>
   </div>
 
   <!-- Controles -->
-  <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Anterior</span>❮</button>
-  <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow"><span class="sr-only">Siguiente</span>❯</button>
+  <button id="prev" class="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/85 hover:bg-white shadow focus:outline-none focus:ring-2 focus:ring-emerald-500/40" aria-label="Anterior">
+    <span aria-hidden="true">❮</span>
+  </button>
+  <button id="next" class="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center w-10 h-10 rounded-full bg-white/85 hover:bg-white shadow focus:outline-none focus:ring-2 focus:ring-emerald-500/40" aria-label="Siguiente">
+    <span aria-hidden="true">❯</span>
+  </button>
+
   <!-- Indicadores -->
-  <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2"></div>
+  <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2" aria-label="Indicadores"></div>
 </section>
 
-<section id="saif" class="bg-emerald-700 text-white py-14">
+<!-- =============== CABECERA SAIF =============== -->
+<section id="saif" class="bg-emerald-700 text-white py-14 scroll-mt-24">
   <div class="container mx-auto px-4">
     <h1 class="text-3xl md:text-5xl font-extrabold">SAIF</h1>
-    <p class="mt-2 text-lg md:max-w-3xl">Sistema de Administración e Inventario de Farmacia</p>
+    <p class="mt-2 text-lg md:max-w-3xl opacity-90">Sistema de Administración e Inventario de Farmacia</p>
   </div>
 </section>
 
+<!-- =============== INTRO / OBJETIVO / ALCANCE =============== -->
 <section class="container mx-auto px-4 py-12">
   <h2 class="text-2xl md:text-3xl font-extrabold text-emerald-800 mb-6">¿De qué se trata el proyecto?</h2>
   <p class="mb-10 text-slate-700 leading-relaxed text-lg">
-    SAIF — Sistema de Administración e Inventario de Farmacia es una plataforma web para gestionar inventarios, ventas, proveedores y reportes de una red de farmacias.
-    Optimiza tiempos, reduce errores y da visibilidad en tiempo real.
+    SAIF es una plataforma web para gestionar inventarios, ventas, proveedores y reportes de una red de farmacias.
+    Optimiza tiempos, reduce errores y brinda visibilidad en tiempo real.
   </p>
 
   <div class="grid md:grid-cols-2 gap-8 mb-12">
     <div class="p-8 rounded-2xl border bg-gradient-to-br from-emerald-50 via-white to-emerald-100 shadow-soft hover:shadow-lg transition hover:scale-105">
       <h3 class="font-bold text-emerald-800 text-xl mb-2 flex items-center gap-2">
-        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6l4 2"></path></svg>
+        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6v6l4 2"/></svg>
         Objetivo del proyecto
       </h3>
       <p class="text-slate-700 mt-2 text-base">Centralizar la operación de la farmacia con procesos estandarizados y datos confiables para la toma de decisiones.</p>
     </div>
     <div class="p-8 rounded-2xl border bg-gradient-to-br from-emerald-50 via-white to-emerald-100 shadow-soft hover:shadow-lg transition hover:scale-105">
       <h3 class="font-bold text-emerald-800 text-xl mb-2 flex items-center gap-2">
-        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"></path></svg>
+        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
         Alcance
       </h3>
-      <p class="text-slate-700 mt-2 text-base">Cobertura en sucursales, bodegas y módulo de ventas. Integración con proveedores, control de inventario y reportes gerenciales.</p>
+      <p class="text-slate-700 mt-2 text-base">Sucursales, bodegas y punto de venta; integración con proveedores, control de inventario y reportes gerenciales.</p>
     </div>
   </div>
 
+  <!-- =============== MÓDULOS =============== -->
   <div class="grid md:grid-cols-3 gap-8 mb-12">
-    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
-      <div class="bg-emerald-100 rounded-full p-3 mb-3">
-        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h3v4a1 1 0 001 1h3v4a1 1 0 001 1h3v-4a1 1 0 00-1-1h-3v-4a1 1 0 00-1-1H7V7a1 1 0 00-1-1H3z"></path></svg>
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v4a1 1 0 001 1h3v4a1 1 0 001 1h3v4a1 1 0 001 1h3v-4a1 1 0 00-1-1h-3v-4a1 1 0 00-1-1H7V7a1 1 0 00-1-1H3z"/></svg>
       </div>
-      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Módulos</h4>
-      <ul class="mt-2 text-sm space-y-2">
-        <li class="bg-emerald-50 rounded px-2 py-1">Inventarios y Kardex</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Compras y Proveedores</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Ventas y Caja</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Clientes y Programas</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Usuarios y Roles</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Reportes</li>
-      </ul>
+      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Inventarios y Kardex</h4>
+      <p class="text-sm text-slate-700">Lotes, caducidades, movimientos y existencias en tiempo real.</p>
     </div>
 
-    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
-      <div class="bg-emerald-100 rounded-full p-3 mb-3">
-        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6"></path></svg>
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v18M3 9h18"/></svg>
       </div>
-      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Procesos críticos</h4>
-      <ul class="mt-2 text-sm space-y-2">
-        <li class="bg-emerald-50 rounded px-2 py-1">Recepción con lote y caducidad</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Reabasto automático por mínimos</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Devoluciones y ajustes</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Conteos cíclicos</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Auditoría y bitácoras</li>
-      </ul>
+      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Compras y Proveedores</h4>
+      <p class="text-sm text-slate-700">OC, recepción con validación, ajustes por diferencia y devoluciones.</p>
     </div>
 
-    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 flex flex-col items-center text-center">
-      <div class="bg-emerald-100 rounded-full p-3 mb-3">
-        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 00-10 0v2"></path></svg>
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 10h10M7 14h6M5 6h14"/></svg>
+      </div>
+      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Ventas y Caja</h4>
+      <p class="text-sm text-slate-700">Tickets, cortes, descuentos, promociones y control de precios.</p>
+    </div>
+
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 10-8 0v4"/></svg>
+      </div>
+      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Clientes y Programas</h4>
+      <p class="text-sm text-slate-700">Historial, puntos y precios especiales por convenios.</p>
+    </div>
+
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 17V7a2 2 0 012-2h2a2 2 0 012 2v10"/></svg>
+      </div>
+      <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Usuarios y Roles</h4>
+      <p class="text-sm text-slate-700">Permisos por perfil, bitácora de auditoría y trazabilidad.</p>
+    </div>
+
+    <div class="rounded-2xl border bg-white shadow-soft hover:shadow-lg transition hover:scale-105 p-7 text-center">
+      <div class="bg-emerald-100 rounded-full p-3 w-fit mx-auto mb-3">
+        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h18v6H3zM3 15h18v6H3z"/></svg>
       </div>
       <h4 class="font-semibold text-emerald-800 mb-2 text-lg">Reportes</h4>
-      <ul class="mt-2 text-sm space-y-2">
-        <li class="bg-emerald-50 rounded px-2 py-1">Rotación y quiebre</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Ventas por categoría</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Margen y utilidad</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Caducidades próximas</li>
-        <li class="bg-emerald-50 rounded px-2 py-1">Top productos y clientes</li>
-      </ul>
+      <p class="text-sm text-slate-700">Rotación, quiebres, ventas por categoría, márgenes y caducidades.</p>
     </div>
   </div>
 
-  <div class="mt-10 flex justify-center">
-    <a class="btn btn-primary shadow transition-transform hover:scale-105 text-lg px-8 py-3" href="{% url 'home:login' %}">Iniciar sesión y entrar al sistema</a>
+  <!-- =============== FLUJO DE TRABAJO =============== -->
+  <div class="mb-12">
+    <h3 class="text-xl font-extrabold text-emerald-800 mb-4">Flujo de trabajo</h3>
+    <div class="flex flex-col md:flex-row items-center gap-4 text-sm">
+      <div class="chip">Compra</div>
+      <span class="text-emerald-600">➜</span>
+      <div class="chip">Recepción / Lotes</div>
+      <span class="text-emerald-600">➜</span>
+      <div class="chip">Inventario</div>
+      <span class="text-emerald-600">➜</span>
+      <div class="chip">Venta / Caja</div>
+      <span class="text-emerald-600">➜</span>
+      <div class="chip">Reportes</div>
+    </div>
+  </div>
+
+  <!-- =============== RESULTADOS ESPERADOS =============== -->
+  <div class="grid md:grid-cols-3 gap-6 mb-12">
+    <div class="p-6 rounded-2xl border bg-white shadow-soft text-center">
+      <div class="text-3xl font-extrabold text-emerald-700">-30%</div>
+      <div class="text-sm text-slate-600">Merma por caducidad</div>
+    </div>
+    <div class="p-6 rounded-2xl border bg-white shadow-soft text-center">
+      <div class="text-3xl font-extrabold text-emerald-700">+20%</div>
+      <div class="text-sm text-slate-600">Rotación de inventario</div>
+    </div>
+    <div class="p-6 rounded-2xl border bg-white shadow-soft text-center">
+      <div class="text-3xl font-extrabold text-emerald-700">100%</div>
+      <div class="text-sm text-slate-600">Trazabilidad de movimientos</div>
+    </div>
+  </div>
+
+  <!-- =============== TECNOLOGÍA =============== -->
+  <div class="mb-12">
+    <h3 class="text-xl font-extrabold text-emerald-800 mb-4">Tecnología</h3>
+    <div class="flex flex-wrap gap-2">
+      <span class="badge">Django</span>
+      <span class="badge">PostgreSQL</span>
+      <span class="badge">Tailwind</span>
+      <span class="badge">HTMX / Alpine (opcional)</span>
+      <span class="badge">Docker (opcional)</span>
+      <span class="badge">CI/CD (opcional)</span>
+    </div>
+  </div>
+
+  <!-- =============== CTA =============== -->
+  <div id="cta" class="p-8 rounded-2xl border bg-gradient-to-r from-emerald-50 to-white shadow-soft flex flex-col md:flex-row items-center justify-between gap-4">
+    <div>
+      <h3 class="text-xl md:text-2xl font-extrabold text-emerald-800">¿Listo para usar SAIF?</h3>
+      <p class="text-slate-700">Ingresa con tu cuenta o contáctanos para una demo guiada.</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'login' %}" class="btn btn-primary">Entrar al sistema</a>
+      <a href="{% url 'home:contacto' %}" class="btn btn-ghost">Solicitar demo</a>
+    </div>
   </div>
 </section>
 
-<!-- Carrusel -->
+<!-- =============== JS: Carrusel =============== -->
 <script>
 (function(){
-  const slides = Array.from(document.querySelectorAll('[data-slide]'));
+  const root = document.getElementById('slider');
+  const slides = Array.from(root.querySelectorAll('[data-slide]'));
   const nextBtn = document.getElementById('next');
   const prevBtn = document.getElementById('prev');
   const dotsWrap = document.getElementById('dots');
+
   if (slides.length && nextBtn && prevBtn && dotsWrap){
     let idx=0, timer=null;
+
+    // Crear indicadores
     slides.forEach((_,i)=>{
       const b=document.createElement('button');
       b.className='w-2.5 h-2.5 rounded-full bg-white/60 hover:bg-white transition';
+      b.setAttribute('aria-label','Ir al slide ' + (i+1));
       b.addEventListener('click',()=>go(i,true));
       dotsWrap.appendChild(b);
     });
+
     function paint(){
-      slides.forEach((s,i)=>{s.style.opacity=i===idx?1:0});
-      Array.from(dotsWrap.children).forEach((d,i)=>{d.style.background=i===idx?'#10B981':'rgba(255,255,255,.6)'});
+      slides.forEach((s,i)=>{
+        const active = i===idx;
+        s.style.opacity = active?1:0;
+        s.setAttribute('aria-hidden', String(!active));
+      });
+      Array.from(dotsWrap.children).forEach((d,i)=>{
+        d.style.background = i===idx ? '#10B981' : 'rgba(255,255,255,.6)';
+      });
     }
     function go(n,manual=false){
-      idx=(n+slides.length)%slides.length; paint();
-      if(manual){ clearInterval(timer); timer=setInterval(step,5000); }
+      idx=(n+slides.length)%slides.length;
+      paint();
+      if(manual){ restart(); }
     }
     function step(){ go(idx+1); }
+    function restart(){ clearInterval(timer); timer=setInterval(step,5000); }
+
     nextBtn.addEventListener('click',()=>go(idx+1,true));
     prevBtn.addEventListener('click',()=>go(idx-1,true));
-    timer=setInterval(step,5000); paint();
+
+    root.addEventListener('keydown', (e)=>{
+      if(e.key==='ArrowRight') go(idx+1,true);
+      if(e.key==='ArrowLeft') go(idx-1,true);
+    });
+    root.addEventListener('mouseenter', ()=>clearInterval(timer));
+    root.addEventListener('mouseleave', restart);
+
+    restart(); paint();
   }
 })();
 </script>

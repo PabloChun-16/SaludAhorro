@@ -1,43 +1,114 @@
-/* ===== Formularios (crear/editar usuario) ===== */
-.saif-modal .modal-header {
-  background: #0E7A3A;
-  color: #fff;
-  border-bottom: 0;
-}
-
+/* === ESTILOS GENERALES DEL FORMULARIO === */
 .saif-modal .modal-content {
-  border: 0;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
+  border: none;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  font-family: "Inter", sans-serif;
 }
 
-.saif-modal .modal-body {
-  background: #f7fbf9;
+/* Cabecera */
+.saif-modal .modal-header {
+  background-color: #0e7a3a; /* Verde SAIF */
+  color: #fff;
+  border-bottom: none;
+  padding: 1rem 1.25rem;
 }
 
-.saif-modal .form-label {
+.saif-modal .modal-header h5 {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Footer */
+.saif-modal .modal-footer {
+  border-top: none;
+  padding: 0.75rem 1rem;
+}
+
+/* === CAMPOS DE FORMULARIO === */
+.form-label {
   font-weight: 600;
-  margin-bottom: .35rem;
+  color: #333;
+  margin-bottom: 0.35rem;
 }
 
-.saif-modal .form-control,
-.saif-modal .form-select {
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  transition: all .2s ease;
+.input-group-text {
+  background-color: #f8f9fa;
+  border-radius: 8px 0 0 8px;
+  border: 1px solid #ddd;
+  font-size: 1.1rem;
+  color: #0e7a3a;
 }
 
-.saif-modal .form-control:focus,
-.saif-modal .form-select:focus {
-  border-color: #0E7A3A;
+.form-control,
+.form-select {
+  border-radius: 0 8px 8px 0;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #0e7a3a;
   box-shadow: 0 0 0 0.2rem rgba(14, 122, 58, 0.25);
-  outline: none;
 }
 
-/* Botones */
-.saif-modal .modal-footer .btn {
+/* === BOTONES === */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #e9ecef;
+}
+
+.btn-success {
+  background-color: #0e7a3a;
+  border-color: #0e7a3a;
+}
+
+.btn-success:hover {
+  background-color: #0c6a32;
+  border-color: #0c6a32;
+}
+
+.btn-outline-danger {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+.btn-outline-danger:hover,
+.btn-check:checked + .btn-outline-danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.btn-outline-success {
+  border-color: #198754;
+  color: #198754;
+}
+.btn-outline-success:hover,
+.btn-check:checked + .btn-outline-success {
+  background-color: #198754;
+  color: #fff;
+}
+
+/* === TOGGLE RADIO (SÍ / NO) === */
+.btn-group .btn {
+  width: 50%;
+  border-radius: 8px !important;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* === IMAGEN DEL PRODUCTO === */
+.img-thumbnail {
   border-radius: 10px;
-  font-weight: 500;
-  padding: 0.45rem 1.2rem;
+  border: 2px solid #0e7a3a22;
+  transition: transform 0.2s ease-in-out;
+}
+.img-thumbnail:hover {
+  transform: scale(1.05);
 }

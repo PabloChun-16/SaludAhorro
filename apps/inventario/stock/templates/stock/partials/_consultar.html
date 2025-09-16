@@ -1,29 +1,114 @@
+{% load static %}
+
 <div class="saif-modal">
-  <div class="modal-header py-3">
+  <style>
+    .saif-modal .modal-content{border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .saif-modal .modal-header{background:#0E7A3A;color:#fff;border-bottom:0;padding:.6rem .9rem}
+    .saif-modal .modal-header .saif-badge{background:rgba(255,255,255,.15);backdrop-filter:blur(4px);border-radius:999px;padding:.12rem .5rem;font-weight:600;font-size:.8rem}
+    .saif-modal .modal-body{background:#f7fbf9;padding:1rem 1.1rem}
+    .saif-modal .modal-footer{border-top:0}
+    .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem 1rem}
+    .kv{display:grid;grid-template-columns:180px 1fr;align-items:start;gap:.35rem .5rem;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.65rem .75rem;box-shadow:0 4px 12px rgba(15,23,42,.04)}
+    .kv--block{grid-column:1 / -1;grid-template-columns:230px 1fr}
+    .kv__key{font-weight:700;color:#0b1220;display:flex;align-items:center;gap:.45rem;white-space:nowrap}
+    .kv__val{color:#0f172a;word-break:break-word}
+    .kv__val.text-muted{color:#64748b}
+    @media (max-width:768px){.kv-grid{grid-template-columns:1fr}.kv,.kv--block{grid-template-columns:160px 1fr}}
+  </style>
+
+  <div class="modal-header py-2">
     <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1" style="width:28px;height:28px;">
       <h5 class="modal-title mb-0 fw-bold">Detalle del Lote</h5>
       <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
     </div>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
-  <div class="modal-body">
-    <ul class="list-group">
-      <li class="list-group-item"><b>Producto:</b> {{ lote.producto.nombre }}</li>
-      <li class="list-group-item"><b>Código:</b> {{ lote.producto.codigo_producto }}</li>
-      <li class="list-group-item"><b>Descripción:</b> {{ lote.producto.descripcion }}</li>
-      <li class="list-group-item"><b>Presentación:</b> {{ lote.producto.id_presentacion.nombre_presentacion }}</li>
-      <li class="list-group-item"><b>Disponible:</b> {{ lote.cantidad_disponible }}</li>
-      <li class="list-group-item"><b>Lote:</b> {{ lote.codigo_lote }}</li>
-      <li class="list-group-item"><b>Fecha Caducidad:</b> {{ lote.fecha_caducidad }}</li>
-      <li class="list-group-item"><b>Estado Lote:</b> {{ lote.estado_lote }}</li>
-      <li class="list-group-item"><b>Precio Compra:</b> {{ lote.precio_compra }}</li>
-      <li class="list-group-item"><b>Precio Venta:</b> {{ lote.precio_venta }}</li>
-    </ul>
+  <div class="modal-body py-3">
+    <div class="kv-grid">
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-capsule me-1"></i>Producto</div>
+        <div class="kv__val text-capitalize">
+          {% if lote.id_producto %}{{ lote.id_producto.nombre|default_if_none:"—" }}{% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-upc-scan me-1"></i>Código</div>
+        <div class="kv__val">
+          {% if lote.id_producto %}{{ lote.id_producto.codigo_producto|default_if_none:"—" }}{% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv kv--block">
+        <div class="kv__key"><i class="bi bi-card-text me-1"></i>Descripción</div>
+        <div class="kv__val text-muted">
+          {% if lote.id_producto %}{{ lote.id_producto.descripcion|default_if_none:"—" }}{% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-box me-1"></i>Presentación</div>
+        <div class="kv__val">
+          {% if lote.id_producto and lote.id_producto.id_presentacion %}
+            {{ lote.id_producto.id_presentacion.nombre_presentacion|default_if_none:"—" }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-clipboard-data me-1"></i>Disponible</div>
+        <div class="kv__val fw-semibold">{{ lote.cantidad_disponible|default_if_none:"0" }}</div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-hash me-1"></i>Lote</div>
+        <div class="kv__val">{{ lote.numero_lote|default_if_none:"—" }}</div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-calendar-event me-1"></i>F. Caducidad</div>
+        <div class="kv__val">
+          {% if lote.fecha_caducidad %}{{ lote.fecha_caducidad|date:"d/m/Y" }}{% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-flag me-1"></i>Estado</div>
+        <div class="kv__val">
+          {% if lote.id_estado_lote %}
+            {% with estado=lote.id_estado_lote.nombre_estado %}
+              {% if estado == "Activo" %}
+                <span class="badge bg-success">Activo</span>
+              {% elif estado == "Inactivo" %}
+                <span class="badge bg-danger">Inactivo</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ estado }}</span>
+              {% endif %}
+            {% endwith %}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-cash-coin me-1"></i>P. Compra</div>
+        <div class="kv__val text-danger">
+          {% if lote.precio_compra is not None %}Q {{ lote.precio_compra|floatformat:2 }}{% else %}—{% endif %}
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv__key"><i class="bi bi-currency-exchange me-1"></i>P. Venta</div>
+        <div class="kv__val text-success fw-bold">
+          {% if lote.precio_venta is not None %}Q {{ lote.precio_venta|floatformat:2 }}{% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="modal-footer bg-white">
-    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+  <div class="modal-footer py-2 bg-white">
+    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>
   </div>

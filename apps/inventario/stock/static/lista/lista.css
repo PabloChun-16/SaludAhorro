@@ -182,18 +182,3 @@ section.p-6,section.p-8{
 @media (max-width: 1200px){
   #tablaProductos thead th{ font-size:.86rem; }
 }
-
-.img-thumb {
-  width: 150px;     /* 👈 cambia este valor para ajustar el tamaño */
-  max-width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-.img-thumb img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: cover;
-  aspect-ratio: 1 / 1;   /* cuadrado; usa 4/3 si prefieres rectangular */
-}

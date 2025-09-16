@@ -1,64 +1,161 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import FileResponse
 from apps.inventario.models import Lotes
 import io
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib.pagesizes import A4
+from django.utils.html import escape
+from django.utils.timezone import now
+
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 
-# Listado de lotes (Stock)
+# ---------- helpers PDF ----------
+def _register_fonts():
+    # intenta cargar DejaVuSans si existe en static/fonts, si no usa Helvetica
+    try:
+        from django.conf import settings
+        import os
+        font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "DejaVuSans.ttf")
+        if os.path.exists(font_path):
+            pdfmetrics.registerFont(TTFont("DejaVu", font_path))
+            return "DejaVu"
+    except Exception:
+        pass
+    return "Helvetica"
+
+
+def _header_footer(canvas, doc):
+    canvas.saveState()
+    w, h = landscape(A4)
+    canvas.setFillColorRGB(0.054, 0.478, 0.227)  # #0E7A3A
+    canvas.setFont("Helvetica-Bold", 12)
+    canvas.drawString(24, h - 18, "Reporte de Stock · SAIF")
+    canvas.setFont("Helvetica", 9)
+    canvas.setFillColorRGB(0.25, 0.25, 0.25)
+    canvas.drawRightString(w - 24, h - 18, now().strftime("%d/%m/%Y %H:%M"))
+    canvas.setFont("Helvetica", 9)
+    canvas.setFillColorRGB(0.35, 0.35, 0.35)
+    canvas.drawRightString(w - 24, 16, f"Página {doc.page}")
+    canvas.restoreState()
+
+
+# =============== LISTA ===============
 def stock_list(request):
-    lotes = Lotes.objects.select_related("id_producto", "id_estado_lote").all()
+    lotes = (
+        Lotes.objects
+        .select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote")
+        .all()
+    )
     return render(request, "stock/lista.html", {"lotes": lotes})
 
 
-# Consultar detalle de un lote (y su producto asociado)
+# =============== DETALLE ===============
 def stock_detail(request, pk):
-    lote = get_object_or_404(Lotes, pk=pk)
+    lote = get_object_or_404(
+        Lotes.objects.select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote"),
+        pk=pk,
+    )
     return render(request, "stock/partials/_consultar.html", {"lote": lote})
 
 
-# Exportar stock a PDF
+# =============== EXPORTAR PDF ===============
 def exportar_stock_pdf(request):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=landscape(A4),
+        leftMargin=18, rightMargin=18,
+        topMargin=36, bottomMargin=28,
+        title="Reporte de Stock",
+    )
+
+    font_name = _register_fonts()
     styles = getSampleStyleSheet()
+    p8_left   = ParagraphStyle("p8_left",   parent=styles["Normal"], fontName=font_name, fontSize=8, leading=10, alignment=TA_LEFT)
+    p8_center = ParagraphStyle("p8_center", parent=styles["Normal"], fontName=font_name, fontSize=8, leading=10, alignment=TA_CENTER)
+    p8_right  = ParagraphStyle("p8_right",  parent=styles["Normal"], fontName=font_name, fontSize=8, leading=10, alignment=TA_RIGHT)
+    hdr_style = ParagraphStyle("hdr", parent=styles["Normal"], fontName=font_name, fontSize=9, leading=11, alignment=TA_CENTER, textColor=colors.whitesmoke)
 
-    # Cabecera de la tabla
-    data = [["Código", "Producto", "Descripción", "Presentación", "Disponible",
-             "Lote", "Vencimiento", "Estado Lote", "Precio Compra", "Precio Venta"]]
+    headers = ["Código", "Producto", "Descripción", "Presentación", "Disp.",
+               "Lote", "Vencimiento", "Estado Lote", "P. Compra", "P. Venta"]
+    data = [[Paragraph(escape(h), hdr_style) for h in headers]]
 
-    # Cargar registros
-    for lote in Lotes.objects.select_related("id_producto", "id_estado_lote").all():
+    lotes = (
+        Lotes.objects
+        .select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote")
+        .all()
+    )
+
+    def cell(text, style):
+        return Paragraph(escape(text or ""), style)
+
+    for lote in lotes:
+        prod  = lote.id_producto
+        pres  = getattr(prod, "id_presentacion", None)
+        estado = lote.id_estado_lote
+
+        codigo = getattr(prod, "codigo_producto", "") if prod else ""
+        nombre = getattr(prod, "nombre", "") if prod else ""
+        desc   = getattr(prod, "descripcion", "") or ""
+        presentacion = getattr(pres, "nombre_presentacion", "") if pres else ""
+        disp   = lote.cantidad_disponible or 0
+        nro    = getattr(lote, "numero_lote", "") or getattr(lote, "codigo_lote", "") or ""
+        venc   = lote.fecha_caducidad.strftime("%d/%m/%Y") if getattr(lote, "fecha_caducidad", None) else ""
+        est    = getattr(estado, "nombre_estado", "") if estado else ""
+        pcomp  = f"Q {lote.precio_compra:.2f}" if lote.precio_compra is not None else ""
+        pvent  = f"Q {lote.precio_venta:.2f}" if lote.precio_venta is not None else ""
+
         data.append([
-            lote.id_producto.codigo_producto,
-            lote.id_producto.nombre,
-            lote.id_producto.descripcion,
-            lote.id_producto.id_presentacion.nombre_presentacion if lote.id_producto.id_presentacion else "",
-            lote.cantidad_disponible,
-            lote.numero_lote,
-            lote.fecha_caducidad.strftime("%d/%m/%Y"),
-            lote.id_estado_lote.nombre_estado if lote.id_estado_lote else "",
-            str(lote.precio_compra or ""),
-            str(lote.precio_venta or ""),
+            cell(codigo, p8_center),
+            cell(nombre, p8_left),
+            cell(desc, p8_left),
+            cell(presentacion, p8_left),
+            cell(str(disp), p8_center),
+            cell(nro, p8_center),
+            cell(venc, p8_center),
+            cell(est, p8_center),
+            cell(pcomp, p8_right),
+            cell(pvent, p8_right),
         ])
 
-    # Construcción de la tabla
-    table = Table(data)
+    # ---- Anchos proporcionales al ancho útil (evita cortes) ----
+        # ---- Anchos proporcionales al ancho útil (evita cortes) ----
+    total_w = doc.width
+    ratios = [
+        0.08,  # Código
+        0.15,  # Producto
+        0.15,  # Descripción
+        0.12,  # Presentación
+        0.06,  # Disp.
+        0.10,  # Lote
+        0.09,  # Vencimiento
+        0.08,  # Estado Lote
+        0.08,  # P. Compra (más ancho)
+        0.08,  # P. Venta (más ancho)
+    ]
+    col_widths = [total_w * r for r in ratios]
+
+
+    table = Table(data, colWidths=col_widths, repeatRows=1)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1b5e20")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0E7A3A")),
+        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+
+        ("FONTNAME", (0, 0), (-1, -1), font_name),
+        ("FONTSIZE", (0, 1), (-1, -1), 8),
+        ("VALIGN", (0, 1), (-1, -1), "MIDDLE"),
+
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f8fa")]),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cfd8dc")),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.6, colors.HexColor("#0E7A3A")),
     ]))
 
-    # Crear documento
-    elements = [Paragraph("📦 Reporte de Stock", styles["Title"]), table]
-    doc.build(elements)
-
-    buffer.seek(0)
-    return HttpResponse(buffer, content_type="application/pdf")
+    doc.build([Spacer(1, 4), table], onFirstPage=_header_footer, onLaterPages=_header_footer)
+    buf.seek(0)
+    return FileResponse(buf, as_attachment=True, filename="reporte_stock.pdf")

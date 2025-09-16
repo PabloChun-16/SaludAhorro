@@ -15,41 +15,81 @@
   <!-- CSS propio -->
   <link rel="stylesheet" href="{% static 'home/css/home.css' %}">
 
-  {# Para que las páginas puedan añadir CSS/JS extra en <head> #}
+  <!-- Bloque extensible en <head> -->
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-white">
+<body class="bg-white text-slate-900 antialiased">
+
+  <!-- Skip link accesible -->
+  <a href="#contenido" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-emerald-600 focus:text-white focus:px-3 focus:py-2 focus:rounded-md">
+    Saltar al contenido
+  </a>
 
   <!-- Header / Nav -->
   <header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b shadow">
     <nav class="container mx-auto px-4 h-16 flex items-center gap-4">
-      <a href="{% url 'home:index' %}" class="flex items-center gap-3">
-        <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="h-10 w-10 rounded-full bg-white p-1 shadow">
+      <!-- Brand -->
+      <a href="{% url 'home:index' %}" class="flex items-center gap-3 group">
+        <img
+          src="{% static 'home/img/logo_empresa.png' %}"
+          alt="Logo"
+          class="h-10 w-10 rounded-full bg-white p-1 shadow ring-1 ring-black/5 group-hover:scale-105 transition"
+        >
         <div class="leading-tight">
           <div class="font-extrabold tracking-wide text-emerald-700">FARMACIA SALUD Y AHORRO</div>
           <div class="text-xs text-emerald-800/70">Cerca de ti</div>
         </div>
       </a>
 
-      <div class="ml-auto hidden md:flex items-center">
+      <!-- Links Desktop (ocultos en móvil) -->
+      <div class="ml-auto hidden md:flex items-center text-sm font-medium">
+        <a href="{% url 'home:index' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">Inicio</a>
+        <a href="{% url 'home:saif' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">Proyecto SAIF</a>
+        <a href="{% url 'home:nosotros' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">Acerca de</a>
+        <a href="{% url 'home:blog' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">Blog</a>
+        <a href="{% url 'home:contacto' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40">Contacto</a>
+        <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 flex items-center gap-2 ml-1">
+          <img src="{% static 'home/img/login_icon.png' %}" alt="Login" class="h-6 w-6 rounded-full bg-white p-1">
+          <span>Login</span>
+        </a>
+      </div>
+
+      <!-- Slot extra a la derecha -->
+      {% block header_extra_right %}{% endblock %}
+
+      <!-- Botón menú móvil -->
+      <button
+        id="btnMenu"
+        class="md:hidden ml-auto inline-flex items-center justify-center h-10 w-10 rounded-lg hover:bg-emerald-50 ring-1 ring-black/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+        aria-controls="mobileMenu"
+        aria-expanded="false"
+        aria-label="Abrir menú"
+        type="button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Menú móvil -->
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white/95 backdrop-blur">
+      <div class="container mx-auto px-4 py-3 grid gap-1 text-sm">
         <a href="{% url 'home:index' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Inicio</a>
         <a href="{% url 'home:saif' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Proyecto SAIF</a>
         <a href="{% url 'home:nosotros' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Acerca de</a>
         <a href="{% url 'home:blog' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Blog</a>
         <a href="{% url 'home:contacto' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Contacto</a>
         <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2">
-          <img src="{% static 'home/img/login_icon.png' %}" alt="Login" class="h-6 w-6 rounded-full bg-white p-1">
+          <img src="{% static 'home/img/login_icon.png' %}" alt="Login" class="h-5 w-5 rounded-full bg-white p-1">
           <span>Login</span>
         </a>
       </div>
-
-      {# Por si alguna página quiere poner algo extra a la derecha #}
-      {% block header_extra_right %}{% endblock %}
-    </nav>
+    </div>
   </header>
 
   <!-- Contenido dinámico -->
-  <main>
+  <main id="contenido" class="min-h-[60vh]">
     {% block content %}{% endblock %}
   </main>
 
@@ -58,7 +98,7 @@
     <div class="container mx-auto px-4 py-10 grid md:grid-cols-4 gap-8">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="h-8 w-8 rounded-full bg-white p-1">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="h-8 w-8 rounded-full bg-white p-1 ring-1 ring-black/5">
           <span class="font-semibold">Farmacia Salud y Ahorro</span>
         </div>
         <p class="text-sm opacity-90">Tu salud es nuestra prioridad.</p>
@@ -79,14 +119,30 @@
       <div>
         <h4 class="font-semibold mb-2">Categorías de Productos</h4>
         <ul class="space-y-1 text-sm">
-          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
-                 onclick="document.getElementById('menuCategoria')?.value='marca';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento de marca</a></li>
-          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
-                 onclick="document.getElementById('menuCategoria')?.value='generico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Medicamento genérico</a></li>
-          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
-                 onclick="document.getElementById('menuCategoria')?.value='topico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto tópico</a></li>
-          <li><a class="hover:underline" href="{% url 'home:index' %}#productos"
-                 onclick="document.getElementById('menuCategoria')?.value='inyectado';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">Producto inyectado</a></li>
+          <li>
+            <a class="hover:underline" href="{% url 'home:index' %}#productos"
+               onclick="document.getElementById('menuCategoria')?.value='marca';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">
+               Medicamento de marca
+            </a>
+          </li>
+          <li>
+            <a class="hover:underline" href="{% url 'home:index' %}#productos"
+               onclick="document.getElementById('menuCategoria')?.value='generico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">
+               Medicamento genérico
+            </a>
+          </li>
+          <li>
+            <a class="hover:underline" href="{% url 'home:index' %}#productos"
+               onclick="document.getElementById('menuCategoria')?.value='topico';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">
+               Producto tópico
+            </a>
+          </li>
+          <li>
+            <a class="hover:underline" href="{% url 'home:index' %}#productos"
+               onclick="document.getElementById('menuCategoria')?.value='inyectado';document.getElementById('menuCategoria')?.dispatchEvent(new Event('change'));">
+               Producto inyectado
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -110,7 +166,43 @@
     </div>
   </footer>
 
-  {# Para que cada página pueda meter sus scripts al final #}
+  <!-- Scripts -->
+  <script>
+    // Menú móvil accesible
+    (function () {
+      const btn = document.getElementById('btnMenu');
+      const menu = document.getElementById('mobileMenu');
+      if (!btn || !menu) return;
+
+      // Toggle abrir/cerrar
+      btn.addEventListener('click', () => {
+        const hidden = menu.classList.toggle('hidden');
+        const isOpen = !hidden;
+        btn.setAttribute('aria-expanded', String(isOpen));
+        btn.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
+      });
+
+      // Cerrar al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && !btn.contains(e.target) && !menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Abrir menú');
+        }
+      });
+
+      // Cerrar con Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.setAttribute('aria-label', 'Abrir menú');
+        }
+      });
+    })();
+  </script>
+
+  <!-- Slot de scripts de las páginas -->
   {% block scripts %}{% endblock %}
 </body>
 </html>

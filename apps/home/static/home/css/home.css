@@ -1,0 +1,828 @@
+/* =====================================================
+   SAIF – UI Kit v2 (mejoras de interacción y orden)
+   Reemplaza tu CSS anterior por este bloque completo
+   ===================================================== */
+
+/* =========================
+   Variables de color
+   ========================= */
+:root {
+  --brand: #16a34a;
+  --brand-600: #10b981;
+  --brand-dark: #15803d;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ring: 0 0 0 3px rgb(16 185 129 / 25%);
+}
+
+/* =========================
+   Tipografía y base
+   ========================= */
+html, body {
+  scroll-behavior: smooth;              /* scroll más suave */
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { font-family: inherit; box-sizing: border-box; }
+
+img { max-width: 100%; display: block; }
+
+/* Preferencia de usuario: reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* =========================
+   Contenedor principal
+   ========================= */
+.container { max-width: 1200px; margin-inline: auto; }
+
+/* =========================
+   Sombra suave / Superficies
+   ========================= */
+.shadow-soft { box-shadow: 0 12px 30px rgba(2, 132, 199, .08); }
+.surface     { background: var(--surface); border: 1px solid rgb(0 0 0 / 8%); border-radius: 16px; }
+
+/* =========================
+   Enlaces
+   ========================= */
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* =========================
+   Botones
+   ========================= */
+.btn {
+  display: inline-grid;
+  place-content: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+  outline: none;
+}
+
+.btn:focus-visible { box-shadow: var(--ring); }
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  border: 1px solid rgb(0 0 0 / 10%);
+  background: #fff;
+  color: var(--ink);
+}
+.btn-ghost:hover { background: #f9fafb; transform: translateY(-1px); }
+
+/* Botón flotante “volver arriba” */
+a[href="#hero"].btn.btn-ghost {
+  backdrop-filter: blur(6px);
+  border-color: rgb(0 0 0 / 8%);
+}
+
+/* Pill/Badge moderno y suave */
+.badge{
+  /* colores por defecto (se sobreescriben por categoría abajo) */
+  --bg: #ecfdf5;
+  --fg: #065f46;
+  --bd: #bbf7d0;
+
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .32rem .70rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--bg), #ffffff);
+  color: var(--fg);
+  border: 1px solid var(--bd);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  white-space: nowrap;              /* evita salto de línea feo */
+  box-shadow:
+    0 1px 0 rgba(0,0,0,.04) inset,  /* relieve suave */
+    0 8px 18px rgba(16,185,129,.08);/* sombra sutil */
+}
+
+/* puntito/indicador (sin íconos externos) */
+.badge::before{
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  border-radius: 999px;
+  background: var(--fg);
+  box-shadow: 0 0 0 2px #fff inset;
+  opacity: .9;
+}
+
+/* Paletas por categoría (toma el data-cat del contenedor) */
+.producto-card[data-cat="marca"] .badge{
+  --bg:#e6f9f0; --fg:#0f766e; --bd:#99f6e4;
+}
+.producto-card[data-cat="generico"] .badge{
+  --bg:#eef2ff; --fg:#3730a3; --bd:#c7d2fe;
+}
+.producto-card[data-cat="topico"] .badge{
+  --bg:#fff7ed; --fg:#9a3412; --bd:#fed7aa;
+}
+.producto-card[data-cat="inyectado"] .badge{
+  --bg:#fef2f2; --fg:#b91c1c; --bd:#fecaca;
+}
+
+/* Ajustes específicos en Vista (lista) */
+#gridProductos.list-view .badge{
+  justify-self: start;
+  font-size: .76rem;
+}
+
+
+
+
+/* =========================
+   Tarjetas / módulos
+   ========================= */
+.card {
+  background: var(--surface);
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 16px;
+  padding: 16px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 10%);
+  border-color: rgb(0 0 0 / 12%);
+}
+
+/* =========================
+   Productos (tarjeta)
+   ========================= */
+#gridProductos { transition: grid-template-columns .25s ease, gap .2s ease; }
+
+.producto-card > div {
+  position: relative;
+  border: 1px solid rgb(0 0 0 / 6%);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.producto-card > div:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 12%);
+  border-color: rgb(0 0 0 / 10%);
+}
+.producto-card img {
+  transition: transform .25s ease, filter .25s ease;
+  will-change: transform;
+}
+.producto-card:hover img { transform: scale(1.05); }
+
+/* Vista lista (se activará añadiendo .list-view al grid) */
+#gridProductos.list-view { grid-template-columns: 1fr !important; gap: 12px; }
+#gridProductos.list-view .producto-card > div {
+  display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: 16px; padding: 14px 16px;
+}
+#gridProductos.list-view .producto-card img { height: 64px; }
+#gridProductos.list-view .badge { margin: 0; }
+#gridProductos.list-view h3 { margin: 0; }
+#gridProductos.list-view p[aria-label="Precio"] { margin: 0; font-weight: 700; }
+
+/* =========================
+   Inputs y formularios
+   ========================= */
+.input, select, textarea {
+  font-family: inherit;
+  border-radius: 12px;
+  border: 1px solid #d1fae5;
+  outline: none;
+  transition: box-shadow .15s, border-color .15s, background .15s;
+  background: #fff;
+}
+.input, select { height: 44px; padding: 0 14px; }
+textarea { padding: 12px; min-height: 120px; }
+
+.input::placeholder { color: #9ca3af; }
+.input:focus, select:focus, textarea:focus { border-color: var(--brand); box-shadow: var(--ring); }
+
+/* Botón “Limpiar” visual coherente cuando se usa junto a inputs */
+#limpiarFiltros.btn-ghost { height: 40px; padding-inline: 14px; }
+
+/* =========================
+   Efecto Reveal al hacer scroll
+   (se activa añadiendo la clase .reveal-in por JS)
+   ========================= */
+[data-reveal] { opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .5s ease, transform .5s ease; }
+.reveal-in    { opacity: 1 !important; transform: translateY(0) scale(1) !important; }
+
+/* =========================
+   Hero / Carrusel pequeños detalles
+   ========================= */
+#slider .absolute .text-white { text-shadow: 0 2px 12px rgba(0,0,0,.25); }
+#togglePlay { font-weight: 600; }
+
+/* =========================
+   Scrollbar (mejora visual)
+   ========================= */
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: #a7f3d0 transparent; }
+/* WebKit */
+::-webkit-scrollbar { height: 10px; width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #bbf7d0, #6ee7b7);
+  border-radius: 999px;
+  border: 2px solid transparent;
+}
+
+/* =========================
+   Menú móvil (si lo usas)
+   ========================= */
+#mobileMenu { display: none; }
+#mobileMenu.open { display: block; animation: pop .15s ease-out; }
+@keyframes pop { from { transform: scale(.98); opacity: .5 } to { transform: scale(1); opacity: 1 } }
+
+/* =========================
+   Chips
+   ========================= */
+.chip {
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  border: 1px solid #d1fae5;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+/* =========================
+   Helpers seguros
+   ========================= */
+.is-hidden { display: none !important; }   /* mejor que .hidden si usas Tailwind */
+
+
+/* ======== Filterbar (compacta, ligera y “pulida”) ======== */
+.filterbar{
+  position: relative;
+  border-radius: 18px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid rgb(0 0 0 / 6%);
+}
+
+.filter-counter{
+  position: absolute;
+  top: -1.4rem; left: .9rem;
+  font-size: .9rem; color: #475569; opacity: .9;
+}
+
+.filter-primary{
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 992px){
+  .filter-primary{
+    grid-template-columns: minmax(260px,1fr) 1fr auto;
+    align-items: center;
+  }
+}
+
+/* Input con icono (sin dependencias) */
+.input-icon{ position: relative; }
+.input-icon .input{ padding-left: 38px; }
+.input-icon::before{
+  content: "🔍";
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  opacity: .6; font-size: 18px; pointer-events: none;
+}
+
+/* Segmentado (chips) */
+.segmented{
+  display: flex; gap: 6px; align-items: center;
+  padding: 4px; border-radius: 999px;
+  background: #ecfdf5; border: 1px solid #bbf7d0;
+  overflow: auto;
+}
+.segmented input{ position: absolute; opacity: 0; pointer-events: none; }
+.segmented label{
+  padding: .42rem .85rem; border-radius: 999px; cursor: pointer;
+  font-weight: 700; color: #065f46; white-space: nowrap;
+  transition: background .15s, color .15s, transform .15s, box-shadow .15s;
+}
+.segmented input:checked + label{
+  background: var(--brand-600); color: #fff;
+  box-shadow: 0 8px 22px rgba(16,185,129,.28);
+}
+
+/* Selects juntos, compactos */
+.selects{ display: flex; gap: 8px; }
+
+/* Avanzados (details/summary) */
+.filter-advanced{ margin-top: 2px; }
+.filter-advanced summary{
+  cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 12px;
+  border: 1px dashed #bbf7d0; background: #f0fdf4; color: #065f46; font-weight: 700;
+}
+.filter-advanced[open] summary{ background: #ecfdf5; }
+
+.advanced-body{
+  padding: 10px 4px 2px; display: grid; gap: 10px;
+  grid-template-columns: 1fr auto;
+}
+.price{ display: flex; align-items: center; gap: 10px; }
+.price input[type="range"]{ width: 230px; accent-color: var(--brand-600); }
+.price output{
+  min-width: 52px; text-align: right; font-variant-numeric: tabular-nums;
+  font-weight: 800; color: #065f46;
+}
+
+/* Toggle “Solo ofertas” */
+.switch{ display: inline-flex; align-items: center; gap: 8px; }
+.switch input{
+  appearance: none; width: 36px; height: 22px; border-radius: 999px; position: relative;
+  background: #e2e8f0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  transition: background .18s;
+}
+.switch input::after{
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 999px; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .18s;
+}
+.switch input:checked{ background: var(--brand-600); }
+.switch input:checked::after{ left: 17px; }
+.switch span{ font-weight: 700; color: #0f766e; }
+
+/* Acciones a la derecha */
+.filter-actions{ display: flex; justify-content: flex-end; gap: 8px; }
+
+
+/* ======== Barra minimal: search + acciones ======== */
+.filterbar{
+  position: relative;
+  border-radius: 18px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid rgb(0 0 0 / 6%);
+}
+
+.filter-counter{
+  position: absolute;
+  top: -1.4rem; left: .9rem;
+  font-size: .9rem; color: #475569; opacity: .9;
+}
+
+.filter-primary.only-search{
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 768px){
+  .filter-primary.only-search{
+    grid-template-columns: 1fr auto;       /* buscador a la izq, botones a la der */
+    align-items: center;
+  }
+}
+
+/* Input con icono */
+.input-icon{ position: relative; }
+.input-icon .input{ padding-left: 38px; }
+.input-icon::before{
+  content: "🔍";
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  opacity: .6; font-size: 18px; pointer-events: none;
+}
+
+/* Acciones a la derecha */
+.filter-actions{ display: flex; gap: 8px; justify-content: flex-end; }
+
+
+/* Info extra: SOLO visible en Vista (lista) */
+.prod-info{
+  display:none;                       /* oculta por defecto (Grid) */
+  width:100%;
+  margin-top:.4rem;
+  gap:6px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.prod-info .mini{
+  padding:.25rem .55rem;
+  border-radius:999px;
+  border:1px solid #d1fae5;
+  background:#ecfdf5;
+  color:#065f46;
+  font-size:.72rem;
+  font-weight:700;
+}
+
+/* ← Mostrar en VISTA (lista) */
+#gridProductos.list-view .prod-info{ display:flex; }
+
+/* ← Ocultar en GRID (por si había reglas previas) */
+#gridProductos:not(.list-view) .prod-info{ display:none !important; }
+
+/* ===== Info extra y descripción (solo en Vista/lista) ===== */
+.prod-info{
+  display:none;                    /* oculta en Grid */
+  width:100%;
+  margin-top:.5rem;
+  gap:.5rem;
+  justify-content:center;          /* centrado */
+  flex-wrap:wrap;
+}
+.prod-info .mini{
+  padding:.25rem .6rem;
+  border-radius:999px;
+  border:1px solid #d1fae5;
+  background:#ecfdf5;
+  color:#065f46;
+  font-size:.72rem;
+  font-weight:700;
+}
+
+/* Descripción breve (solo Vista) */
+.prod-desc{
+  display:none;
+  color:#475569;
+  font-size:.9rem;
+  max-width:60ch;
+  margin:.35rem auto 0;
+  text-align:center;
+  /* 2 líneas máximo */
+  display:-webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* Vista (lista): centramos todo y mostramos info */
+#gridProductos.list-view .prod-info{ display:flex; }
+#gridProductos.list-view .prod-desc{ display:-webkit-box; }
+
+/* Vista (lista): layout más centrado y ordenado */
+#gridProductos.list-view .producto-card > div{
+  display:grid;
+  grid-template-columns: 110px 1fr;   /* img/badge | contenido */
+  align-items:center;
+  gap:14px;
+  padding:14px 16px;
+}
+#gridProductos.list-view .producto-card img{ height:72px; }
+#gridProductos.list-view .producto-card h3{
+  margin:0;
+  text-align:center;
+  font-size:1.05rem;
+}
+/* Ocultamos el precio original en lista (ya va en chips) */
+#gridProductos.list-view [aria-label="Precio"]{ display:none; }
+
+/* ===== FIX: info solo en Vista (lista) ===== */
+#gridProductos .prod-info{ display:none !important; }
+#gridProductos .prod-desc{ display:none !important; }
+
+/* Mostrar SOLO cuando el contenedor tenga .list-view */
+#gridProductos.list-view .prod-info{ display:flex !important; }
+#gridProductos.list-view .prod-desc{ display:-webkit-box !important; }
+
+/* En Vista ocultamos el precio repetido (porque va en chips) */
+#gridProductos.list-view [aria-label="Precio"]{ display:none !important; }
+
+
+/* =============== LIST VIEW (Vista) ORDENADA Y CENTRADA =============== */
+/* Contenedor interno de cada tarjeta en Vista: 3 columnas limpias */
+#gridProductos.list-view .producto-card > div{
+  display: grid;
+  grid-template-columns: 140px 1fr 340px; /* media | contenido | meta */
+  grid-template-rows: auto auto;          /* título / descripción */
+  column-gap: 18px;
+  row-gap: 6px;
+  align-items: center;
+  padding: 16px 18px;
+  min-height: 120px;
+}
+
+/* Columna izquierda (media): badge arriba, imagen debajo */
+#gridProductos.list-view .producto-card .badge{
+  grid-column: 1; grid-row: 1; 
+  justify-self: start;
+}
+#gridProductos.list-view .producto-card img{
+  grid-column: 1; grid-row: 2;
+  width: 110px; height: 78px; object-fit: contain;
+  justify-self: start;
+}
+
+/* Columna centro (contenido): título + descripción, alineado a la izquierda */
+#gridProductos.list-view .producto-card h3{
+  grid-column: 2; grid-row: 1;
+  margin: 0;
+  text-align: left;
+  font-weight: 800;
+  font-size: 1.12rem;
+  color: var(--ink);
+  /* 1–2 líneas máximo (por si el nombre es largo) */
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-clamp: 2;
+  line-clamp: 2;
+  line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#gridProductos.list-view .producto-card .prod-desc{
+  grid-column: 2; grid-row: 2;
+  display: -webkit-box;       /* ya activamos solo en vista */
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #475569;
+  font-size: .92rem;
+  margin: .2rem 0 0;
+  text-align: left;           /* centrada en grid anterior, aquí la dejamos alineada */
+  max-width: 64ch;
+}
+
+/* Columna derecha (meta): chips; alineados y centrados verticalmente */
+#gridProductos.list-view .producto-card .prod-info{
+  grid-column: 3; grid-row: 1 / span 2;   /* ocupa alto de título+desc */
+  align-self: center;
+  justify-content: flex-end;              /* a la derecha */
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+#gridProductos.list-view .producto-card .prod-info .mini{
+  padding: .28rem .62rem;
+  border-radius: 999px;
+  border: 1px solid #d1fae5;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: .78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Ocultamos el precio duplicado en Vista (ya va en chips) */
+#gridProductos.list-view [aria-label="Precio"]{ display: none !important; }
+
+/* ---------- Responsive (tablet y móvil) ---------- */
+@media (max-width: 1024px){
+  #gridProductos.list-view .producto-card > div{
+    grid-template-columns: 130px 1fr 260px;
+  }
+}
+@media (max-width: 860px){
+  #gridProductos.list-view .producto-card > div{
+    grid-template-columns: 110px 1fr;     /* media | contenido */
+    grid-template-rows: auto auto auto;  /* título, desc, chips */
+  }
+  #gridProductos.list-view .producto-card .prod-info{
+    grid-column: 1 / -1; grid-row: 3;     /* chips bajo la descripción */
+    justify-content: center;
+  }
+  #gridProductos.list-view .producto-card h3,
+  #gridProductos.list-view .producto-card .prod-desc{
+    text-align: center;                    /* mejor legibilidad en móvil */
+    margin-left: auto; margin-right: auto;
+  }
+  #gridProductos.list-view .producto-card .badge,
+  #gridProductos.list-view .producto-card img{
+    justify-self: center;
+  }
+}
+
+/* Suaviza el borde y separación entre tarjetas en Vista */
+#gridProductos.list-view .producto-card > div{
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+}
+
+/* =========================
+   VISTA (LISTA) — layout limpio de 3 columnas
+   ========================= */
+#gridProductos.list-view .producto-card > div{
+  display:grid;
+  grid-template-columns: 120px 1fr 200px;   /* media | contenido | panel derecho */
+  column-gap: 20px;
+  row-gap: 6px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 16px;
+}
+
+/* Columna izquierda: badge arriba, imagen abajo */
+#gridProductos.list-view .producto-card .badge{
+  grid-column: 1 / 2; grid-row: 1;
+  justify-self: start;
+  margin: 0 0 6px 0;
+}
+#gridProductos.list-view .producto-card img{
+  grid-column: 1 / 2; grid-row: 2;
+  width: 110px; height: 78px; object-fit: contain;
+  justify-self: start;
+}
+
+/* Columna central: título + descripción */
+#gridProductos.list-view .producto-card h3{
+  grid-column: 2 / 3; grid-row: 1;
+  margin: 0;
+  text-align: left;
+  font-weight: 800;
+  font-size: 1.14rem;
+  color: var(--ink);
+  display: -webkit-box;             /* por si el nombre es muy largo */
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#gridProductos.list-view .producto-card .prod-desc{
+  grid-column: 2 / 3; grid-row: 2;
+  color:#475569;
+  font-size:.95rem;
+  margin:.2rem 0 0;
+  text-align:left;
+  max-width: 70ch;
+  display:-webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:hidden;
+}
+
+/* Columna derecha: precio grande y “presentación” debajo */
+#gridProductos.list-view .producto-card [aria-label="Precio"]{
+  grid-column: 3 / 4; grid-row: 1;
+  justify-self: end;
+  align-self: start;
+  margin: 0;
+  padding: .35rem .75rem;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #065f46;
+  font-variant-numeric: tabular-nums;
+}
+#gridProductos.list-view .producto-card .prod-info{
+  grid-column: 3 / 4; grid-row: 2;
+  justify-content: flex-end;
+  gap: .45rem;
+  flex-wrap: wrap;
+}
+
+/* En Vista mostramos SOLO la “presentación” de los chips:
+   oculta el 1º (categoría) y 2º (precio) para no duplicar info */
+#gridProductos.list-view .producto-card .prod-info .mini:nth-child(1),
+#gridProductos.list-view .producto-card .prod-info .mini:nth-child(2){
+  display:none;
+}
+
+/* ...existing code... */
+#gridProductos.list-view .producto-card [aria-label="Precio"] + * {
+  /* Example property */
+  display: none;
+}
+/* ...existing code... */
+
+/* Hover suave de la tarjeta en Vista */
+#gridProductos.list-view .producto-card > div:hover{
+  box-shadow: 0 10px 24px rgb(0 0 0 / 8%);
+  transform: translateY(-1px);
+  transition: .18s ease;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 950px){
+  #gridProductos.list-view .producto-card > div{
+    grid-template-columns: 100px 1fr;      /* media | contenido */
+    row-gap: 10px;
+  }
+  /* Badge e imagen centradas en su columna */
+  #gridProductos.list-view .producto-card .badge,
+  #gridProductos.list-view .producto-card img{
+    justify-self: center;
+  }
+  /* Título + desc centrados en móvil para mejor lectura */
+  #gridProductos.list-view .producto-card h3,
+  #gridProductos.list-view .producto-card .prod-desc{
+    text-align: center;
+    margin-left: auto; margin-right: auto;
+  }
+  /* Panel derecho (precio + presentación) pasa abajo centrado */
+  #gridProductos.list-view .producto-card [aria-label="Precio"]{
+    grid-column: 1 / -1; grid-row: 3;
+    justify-self: center; align-self: center;
+  }
+  #gridProductos.list-view .producto-card .prod-info{
+    grid-column: 1 / -1; grid-row: 4;
+    justify-content: center;
+  }
+}
+
+/* ===== Empresa: micro-componentes ===== */
+.eyebrow{
+  display:inline-block;
+  padding:.28rem .65rem;
+  border-radius:999px;
+  background:#ecfdf5;
+  border:1px solid #bbf7d0;
+  color:#065f46;
+  font-weight:700;
+  font-size:.8rem;
+  letter-spacing:.02em;
+  margin-bottom:.5rem;
+}
+
+.feature-card{
+  background:#fff;
+  border:1px solid rgba(16,185,129,.15);
+  border-radius:16px;
+  padding:16px 14px;
+  height:100%;
+  box-shadow: 0 6px 18px rgba(2,132,199,.06);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.feature-card:hover{
+  transform: translateY(-4px);
+  border-color: rgba(16,185,129,.35);
+  box-shadow: 0 14px 30px rgba(2,132,199,.12);
+}
+.feature-card h3{
+  margin:.6rem 0 .25rem;
+  font-weight:800;
+  color:#065f46;
+  font-size:1.02rem;
+}
+.feature-card p{
+  margin:0;
+  font-size:.92rem;
+  color:#475569;
+  line-height:1.45;
+}
+.icon-pill{
+  width:44px; height:44px;
+  border-radius:999px;
+  display:grid; place-items:center;
+  background:#ecfdf5;
+  color:#065f46;
+  border:1px solid #bbf7d0;
+  box-shadow: inset 0 0 0 3px rgba(16,185,129,.07);
+}
+
+/* Imagen con marco bonito + sello */
+.img-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:20px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow: 0 18px 40px rgba(2,132,199,.10);
+  background: linear-gradient(180deg, rgba(16,185,129,.08), transparent 40%);
+}
+.img-card::after{
+  content:"";
+  position:absolute; inset:0;
+  background: radial-gradient(70% 80% at 80% 20%, rgba(16,185,129,.18), transparent 55%);
+  pointer-events:none;
+}
+.img-stamp{
+  position:absolute; left:14px; bottom:14px;
+  background:#fff;
+  color:#065f46;
+  border:1px solid #bbf7d0;
+  border-radius:14px;
+  padding:.45rem .7rem .45rem .55rem;
+  font-weight:800;
+  font-size:.9rem;
+  display:flex; align-items:center; gap:.45rem;
+  box-shadow: 0 10px 22px rgba(2,132,199,.16);
+}
+.img-stamp .stamp-dot{
+  width:8px; height:8px; border-radius:999px;
+  background:#10b981; box-shadow:0 0 0 3px #ecfdf5;
+}
+
+/* Reveal suave (si ya usas data-reveal, se integra) */
+[data-reveal]{opacity:0; transform:translateY(8px); transition:opacity .5s ease, transform .5s ease;}
+.reveal-in{opacity:1; transform:none;}

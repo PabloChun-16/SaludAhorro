@@ -3,147 +3,214 @@
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
-  <div class="modal-header py-3">
+  <div class="modal-header py-3 bg-success text-white">
     <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1"
-           style="width:34px;height:34px;">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
       <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Nuevo Producto" }}</h5>
       <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
     </div>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
-  <form method="post" id="form-producto" action="{{ action }}" novalidate autocomplete="off">
+  <form method="post" id="form-producto" action="{{ action }}" novalidate autocomplete="off" enctype="multipart/form-data">
     <div class="modal-body">
       {% csrf_token %}
       <div class="container-fluid">
         <div class="row g-3">
 
-          <!-- Código -->
+          <!-- Código y Nombre -->
           <div class="col-md-6">
-            <label class="form-label mb-1" for="{{ form.codigo_producto.id_for_label }}">Código</label>
+            <label class="form-label">Código</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
               {{ form.codigo_producto }}
             </div>
-            {% for e in form.codigo_producto.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
-
-          <!-- Nombre -->
           <div class="col-md-6">
-            <label class="form-label mb-1" for="{{ form.nombre.id_for_label }}">Nombre</label>
+            <label class="form-label">Nombre</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-tag"></i></span>
               {{ form.nombre }}
             </div>
-            {% for e in form.nombre.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
 
           <!-- Descripción -->
           <div class="col-12">
-            <label class="form-label mb-1" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            <label class="form-label">Descripción</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-card-text"></i></span>
               {{ form.descripcion }}
             </div>
-            {% for e in form.descripcion.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
 
-          <!-- Laboratorio -->
+          <!-- Laboratorio y Presentación -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Laboratorio</label>
+            <label class="form-label">Laboratorio</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-buildings"></i></span>
               {{ form.id_laboratorio }}
             </div>
-            {% for e in form.id_laboratorio.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
-
-          <!-- Presentación -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Presentación</label>
+            <label class="form-label">Presentación</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-box"></i></span>
               {{ form.id_presentacion }}
             </div>
-            {% for e in form.id_presentacion.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
 
-          <!-- Unidad de Medida -->
+          <!-- Unidad y Condición -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Unidad de Medida</label>
+            <label class="form-label">Unidad de Medida</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-rulers"></i></span>
               {{ form.id_unidad_medida }}
             </div>
-            {% for e in form.id_unidad_medida.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
-
-          <!-- Condición de Almacenamiento -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Condición de Almacenamiento</label>
+            <label class="form-label">Condición de Almacenamiento</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-thermometer-half"></i></span>
               {{ form.id_condicion_almacenamiento }}
             </div>
-            {% for e in form.id_condicion_almacenamiento.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
 
-          <!-- Stock Mínimo -->
+          <!-- Switches Mejorados -->
           <div class="col-md-6">
-            <label class="form-label mb-1">Stock Mínimo</label>
+            <label class="form-label">¿Requiere receta?</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="requiere_receta" id="requiere_no" value="0" {% if not form.instance.requiere_receta %}checked{% endif %}>
+              <label class="btn btn-outline-danger" for="requiere_no">No</label>
+
+              <input type="radio" class="btn-check" name="requiere_receta" id="requiere_si" value="1" {% if form.instance.requiere_receta %}checked{% endif %}>
+              <label class="btn btn-outline-success" for="requiere_si">Sí</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">¿Es controlado?</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="es_controlado" id="controlado_no" value="0" {% if not form.instance.es_controlado %}checked{% endif %}>
+              <label class="btn btn-outline-danger" for="controlado_no">No</label>
+
+              <input type="radio" class="btn-check" name="es_controlado" id="controlado_si" value="1" {% if form.instance.es_controlado %}checked{% endif %}>
+              <label class="btn btn-outline-success" for="controlado_si">Sí</label>
+            </div>
+          </div>
+
+          <!-- Stock mínimo -->
+          <div class="col-md-6">
+            <label class="form-label">Stock Mínimo</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-boxes"></i></span>
               {{ form.stock_minimo }}
             </div>
-            {% for e in form.stock_minimo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
           </div>
 
-          <!-- Requiere receta -->
-          <div class="col-md-6">
-            <label class="form-label mb-1">¿Requiere receta?</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-file-earmark-medical"></i></span>
-              {{ form.requiere_receta }}
+         {# ---- Imagen del Producto ---- #}
+<div class="col-12">
+  <label class="form-label fw-bold">Imagen del Producto</label>
+
+  {% if form.instance.pk %}
+    {# ====== ESTÁS EDITANDO: mostrar preview + clear + input ====== #}
+    <div class="img-card p-3">
+      <div class="d-flex flex-wrap gap-3 align-items-start">
+
+
+
+<div style="width:150px; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+  <img id="imgPreview"
+       src="{% if form.instance.imagen_url %}{{ form.instance.imagen_url.url }}{% else %}{% static 'home/img/no-image.png' %}{% endif %}"
+       alt="Preview"
+       style="width:100%; height:auto; display:block; object-fit:cover;">
+</div>
+
+
+        <!-- Controles -->
+        <div class="flex-grow-1" style="min-width:280px;">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-image"></i></span>
+            <input type="file"
+                   name="{{ form.imagen_url.html_name }}"
+                   id="id_{{ form.imagen_url.html_name }}"
+                   accept="image/*"
+                   class="form-control">
+          </div>
+
+          {% if form.instance.imagen_url %}
+            <div class="mt-2 text-muted small">
+              Actual:
+              <a href="{{ form.instance.imagen_url.url }}" target="_blank" rel="noopener">
+                {{ form.instance.imagen_url.name }}
+              </a>
             </div>
-            {% for e in form.requiere_receta.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
-          </div>
+          {% endif %}
 
-          <!-- Es controlado -->
-          <div class="col-md-6">
-            <label class="form-label mb-1">¿Es controlado?</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-              {{ form.es_controlado }}
+          {% if form.imagen_url.errors %}
+            <div class="invalid-feedback d-block mt-2">
+              {{ form.imagen_url.errors|join:", " }}
             </div>
-            {% for e in form.es_controlado.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
-          </div>
-
+          {% endif %}
         </div>
       </div>
     </div>
 
-      <!-- Imagen -->
-        <div class="col-12">
-          <label class="form-label">Imagen del Producto</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-image"></i></span>
-            {{ form.imagen_url }}
-          </div>
-          {% for e in form.imagen_url.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+    {# JS solo en editar para actualizar el preview #}
+    <script>
+      (function(){
+        const input = document.getElementById("id_{{ form.imagen_url.html_name }}");
+        const img   = document.getElementById("imgPreview");
+        const clear = document.getElementById("id_{{ form.imagen_url.html_name }}_clear");
 
-          {% if form.instance.imagen_url %}
-          <div class="mt-2">
-            <img src="{{ form.instance.imagen_url.url }}" alt="Imagen Producto" class="img-thumbnail" style="max-height: 120px;">
-          </div>
-          {% endif %}
-        </div>
+        if (input) {
+          input.addEventListener("change", function(e){
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            img.src = url;
+            if (clear) clear.checked = false;
+          });
+        }
+        if (clear) {
+          clear.addEventListener("change", function(){
+            if (this.checked) {
+              img.dataset.oldsrc = img.src;
+              img.src = "{% static 'home/img/no-image.png' %}";
+            } else if (img.dataset.oldsrc) {
+              img.src = img.dataset.oldsrc;
+            }
+          });
+        }
+      })();
+    </script>
 
-    <div class="modal-footer bg-white">
+  {% else %}
+    {# ====== NUEVO PRODUCTO: SOLO input limpio, SIN preview ====== #}
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-image"></i></span>
+      <input type="file"
+             name="{{ form.imagen_url.html_name }}"
+             id="id_{{ form.imagen_url.html_name }}"
+             accept="image/*"
+             class="form-control">
+    </div>
+    {% if form.imagen_url.errors %}
+      <div class="invalid-feedback d-block mt-2">
+        {{ form.imagen_url.errors|join:", " }}
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+
+
+
+    <div class="modal-footer bg-light">
       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-success">
         <i class="bi bi-check2-circle"></i> Guardar
       </button>
     </div>

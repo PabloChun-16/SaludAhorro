@@ -101,9 +101,40 @@
 
         <h6 class="uppercase text-xs text-emerald-200 font-semibold">Inventario</h6>
         <hr>
-        <a href="/inventario/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
-          <i class="bi bi-box-seam"></i><span>Gestión de Inventario</span>
-        </a>
+
+
+
+       <!-- ==== Gestión de Inventario: BOTÓN TOGGLE + Submenú ==== -->
+<div id="inventario-group" class="space-y-1">
+  <!-- Botón que SOLO despliega/colapsa (no navega) -->
+  <button type="button"
+          id="inventario-toggle"
+          class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+          aria-expanded="false"
+          aria-controls="inventario-submenu">
+    <i class="bi bi-box-seam"></i>
+    <span class="flex-1">Gestión Inventario</span>
+    <i id="inventario-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+  </button>
+
+  <!-- Submenú -->
+  <div id="inventario-submenu"
+       class="saif-collapse mt-1 ms-8"
+       data-index-url="/inventario/">
+    <a href="/inventario/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-clipboard-data"></i>
+      <span>Gestión de Productos</span>
+    </a>
+    <a href="/inventario/stock/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-boxes"></i>
+      <span>Stock</span>
+    </a>
+  </div>
+</div>
+<!-- ==== /Gestión de Inventario ==== -->
+
+
+
         <a href="/recepcion_almacenamiento/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
           <i class="bi bi-truck"></i><span>Recepción y Almacenamiento</span>
         </a>
@@ -198,41 +229,85 @@
     SAIF | © 2025 Todos los derechos reservados.
   </footer>
 
-  <!-- Script del sidebar (siempre cargado) -->
-  <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const path      = location.pathname || '';
-    const toggleBtn = document.getElementById('mantenimiento-toggle');
-    const submenu   = document.getElementById('mantenimiento-submenu');
-    const caret     = document.getElementById('mantenimiento-caret');
+ 
+<!-- Script del sidebar (siempre cargado) -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const path = location.pathname || '';
 
+  // ===== Utilidades comunes =====
+  const normalize = (s) => (s || '').replace(/\/+$/, '');
+  const groups = [];
+
+  const setupGroup = ({ toggleId, submenuId, caretId, openIfStartsWith }) => {
+    const toggleBtn = document.getElementById(toggleId);
+    const submenu   = document.getElementById(submenuId);
+    const caret     = document.getElementById(caretId);
     if (!toggleBtn || !submenu || !caret) return;
 
-    const normalize = (s) => (s || '').replace(/\/+$/, '');
     const open  = () => { submenu.classList.add('open');  caret.classList.add('up');  toggleBtn.setAttribute('aria-expanded','true'); };
     const close = () => { submenu.classList.remove('open');caret.classList.remove('up');toggleBtn.setAttribute('aria-expanded','false'); };
     const isOpen = () => submenu.classList.contains('open');
 
-    // Abrir si estás en /mantenimiento/...
-    if (path.startsWith('/mantenimiento/')) open();
-
-    // Resaltar subitem activo (incluye Dashboard)
+    // Resaltar subitem activo (incluye índice del grupo)
     const idxURL = submenu.dataset.indexUrl || '';
     submenu.querySelectorAll('a').forEach(a => {
       const href = a.getAttribute('href') || '';
       if (normalize(path) === normalize(href) || path.startsWith(href + '/')) {
         a.classList.add('saif-active');
       }
-      // Caso especial: cuando la ruta es exactamente el dashboard de mantenimiento
       if (idxURL && normalize(path) === normalize(idxURL) && normalize(href) === normalize(idxURL)) {
         a.classList.add('saif-active');
       }
     });
 
-    // Toggle sin navegación
-    toggleBtn.addEventListener('click', () => { isOpen() ? close() : open(); });
+    // Registra el grupo
+    const group = { toggleBtn, submenu, caret, open, close, isOpen, openIfStartsWith };
+    groups.push(group);
+
+    // Toggle con acordeón: cierra otros antes de abrir este
+    toggleBtn.addEventListener('click', () => {
+      if (group.isOpen()) {
+        group.close();
+      } else {
+        groups.forEach(g => { if (g !== group) g.close(); });
+        group.open();
+      }
+    });
+
+    return group;
+  };
+
+  // ====== Registra tus grupos aquí ======
+  const gMant = setupGroup({
+    toggleId: 'mantenimiento-toggle',
+    submenuId: 'mantenimiento-submenu',
+    caretId:  'mantenimiento-caret',
+    openIfStartsWith: '/mantenimiento/'
   });
-  </script>
+
+  const gInv = setupGroup({
+    toggleId: 'inventario-toggle',
+    submenuId: 'inventario-submenu',
+    caretId:  'inventario-caret',
+    openIfStartsWith: '/inventario/'
+  });
+
+  // ====== Auto-apertura por ruta pero en modo acordeón (solo uno abierto) ======
+  // Si varias rutas coinciden, se queda abierto el primero que haga match.
+  const firstMatch = groups.find(g => g.openIfStartsWith && path.startsWith(g.openIfStartsWith));
+  if (firstMatch) {
+    groups.forEach(g => g.close());
+    firstMatch.open();
+  } else {
+    // Si el HTML ya trajo alguno abierto, asegura que solo quede uno
+    const alreadyOpen = groups.find(g => g.isOpen());
+    if (alreadyOpen) {
+      groups.forEach(g => { if (g !== alreadyOpen) g.close(); });
+    }
+  }
+});
+</script>
 
   {% block extra_js %}{% endblock %}
 </body>
