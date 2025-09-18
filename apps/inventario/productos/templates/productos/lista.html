@@ -7,159 +7,147 @@
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <style>
-/* Contenedor principal con scroll horizontal */
-.table-container {
-  overflow-x: auto;
-  width: 100%;
+/* ====== Contenedor con scroll ====== */
+.table-container{
+  overflow-x:auto;
+  width:100%;
+  scroll-padding-top:90px; /* evita que el sticky tape al saltar */
 }
 
-/* Tabla con ancho fijo */
-#tablaProductos {
-  table-layout: fixed;
-  width: 100%;
-  min-width: 1200px;
+/* ====== Tabla ====== */
+#tablaProductos{
+  table-layout:fixed;
+  width:100%;
+  min-width:1200px;
+  border-collapse:separate;   /* necesario para sticky + bordes finos */
+  border-spacing:0;
+  outline:1px solid #e3e6ea;  /* contorno SIN ocupar espacio (evita “fila fantasma”) */
+  outline-offset:-1px;
+  border-radius:.5rem;
 }
 
-#tablaProductos th, #tablaProductos td {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  padding: 0.5rem;
-  font-size: 0.875rem;
+/* ====== Celdas ====== */
+#tablaProductos th,
+#tablaProductos td{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  vertical-align:middle;
+  padding:.5rem;
+  font-size:.875rem;
+  background-clip:padding-box; /* evita solapes con sticky */
+  border:1px solid #e3e6ea;    /* líneas internas */
 }
 
-/* Encabezado pegajoso */
-#tablaProductos thead.sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+/* Mismo color en todas las filas (sin rayado) */
+#tablaProductos tbody tr{ background:#ffffff; }
+
+/* ====== Encabezado pegajoso (2 filas) ====== */
+#tablaProductos thead.sticky-top{
+  position:sticky;
+  top:0;
+  z-index:10;
+  box-shadow:0 2px 4px rgba(0,0,0,.06);
 }
 
-/* Ajustes específicos de columnas */
-.wp-5  { width: 5%;  }
-.wp-6  { width: 6%;  }
-.wp-7  { width: 7%;  }
-.wp-11 { width: 11%; }
-.wp-12 { width: 12%; }
-.wp-14 { width: 14%; }
-.wp-16 { width: 16%; }
+/* Fila de títulos (1ª fila del thead) */
+#tablaProductos thead.sticky-top tr:first-child th{
+  position:sticky;
+  top:0;
+  z-index:11;
+  background:#e8f5ec;               /* verde muy suave */
+  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
+}
 
-.hidden-by-pagination { display: none !important; }
+/* Fila de filtros (2ª fila del thead) */
+#tablaProductos thead.sticky-top tr.filter-row th{
+  position:sticky;
+  top:42px;                          /* altura aprox de la fila de títulos */
+  z-index:10;
+  background:#f4fbf6;
+  border-top:1px solid #d9f3e0;
+  border-bottom:1px solid #d7dbdf;   /* marca separación con el tbody */
+  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem;
+  overflow:visible;                   /* para que no se corte “Todos” */
+}
 
-/* Controles compactos en thead */
+/* ====== Controles de filtro ====== */
 thead .form-control-sm,
-thead .form-select-sm {
-  padding-top: .25rem;
-  padding-bottom: .25rem;
-  height: 28px;
+thead .form-select-sm{
+  padding-top:.25rem;
+  padding-bottom:.25rem;
+  height:28px;
 }
 
-/* ===== Estilos de la fila de filtros ===== */
-#tablaProductos thead .filter-row th {
-  background: #f4fbf6;               /* tono suave verdoso */
-  border-top: 1px solid #d9f3e0;
-  padding: .35rem .5rem;
-  /* IMPORTANTE: deja ver el contenido (para que no se corte “Todos”) */
-  overflow: visible;
+.filter-control{
+  width:100%;
+  height:32px;
+  padding:.25rem .5rem;
+  border:1px solid #cfe9d7;
+  background:#fff;
+  border-radius:.5rem;
+  transition:border-color .15s, box-shadow .15s;
+  font-size:.85rem;
+  box-sizing:border-box;
 }
 
-/* Sticky doble fila: header y filtros */
-#tablaProductos thead.sticky-top tr:first-child th {
-  position: sticky;
-  top: 0;          /* header principal */
-  z-index: 11;
-}
-#tablaProductos thead.sticky-top tr.filter-row th {
-  position: sticky;
-  top: 42px;       /* altura aprox del header principal; ajusta si tu header es más alto */
-  z-index: 10;
-  box-shadow: 0 2px 3px rgba(0,0,0,.04) inset;
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{
+  border-color:#62c07b;
+  outline:0;
+  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
 }
 
-/* Controles de filtro: look unificado */
-.filter-control {
-  width: 100%;                      /* que ocupe toda la celda */
-  height: 32px;
-  padding: .25rem .5rem;
-  border: 1px solid #cfe9d7;
-  background: #ffffff;
-  border-radius: .5rem;
-  box-shadow: 0 0 0 rgba(0,0,0,0);
-  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
-  font-size: .85rem;
-  box-sizing: border-box;
+/* Selects: misma altura y centrado del texto visible */
+select.filter-control{
+  padding-right:1.75rem;
+  appearance:none;
+  min-width:100px; /* base suficiente para “Todos” */
 }
-
-.filter-control::placeholder { color: #94a3b8; } /* slate-400 */
-.filter-control.text-center { text-align: center; }
-
-.filter-control:focus {
-  border-color: #62c07b;             /* verde SAIF */
-  outline: 0;
-  box-shadow: 0 0 0 .15rem rgba(34,197,94,.15);
-  background: #fcfffd;
+#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap{
+  display:flex; justify-content:center;
 }
-
-/* Selects: misma altura, flecha centrada, y ancho mínimo suficiente para “Todos” */
-select.filter-control {
-  padding-right: 1.75rem;
-  background-position: right .5rem center;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  min-width: 100px;                 /* base para todos los selects */
+#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap>select{
+  width:100%; max-width:100%;
 }
-
-/* Mínimos específicos para columnas estrechas: Receta(7), Control(8), Estado(10) */
-/* Fuerza ancho de columnas con filtros de select */
-#tablaProductos col:nth-child(7),   /* Receta  */
-#tablaProductos col:nth-child(8),   /* Control */
-#tablaProductos col:nth-child(10) { /* Estado  */
-  width: 120px !important;     /* prueba 110–130px si quieres más/menos */
-}
-
-/* Asegura que el control ocupe toda la celda y no se recorte */
-#tablaProductos thead .filter-row th { overflow: visible; }
-/* Centrar texto visible en los selects de la fila de filtros */
 #tablaProductos thead.sticky-top tr.filter-row th select.form-select.filter-control{
-  -moz-text-align-last: center !important;   /* Firefox */
-  text-align-last: center !important;        /* Chrome/Edge */
-  text-align: center !important;             /* fallback */
-  width: 100%;
-  min-width: 0;                               /* que mande el <col> */
-  appearance: none;
+  -moz-text-align-last:center !important;
+  text-align-last:center !important;
+  text-align:center !important;
 }
 
-
-/* Inputs muy angostos: evita brincos y cortes */
-#tablaProductos thead .filter-row th { min-width: 80px; }
-#tablaProductos thead .filter-row th:nth-child(1) { min-width: 110px; } /* Código */
+/* Mínimos para inputs angostos */
+#tablaProductos thead .filter-row th{ min-width:80px; }
+#tablaProductos thead .filter-row th:nth-child(1){ min-width:110px; } /* Código */
 #tablaProductos thead .filter-row th:nth-child(7),
 #tablaProductos thead .filter-row th:nth-child(8),
-#tablaProductos thead .filter-row th:nth-child(10) { min-width: 110px; }
+#tablaProductos thead .filter-row th:nth-child(10){ min-width:110px; }
 
-/* Espaciado cuando hay dos filas sticky */
-.table-container { scroll-padding-top: 90px; } /* evita que quede “tapado” al saltar */
-
-
-/* Fallback robusto: usa flex para centrar el contenido visible del select */
-#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap{
-  display: flex;
-  justify-content: center;
-}
-#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap > select{
-  width: 100%;
-  max-width: 100%;
+/* Fuerza ancho de columnas con select estrecho */
+#tablaProductos col:nth-child(7),   /* Receta  */
+#tablaProductos col:nth-child(8),   /* Control */
+#tablaProductos col:nth-child(10){  /* Estado  */
+  width:120px !important;
 }
 
-#tablaProductos thead.sticky-top tr.filter-row th{
-  overflow: visible !important;
-}
+/* ====== Utilidades de ancho usadas en <colgroup> ====== */
+.wp-5{width:5%}.wp-6{width:6%}.wp-7{width:7%}.wp-8{width:8%}
+.wp-11{width:11%}.wp-12{width:12%}.wp-14{width:14%}.wp-16{width:16%}
+.wp-15{width:15%}.wp-22{width:22%}
 
+/* ====== Paginación: ocultar filas fuera de página ====== */
+.hidden-by-pagination{ display:none !important; }
 
+/* ====== FIX bordes duplicados vs contorno (evita “celda fantasma”) ====== */
+#tablaProductos thead tr:first-child th{ border-top:0; }
+#tablaProductos tbody tr:last-child td{ border-bottom:0; }
+#tablaProductos tr>*:first-child{ border-left:0; }
+#tablaProductos tr>*:last-child{  border-right:0; }
 
+/* Hover suave */
+#tablaProductos tbody tr:hover{ background:#fafafa; }
 </style>
 
 <section class="p-3">
@@ -173,75 +161,72 @@ select.filter-control {
 
     <!-- Contenedor de tabla con scroll -->
     <div class="table-container">
-      <table class="table table-hover table-borderless align-middle text-center" id="tablaProductos">
-     <colgroup>
-  <col class="wp-7">
-  <col class="wp-15">
-  <col class="wp-22">
-  <col class="wp-12">
-  <col class="wp-12">
-  <col class="wp-8">
-  <col class="wp-6">
-  <col class="wp-6">
-  <col class="wp-6">
-  <col class="wp-6">
-</colgroup>
+      <!-- OJO: sin table-bordered -->
+      <table class="table table-hover align-middle text-center" id="tablaProductos">
+        <colgroup>
+          <col class="wp-7">
+          <col class="wp-15">
+          <col class="wp-22">
+          <col class="wp-12">
+          <col class="wp-12">
+          <col class="wp-8">
+          <col class="wp-6">
+          <col class="wp-6">
+          <col class="wp-6">
+          <col class="wp-6">
+        </colgroup>
 
-
-<thead class="table-success text-dark shadow-sm sticky-top">
-  <tr>
-    <th scope="col">Código</th>
-    <th scope="col">Nombre</th>
-    <th scope="col">Descripción</th>
-    <th scope="col">Laboratorio</th>
-    <th scope="col">Presentación</th>
-    <th scope="col">Unidad</th>
-    <th scope="col">Receta</th>
-    <th scope="col">Control</th>
-    <th scope="col">Stock</th>
-    <th scope="col">Estado</th>
-  </tr>
-
-  <!-- Fila de filtros (solo estilos, tu JS ya funciona) -->
-  <tr class="filter-row">
-    <th><input id="f-codigo"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-    <th><input id="f-nombre"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-    <th></th>
-    <th><input id="f-lab"     class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-    <th><input id="f-pres"    class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-    <th><input id="f-unidad"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-    <th>
-  <div class="filter-wrap">
-    <select id="f-receta" class="form-select form-select-sm filter-control text-center">
-      <option value="">Todos</option>
-      <option value="sí">Sí</option>
-      <option value="no">No</option>
-    </select>
-  </div>
-</th>
-<th>
-  <div class="filter-wrap">
-    <select id="f-control" class="form-select form-select-sm filter-control text-center">
-      <option value="">Todos</option>
-      <option value="sí">Sí</option>
-      <option value="no">No</option>
-    </select>
-  </div>
-</th>
-<th></th>
-<th>
-  <div class="filter-wrap">
-    <select id="f-estado" class="form-select form-select-sm filter-control text-center">
-      <option value="">Todos</option>
-      <option value="activo">Activo</option>
-      <option value="inactivo">Inactivo</option>
-    </select>
-  </div>
-</th>
-  </tr>
-</thead>
-
-
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Laboratorio</th>
+            <th scope="col">Presentación</th>
+            <th scope="col">Unidad</th>
+            <th scope="col">Receta</th>
+            <th scope="col">Control</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Estado</th>
+          </tr>
+          <!-- Fila de filtros -->
+          <tr class="filter-row">
+            <th><input id="f-codigo" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-nombre" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-desc" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-lab" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-pres" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-unidad" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-receta" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="sí">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-control" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="sí">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </th>
+            <th></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+            </th>
+          </tr>
+        </thead>
 
         <tbody>
           {% for p in productos %}
@@ -252,7 +237,6 @@ select.filter-control {
             <td class="text-truncate">{{ p.id_laboratorio.nombre_laboratorio }}</td>
             <td class="text-truncate">{{ p.id_presentacion.nombre_presentacion }}</td>
             <td class="text-truncate">{{ p.id_unidad_medida.nombre_unidad }}</td>
-         
             <td>
               {% if p.requiere_receta %}
                 <span class="badge bg-primary">Sí</span>
@@ -295,8 +279,7 @@ select.filter-control {
 
     <!-- Botones -->
     <div class="px-3 py-3 text-center border-top bg-light">
-      <button id="btnCrear"
-              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
               data-bs-toggle="modal"
               data-bs-target="#modalProducto"
               data-url="{% url 'inventario:productos:crear' %}">
@@ -330,291 +313,218 @@ select.filter-control {
 {{ block.super }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const table         = document.getElementById("tablaProductos");
-  const tbody         = table.querySelector("tbody");
-  const pagerEl       = document.getElementById("pagerProductos");
-  const modalEl       = document.getElementById("modalProducto");
-  const modalContent  = document.getElementById("modal-producto-content");
+  const table = document.getElementById("tablaProductos");
+  const tbody = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerProductos");
+  const modalEl = document.getElementById("modalProducto");
+  const modalContent = document.getElementById("modal-producto-content");
   const modalInstance = new bootstrap.Modal(modalEl);
 
   let selectedId = null;
-  let currentModalUrl = null;
 
   /* ===== Utilidad: pone title a textos truncados ===== */
-  function refreshAutoTitles() {
-    table.querySelectorAll("td, th").forEach(el => {
-      if (el.scrollWidth > el.clientWidth) {
-        el.setAttribute("title", el.textContent.trim());
-      } else {
-        el.removeAttribute("title");
-      }
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
     });
   }
 
   /* ====== Modal ====== */
-  function abrirModal(url) {
-    currentModalUrl = url;
+  function abrirModal(url){
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
     modalInstance.show();
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(r => r.text())
-      .then(html => { modalContent.innerHTML = html; })
-      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+    fetch(url,{headers:{ "X-Requested-With":"XMLHttpRequest"}})
+      .then(r=>r.text()).then(html=>{modalContent.innerHTML=html})
+      .catch(()=>{modalContent.innerHTML='<div class="p-4 text-danger">Error cargando el formulario.</div>'});
   }
 
   /* ====== Selección de fila ====== */
-  function selectRow(row) {
-    if (!row) return;
-    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
     row.classList.add("table-active");
     selectedId = row.getAttribute("data-id");
 
     const estado = row.getAttribute("data-estado");
     document.getElementById("btnConsultar").disabled = false;
-    document.getElementById("btnEditar").disabled    = false;
+    document.getElementById("btnEditar").disabled = false;
 
-    if (estado === "Activo") {
+    if(estado==="Activo"){
       document.getElementById("btnEliminar").disabled = false;
-      document.getElementById("btnActivar").disabled  = true;
-    } else if (estado === "Inactivo") {
+      document.getElementById("btnActivar").disabled = true;
+    }else if(estado==="Inactivo"){
       document.getElementById("btnEliminar").disabled = true;
-      document.getElementById("btnActivar").disabled  = false;
-    } else {
+      document.getElementById("btnActivar").disabled = false;
+    }else{
       document.getElementById("btnEliminar").disabled = true;
-      document.getElementById("btnActivar").disabled  = true;
+      document.getElementById("btnActivar").disabled = true;
     }
   }
 
-  tbody.addEventListener("click", (ev) => {
+  tbody.addEventListener("click",(ev)=>{
     const row = ev.target.closest("tr");
-    if (!row || row.hasAttribute("data-empty-row")) return;
+    if(!row || row.hasAttribute("data-empty-row")) return;
     selectRow(row);
   });
 
   // Doble click = Consultar
-  tbody.addEventListener("dblclick", (ev) => {
+  tbody.addEventListener("dblclick",(ev)=>{
     const row = ev.target.closest("tr");
-    if (!row || row.hasAttribute("data-empty-row")) return;
+    if(!row || row.hasAttribute("data-empty-row")) return;
     selectRow(row);
-    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`);
+    if(selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`);
   });
 
   // Teclado para navegar/abrir
-  table.addEventListener("keydown", (ev) => {
+  table.addEventListener("keydown",(ev)=>{
     const current = tbody.querySelector("tr.table-active");
-    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
-    if (!rows.length) return;
+    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
+    if(!rows.length) return;
 
     const idx = rows.indexOf(current);
-    if (ev.key === "ArrowDown") {
-      const next = rows[Math.min(rows.length - 1, idx + 1 >= 0 ? idx + 1 : 0)];
-      selectRow(next); next.focus({preventScroll:true});
-      ev.preventDefault();
-    } else if (ev.key === "ArrowUp") {
-      const prev = rows[Math.max(0, idx - 1 >= 0 ? idx - 1 : 0)];
-      selectRow(prev); prev.focus({preventScroll:true});
-      ev.preventDefault();
-    } else if (ev.key === "Enter" && selectedId) {
-      abrirModal(`/inventario/productos/${selectedId}/consultar/`);
-      ev.preventDefault();
-    } else if ((ev.key === "Delete" || ev.key === "Backspace") && selectedId) {
-      document.getElementById("btnEliminar").click();
-      ev.preventDefault();
+    if(ev.key==="ArrowDown"){
+      const next = rows[Math.min(rows.length-1, idx+1>=0?idx+1:0)];
+      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="ArrowUp"){
+      const prev = rows[Math.max(0, idx-1>=0?idx-1:0)];
+      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="Enter" && selectedId){
+      abrirModal(`/inventario/productos/${selectedId}/consultar/`); ev.preventDefault();
+    }else if((ev.key==="Delete"||ev.key==="Backspace") && selectedId){
+      document.getElementById("btnEliminar").click(); ev.preventDefault();
     }
   });
 
   /* ====== Botones CRUD ====== */
-  document.getElementById("btnCrear").addEventListener("click", (ev) => {
-    const url = ev.currentTarget.getAttribute("data-url");
-    abrirModal(url);
+  document.getElementById("btnCrear").addEventListener("click",(ev)=>{
+    const url = ev.currentTarget.getAttribute("data-url"); abrirModal(url);
   });
+  document.getElementById("btnConsultar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`) });
+  document.getElementById("btnEditar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/editar/`) });
+  document.getElementById("btnEliminar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/inactivar/`) });
+  document.getElementById("btnActivar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/activar/`) });
 
-  document.getElementById("btnConsultar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`);
-  });
-
-  document.getElementById("btnEditar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/editar/`);
-  });
-
-  document.getElementById("btnEliminar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/inactivar/`);
-  });
-
-  document.getElementById("btnActivar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/inventario/productos/${selectedId}/activar/`);
-  });
-
-  /* ====== Submit universal dentro del modal ====== */
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
+  /* ===== Submit universal dentro del modal ===== */
+  function getCookie(name){
+    let cookieValue=null;
+    if(document.cookie && document.cookie!==''){
+      const cookies=document.cookie.split(';');
+      for(let i=0;i<cookies.length;i++){
+        const cookie=cookies[i].trim();
+        if(cookie.substring(0,name.length+1)===(name+'=')){
+          cookieValue=decodeURIComponent(cookie.substring(name.length+1)); break;
         }
       }
     }
     return cookieValue;
   }
 
-  modalContent.addEventListener("submit", function (e) {
-    const form = e.target.closest("form");
-    if (!form) return;
-    e.preventDefault();
-    fetch(form.action || window.location.href, {
-      method: "POST",
-      body: new FormData(form),
-      headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": getCookie("csrftoken") }
+  modalContent.addEventListener("submit",function(e){
+    const form=e.target.closest("form"); if(!form) return; e.preventDefault();
+    fetch(form.action||window.location.href,{
+      method:"POST", body:new FormData(form),
+      headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") }
     })
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok || data.success) {
-        modalInstance.hide();
-        window.location.reload();
-      } else if (data.html) {
-        modalContent.innerHTML = data.html;
-      }
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); }
+      else if(data.html){ modalContent.innerHTML=data.html; }
     })
-    .catch(err => console.error(err));
+    .catch(err=>console.error(err));
   });
 
-  /* ===== Paginación dinámica ===== */
-  let currentPage = 1;
-  let pageSize    = 15;
-  const rowHeight = 42;
+  /* ====== Paginación ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
 
-  function recomputarPageSize() {
-    const rect  = tbody.getBoundingClientRect();
-    const margenInf = 160;
-    const espacio = window.innerHeight - rect.top - margenInf;
-    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect(); const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
   }
-
   function getDataRows(){
     return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr => !tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
   }
-
+  function renderPager(totalPages){
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
+    pagerEl.style.display="flex"; pagerEl.innerHTML="";
+    const prev=document.createElement("button");
+    prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
+    prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
+    const info=document.createElement("span");
+    info.className="align-self-center mx-2"; info.textContent=`Página ${currentPage} de ${totalPages}`;
+    const next=document.createElement("button");
+    next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
+    next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
+    pagerEl.append(prev,info,next);
+  }
   function applyPagination(){
-    const rows       = getDataRows();
-    const total      = rows.length;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    const start = (currentPage - 1) * pageSize;
-    const end   = start + pageSize;
-
-    rows.forEach((tr, idx) => {
-      tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end));
-    });
-
+    const rows=getDataRows(); const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+    const start=(currentPage-1)*pageSize; const end=start+pageSize;
+    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
     renderPager(totalPages);
-    if (selectedId) {
-      const sel = rows.find(r => r.getAttribute("data-id") === selectedId);
-      if (sel && sel.classList.contains("hidden-by-pagination")) {
-        const firstVisible = rows.find(r => !r.classList.contains("hidden-by-pagination"));
-        if (firstVisible) selectRow(firstVisible);
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
       }
     }
     refreshAutoTitles();
   }
 
-  function renderPager(totalPages){
-    if (totalPages <= 1){
-      pagerEl.innerHTML = "";
-      pagerEl.style.display = "none";
-      return;
-    }
-    pagerEl.style.display = "flex";
-    pagerEl.innerHTML = "";
-
-    const prev = document.createElement("button");
-    prev.className = "btn btn-outline-secondary me-2";
-    prev.innerHTML = "&laquo; Anterior";
-    prev.disabled = currentPage === 1;
-    prev.onclick = () => { currentPage--; applyPagination(); };
-
-    const info = document.createElement("span");
-    info.className = "align-self-center mx-2";
-    info.textContent = `Página ${currentPage} de ${totalPages}`;
-
-    const next = document.createElement("button");
-    next.className = "btn btn-outline-secondary ms-2";
-    next.innerHTML = "Siguiente &raquo;";
-    next.disabled = currentPage === totalPages;
-    next.onclick = () => { currentPage++; applyPagination(); };
-
-    pagerEl.append(prev, info, next);
-  }
-
-  /* ===== Filtros ===== */
+  /* ====== Filtros (incluye descripción) ====== */
   function installFilters(){
-    const fCodigo   = document.getElementById("f-codigo");
-    const fNombre   = document.getElementById("f-nombre");
-    const fLab      = document.getElementById("f-lab");
-    const fPres     = document.getElementById("f-pres");
-    const fUnidad   = document.getElementById("f-unidad");
-    const fReceta   = document.getElementById("f-receta");
-    const fControl  = document.getElementById("f-control");
-    const fEstado   = document.getElementById("f-estado");
+    const fCodigo=document.getElementById("f-codigo");
+    const fNombre=document.getElementById("f-nombre");
+    const fDesc=document.getElementById("f-desc");
+    const fLab=document.getElementById("f-lab");
+    const fPres=document.getElementById("f-pres");
+    const fUnidad=document.getElementById("f-unidad");
+    const fReceta=document.getElementById("f-receta");
+    const fControl=document.getElementById("f-control");
+    const fEstado=document.getElementById("f-estado");
 
-    const inputs = [fCodigo,fNombre,fLab,fPres,fUnidad,fReceta,fControl,fEstado].filter(Boolean);
-
-    const norm = (s) => (s||"").toString().trim().toLowerCase();
-    const yesNo = (s) => {
-      const t = norm(s).replace(/[íi]/g,"i");
-      if (t === "si") return "si";
-      if (t === "no") return "no";
-      return t;
-    };
+    const inputs=[fCodigo,fNombre,fDesc,fLab,fPres,fUnidad,fReceta,fControl,fEstado].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
 
     function applyFilters(){
-      const codeVal   = norm(fCodigo?.value);
-      const nameVal   = norm(fNombre?.value);
-      const labVal    = norm(fLab?.value);
-      const presVal   = norm(fPres?.value);
-      const uniVal    = norm(fUnidad?.value);
-      const recetaVal = yesNo(fReceta?.value);
-      const ctrlVal   = yesNo(fControl?.value);
-      const estVal    = norm(fEstado?.value);
+      const codeVal=norm(fCodigo?.value), nameVal=norm(fNombre?.value),
+            descVal=norm(fDesc?.value), labVal=norm(fLab?.value),
+            presVal=norm(fPres?.value), uniVal=norm(fUnidad?.value),
+            recetaVal=yesNo(fReceta?.value), ctrlVal=yesNo(fControl?.value),
+            estVal=norm(fEstado?.value);
 
-      const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => !r.hasAttribute("data-empty-row"));
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
 
-      rows.forEach(tr => {
-        const tds = tr.querySelectorAll("td");
-        const txt = i => norm(tds[i]?.textContent);
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
 
-        const matchCodigo  = !codeVal || txt(0).includes(codeVal);
-        const matchNombre  = !nameVal || txt(1).includes(nameVal);
-        const matchLab     = !labVal  || txt(3).includes(labVal);
-        const matchPres    = !presVal || txt(4).includes(presVal);
-        const matchUnidad  = !uniVal  || txt(5).includes(uniVal);
-
-        const recetaTxt    = yesNo(txt(6));
-        const controlTxt   = yesNo(txt(7));
-        const matchReceta  = !recetaVal || recetaTxt === recetaVal;
-        const matchCtrl    = !ctrlVal   || controlTxt === ctrlVal;
-
-        const estadoTxt    = norm(tr.getAttribute("data-estado") || txt(9));
-        const matchEstado  = !estVal || estadoTxt === estVal;
-
-        const ok = matchCodigo && matchNombre && matchLab && matchPres && matchUnidad &&
-                   matchReceta && matchCtrl && matchEstado;
+        const ok =
+          (!codeVal || txt(0).includes(codeVal)) &&
+          (!nameVal || txt(1).includes(nameVal)) &&
+          (!descVal || txt(2).includes(descVal)) &&
+          (!labVal  || txt(3).includes(labVal))  &&
+          (!presVal || txt(4).includes(presVal)) &&
+          (!uniVal  || txt(5).includes(uniVal))  &&
+          (!recetaVal || yesNo(txt(6))===recetaVal) &&
+          (!ctrlVal   || yesNo(txt(7))===ctrlVal)   &&
+          (!estVal    || norm(tr.getAttribute("data-estado")||txt(9))===estVal);
 
         tr.style.display = ok ? "" : "none";
       });
 
-      currentPage = 1;
-      applyPagination();
+      currentPage=1; applyPagination();
     }
 
-    inputs.forEach(inp => {
-      const ev = (inp.tagName === "SELECT") ? "change" : "input";
-      inp.addEventListener(ev, applyFilters);
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
     });
   }
 
@@ -623,12 +533,7 @@ document.addEventListener("DOMContentLoaded", function () {
   installFilters();
   applyPagination();
   refreshAutoTitles();
-
-  window.addEventListener("resize", () => {
-    recomputarPageSize();
-    applyPagination();
-  });
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
-
 {% endblock %}

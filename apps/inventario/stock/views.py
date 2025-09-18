@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import FileResponse
+from django.db.models import Q              # ⬅️ nuevo
 from apps.inventario.models import Lotes
 import io
 from django.utils.html import escape
 from django.utils.timezone import now
+from datetime import datetime               # ⬅️ nuevo
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
@@ -63,8 +65,63 @@ def stock_detail(request, pk):
     return render(request, "stock/partials/_consultar.html", {"lote": lote})
 
 
-# =============== EXPORTAR PDF ===============
+# =============== EXPORTAR PDF (con filtros) ===============
 def exportar_stock_pdf(request):
+    """
+    Exporta el PDF respetando los filtros que llegan por querystring desde la UI:
+    - codigo, nombre, desc, pres, lote
+    - cadu_desde (yyyy-mm-dd), cadu_hasta (yyyy-mm-dd)
+    - estado: "", "vigente", "vencido", "otros"
+    """
+    # ---- Leer filtros ----
+    codigo = (request.GET.get("codigo") or "").strip()
+    nombre = (request.GET.get("nombre") or "").strip()
+    desc   = (request.GET.get("desc") or "").strip()
+    pres   = (request.GET.get("pres") or "").strip()
+    lote   = (request.GET.get("lote") or "").strip()
+    cadu_desde = (request.GET.get("cadu_desde") or "").strip()
+    cadu_hasta = (request.GET.get("cadu_hasta") or "").strip()
+    estado = (request.GET.get("estado") or "").strip().lower()
+
+    qs = (
+        Lotes.objects
+        .select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote")
+        .all()
+    )
+
+    # ---- Aplicar filtros en queryset ----
+    if codigo:
+        qs = qs.filter(id_producto__codigo_producto__icontains=codigo)
+    if nombre:
+        qs = qs.filter(id_producto__nombre__icontains=nombre)
+    if desc:
+        qs = qs.filter(id_producto__descripcion__icontains=desc)
+    if pres:
+        qs = qs.filter(id_producto__id_presentacion__nombre_presentacion__icontains=pres)
+    if lote:
+        qs = qs.filter(Q(numero_lote__icontains=lote) | Q(codigo_lote__icontains=lote))
+
+    # rango de caducidad
+    def parse_date(d):
+        try:
+            return datetime.strptime(d, "%Y-%m-%d").date()
+        except Exception:
+            return None
+
+    d1 = parse_date(cadu_desde)
+    d2 = parse_date(cadu_hasta)
+    if d1:
+        qs = qs.filter(fecha_caducidad__gte=d1)
+    if d2:
+        qs = qs.filter(fecha_caducidad__lte=d2)
+
+    if estado:
+        if estado in ("vigente", "vencido"):
+            qs = qs.filter(id_estado_lote__nombre_estado__iexact=estado.capitalize())
+        elif estado == "otros":
+            qs = qs.exclude(id_estado_lote__nombre_estado__in=["Vigente", "Vencido"])
+
+    # ---- Construcción del PDF ----
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
         buf,
@@ -85,46 +142,39 @@ def exportar_stock_pdf(request):
                "Lote", "Vencimiento", "Estado Lote", "P. Compra", "P. Venta"]
     data = [[Paragraph(escape(h), hdr_style) for h in headers]]
 
-    lotes = (
-        Lotes.objects
-        .select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote")
-        .all()
-    )
-
     def cell(text, style):
         return Paragraph(escape(text or ""), style)
 
-    for lote in lotes:
-        prod  = lote.id_producto
-        pres  = getattr(prod, "id_presentacion", None)
-        estado = lote.id_estado_lote
+    for lote_obj in qs:
+        prod   = lote_obj.id_producto
+        pres_o = getattr(prod, "id_presentacion", None)
+        estado_o = lote_obj.id_estado_lote
 
-        codigo = getattr(prod, "codigo_producto", "") if prod else ""
-        nombre = getattr(prod, "nombre", "") if prod else ""
-        desc   = getattr(prod, "descripcion", "") or ""
-        presentacion = getattr(pres, "nombre_presentacion", "") if pres else ""
-        disp   = lote.cantidad_disponible or 0
-        nro    = getattr(lote, "numero_lote", "") or getattr(lote, "codigo_lote", "") or ""
-        venc   = lote.fecha_caducidad.strftime("%d/%m/%Y") if getattr(lote, "fecha_caducidad", None) else ""
-        est    = getattr(estado, "nombre_estado", "") if estado else ""
-        pcomp  = f"Q {lote.precio_compra:.2f}" if lote.precio_compra is not None else ""
-        pvent  = f"Q {lote.precio_venta:.2f}" if lote.precio_venta is not None else ""
+        codigo_v = getattr(prod, "codigo_producto", "") if prod else ""
+        nombre_v = getattr(prod, "nombre", "") if prod else ""
+        desc_v   = getattr(prod, "descripcion", "") or ""
+        presentacion_v = getattr(pres_o, "nombre_presentacion", "") if pres_o else ""
+        disp_v   = lote_obj.cantidad_disponible or 0
+        nro_v    = getattr(lote_obj, "numero_lote", "") or getattr(lote_obj, "codigo_lote", "") or ""
+        venc_v   = lote_obj.fecha_caducidad.strftime("%d/%m/%Y") if getattr(lote_obj, "fecha_caducidad", None) else ""
+        est_v    = getattr(estado_o, "nombre_estado", "") if estado_o else ""
+        pcomp_v  = f"Q {lote_obj.precio_compra:.2f}" if lote_obj.precio_compra is not None else ""
+        pvent_v  = f"Q {lote_obj.precio_venta:.2f}" if lote_obj.precio_venta is not None else ""
 
         data.append([
-            cell(codigo, p8_center),
-            cell(nombre, p8_left),
-            cell(desc, p8_left),
-            cell(presentacion, p8_left),
-            cell(str(disp), p8_center),
-            cell(nro, p8_center),
-            cell(venc, p8_center),
-            cell(est, p8_center),
-            cell(pcomp, p8_right),
-            cell(pvent, p8_right),
+            cell(codigo_v, p8_center),
+            cell(nombre_v, p8_left),
+            cell(desc_v, p8_left),
+            cell(presentacion_v, p8_left),
+            cell(str(disp_v), p8_center),
+            cell(nro_v, p8_center),
+            cell(venc_v, p8_center),
+            cell(est_v, p8_center),
+            cell(pcomp_v, p8_right),
+            cell(pvent_v, p8_right),
         ])
 
     # ---- Anchos proporcionales al ancho útil (evita cortes) ----
-        # ---- Anchos proporcionales al ancho útil (evita cortes) ----
     total_w = doc.width
     ratios = [
         0.08,  # Código
@@ -135,11 +185,10 @@ def exportar_stock_pdf(request):
         0.10,  # Lote
         0.09,  # Vencimiento
         0.08,  # Estado Lote
-        0.08,  # P. Compra (más ancho)
-        0.08,  # P. Venta (más ancho)
+        0.08,  # P. Compra
+        0.08,  # P. Venta
     ]
     col_widths = [total_w * r for r in ratios]
-
 
     table = Table(data, colWidths=col_widths, repeatRows=1)
     table.setStyle(TableStyle([
