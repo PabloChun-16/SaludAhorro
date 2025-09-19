@@ -1,0 +1,29 @@
+<div class="p-3">
+  <h5><i class="bi bi-file-earmark-text"></i> Detalle Recepción</h5>
+  <p><b>Número Envío:</b> {{ recepcion.numero_envio_bodega }}</p>
+  <p><b>Fecha:</b> {{ recepcion.fecha_recepcion|date:"d/m/Y H:i" }}</p>
+  <p><b>Usuario:</b> {{ recepcion.id_usuario }}</p>
+  <p><b>Estado:</b> {{ recepcion.estado_recepcion }}</p>
+
+  <h6>Productos Recibidos:</h6>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Lote</th>
+        <th>Cantidad</th>
+        <th>Costo Unitario</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in detalles %}
+      <tr>
+        <td>{{ d.id_lote.numero_lote }}</td>
+        <td>{{ d.cantidad_recibida }}</td>
+        <td>{{ d.costo_unitario }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="text-muted">Sin detalles</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

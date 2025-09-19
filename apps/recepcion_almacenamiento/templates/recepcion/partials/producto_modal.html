@@ -1,0 +1,55 @@
+{% load static %}
+
+<!-- MODAL DE BÚSQUEDA DE PRODUCTOS -->
+<div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      
+      <!-- ENCABEZADO -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-search"></i> Buscar Producto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- CUERPO -->
+      <div class="modal-body">
+        <!-- Buscador -->
+        <div class="input-group mb-3">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchProducto" class="form-control" placeholder="Buscar producto...">
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered text-center align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Presentación</th>
+                <th>Unidad</th>
+                <th>Condición</th>
+                <th>Receta</th>
+                <th>Controlado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarProductos">
+              <tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary" id="btnCerrarProducto" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,98 @@
+{% load static %}
+
+<!-- MODAL DE BUSCAR LOTE -->
+<div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- ENCABEZADO -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-search"></i> Buscar Lote</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- CUERPO -->
+      <div class="modal-body">
+        <input type="text" id="searchLote" class="form-control mb-3" placeholder="Buscar lote...">
+
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered text-center">
+            <thead class="table-light">
+              <tr>
+                <th>Número Lote</th>
+                <th>Fecha Caducidad</th>
+                <th>Cantidad</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarLotes">
+              <!-- JS llenará dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-secondary" id="btnCerrarLote">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="button" class="btn btn-success" data-bs-target="#modalCrearLote" data-bs-toggle="modal">
+          <i class="bi bi-plus-circle"></i> Crear Nuevo Lote
+        </button>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL DE CREAR LOTE -->
+<div class="modal fade" id="modalCrearLote" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- ENCABEZADO -->
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Crear Lote</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- CUERPO -->
+      <div class="modal-body">
+        <form id="formCrearLote" autocomplete="off">
+          {% csrf_token %}
+          <input type="hidden" id="productoIdHidden">
+
+          <div class="mb-3">
+            <label for="numeroLote" class="form-label">Número de Lote</label>
+            <input type="text" id="numeroLote" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="fechaCaducidad" class="form-label">Fecha de Caducidad</label>
+            <input type="date" id="fechaCaducidad" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label for="ubicacionAlmacen" class="form-label">Ubicación en Almacén</label>
+            <input type="text" id="ubicacionAlmacen" class="form-control" placeholder="Ej. Estante A - Nivel 3">
+          </div>
+        </form>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer bg-light">
+        <button type="button" id="btnCancelarLote" class="btn btn-outline-secondary">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="button" id="btnGuardarLote" class="btn btn-success">
+          <i class="bi bi-check2-circle"></i> Guardar Lote
+        </button>
+      </div>
+
+      </div>
+    </div>
+  </div>
+</div>

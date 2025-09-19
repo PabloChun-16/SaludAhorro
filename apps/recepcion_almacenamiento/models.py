@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from apps.mantenimiento.models import Estado_Recepcion
 from apps.mantenimiento.usuarios.models import Usuario
@@ -7,7 +8,7 @@ from apps.inventario.models import Lotes
 # Create your models here.
 
 class Recepciones_Envio(models.Model):
-    fecha_recepcion = models.DateTimeField(auto_now_add=True)
+    fecha_recepcion = models.DateTimeField(default=timezone.now)
     numero_envio_bodega = models.CharField(max_length=100, null=True, blank=True)
     
     # Relaciones de llave foránea
@@ -17,6 +18,7 @@ class Recepciones_Envio(models.Model):
     def __str__(self):
         return f'Recepción {self.id} - {self.fecha_recepcion}'
         
+
     class Meta:
         verbose_name = 'Recepción de Envío'
         verbose_name_plural = 'Recepciones de Envío'
