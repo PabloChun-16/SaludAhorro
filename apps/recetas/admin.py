@@ -1,7 +1,17 @@
 from django.contrib import admin
-from .models import Recetas_Medicas, Envios_Recetas, Detalle_Envio_Recetas
+from .models import RecetaMedica, EnvioReceta, DetalleEnvioReceta
 
-# Register your models here.
-admin.site.register(Recetas_Medicas)
-admin.site.register(Envios_Recetas)
-admin.site.register(Detalle_Envio_Recetas)
+
+@admin.register(RecetaMedica)
+class RecetaMedicaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'referencia_factura', 'referente_receta', 'fecha_venta')
+
+
+@admin.register(EnvioReceta)
+class EnvioRecetaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre_reporte', 'fecha_envio')
+
+
+@admin.register(DetalleEnvioReceta)
+class DetalleEnvioRecetaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'id_envio', 'id_receta')

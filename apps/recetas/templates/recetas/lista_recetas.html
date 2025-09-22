@@ -1,0 +1,160 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Lista Recetas · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+
+  <!-- Tabla Recetas -->
+  <div class="border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
+      <i class="bi bi-list-ul"></i> Lista de Recetas
+    </div>
+
+    <table class="w-full text-sm text-left text-slate-700" id="tablaRecetas">
+      <thead class="bg-emerald-50 text-emerald-900">
+        <tr>
+          <th class="px-4 py-2">Factura</th>
+          <th class="px-4 py-2">Referente</th>
+          <th class="px-4 py-2">Producto</th>
+          <th class="px-4 py-2">Usuario Venta</th>
+          <th class="px-4 py-2">Fecha</th>
+        </tr>
+        <tr>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for receta in recetas %}
+        <tr class="fila-receta"
+            data-id="{{ receta.id }}"
+            data-factura="{{ receta.referencia_factura }}"
+            data-referente="{{ receta.referente_receta }}"
+            data-producto="{{ receta.id_producto.nombre }}"
+            data-usuario="{{ receta.id_usuario_venta.nombre }}"
+            data-fecha="{{ receta.fecha_venta|date:'d/m/Y H:i' }}">
+          <td class="px-4 py-2">{{ receta.referencia_factura }}</td>
+          <td class="px-4 py-2">{{ receta.referente_receta }}</td>
+          <td class="px-4 py-2">{{ receta.id_producto.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.id_usuario_venta.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.fecha_venta|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-slate-500">
+            No hay recetas registradas
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Botones -->
+<div class="d-flex justify-content-center gap-3 mt-3">
+  <button id="btnConsultar" class="btn btn-primary rounded-pill px-4">
+    <i class="bi bi-file-earmark-text"></i> Consultar
+  </button>
+  <a href="{% url 'recetas:exportar_recetas_pdf' %}" class="btn btn-success rounded-pill px-4">
+    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+  </a>
+</div>
+
+<!-- Modal estilo SAIF -->
+<div class="modal fade" id="consultarRecetaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content saif-modal">
+
+      <div class="modal-header bg-emerald-700 text-white">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo" 
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;"> 
+          <h5 class="modal-title mb-0 fw-bold">Detalle de Receta</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-capsule"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body py-3">
+        <div class="kv-grid">
+          <div class="kv"><div class="kv__key"><i class="bi bi-upc-scan"></i> Factura</div><div class="kv__val" id="detalleFactura">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-person-badge"></i> Referente</div><div class="kv__val" id="detalleReferente">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-capsule"></i> Producto</div><div class="kv__val" id="detalleProducto">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-person"></i> Usuario Venta</div><div class="kv__val" id="detalleUsuario">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-calendar-event"></i> Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
+        </div>
+      </div>
+
+      <div class="modal-footer py-2 bg-white">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos SAIF como inventario -->
+<style>
+  .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+  .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+  .saif-modal .saif-badge { background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+  .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+  .kv__key { font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
+  .kv__val { color:#0f172a; word-break:break-word }
+  .kv__val.text-muted { color:#64748b }
+  @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+</style>
+
+<!-- Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  let selectedRow = null;
+
+  // Selección de filas
+  document.querySelectorAll(".fila-receta").forEach(row => {
+    row.addEventListener("click", function () {
+      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
+      selectedRow = this;
+      this.classList.add("bg-emerald-100");
+    });
+  });
+
+  // Consultar
+  document.getElementById("btnConsultar").addEventListener("click", function () {
+    if (!selectedRow) {
+      alert("Selecciona una receta primero.");
+      return;
+    }
+    document.getElementById("detalleFactura").innerText = selectedRow.dataset.factura;
+    document.getElementById("detalleReferente").innerText = selectedRow.dataset.referente;
+    document.getElementById("detalleProducto").innerText = selectedRow.dataset.producto;
+    document.getElementById("detalleUsuario").innerText = selectedRow.dataset.usuario;
+    document.getElementById("detalleFecha").innerText = selectedRow.dataset.fecha;
+
+    new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
+  });
+
+  // Filtros de búsqueda
+  document.querySelectorAll(".filtro").forEach((input, index) => {
+    input.addEventListener("keyup", function () {
+      const value = this.value.toLowerCase();
+      document.querySelectorAll("#tablaRecetas tbody tr").forEach(row => {
+        const cell = row.cells[index]?.textContent.toLowerCase();
+        row.style.display = cell.includes(value) ? "" : "none";
+      });
+    });
+  });
+});
+</script>
+
+{% endblock %}
