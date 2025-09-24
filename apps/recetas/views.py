@@ -10,6 +10,10 @@ from .forms import RecetaForm
 from django.utils import timezone
 from datetime import datetime
 import io
+from django.core.serializers import serialize
+from django.http import JsonResponse
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 
 
@@ -39,16 +43,35 @@ def registrar_receta(request):
 # Listado de recetas
 def lista_recetas(request):
     recetas = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").all()
-    return render(request, "recetas/lista_recetas.html", {"recetas": recetas})
+
+    # Convertimos a JSON para el dashboard
+    recetas_json = [
+        {
+            "id": r.id,
+            "factura": r.referencia_factura,
+            "referente": r.referente_receta,
+            "producto": r.id_producto.nombre if r.id_producto else "",
+            "usuario": r.id_usuario_venta.nombre if r.id_usuario_venta else "",
+            "fecha": r.fecha_venta.strftime("%Y-%m-%d %H:%M") if r.fecha_venta else ""
+        }
+        for r in recetas
+    ]
+
+    context = {
+        "recetas": recetas,
+        "recetas_json": json.dumps(recetas_json, cls=DjangoJSONEncoder)
+    }
+    return render(request, "recetas/lista_recetas.html", context)
 
 def crear_receta(request):
     if request.method == "POST":
         form = RecetaForm(request.POST)
         if form.is_valid():
-            receta = form.save(commit=False)
-            receta.fecha_venta = timezone.now()
-            receta.save()
+            form.save()
             return redirect("recetas:registrar_receta")
+    else:
+        form = RecetaForm()
+    return render(request, "recetas/crear_receta.html", {"form": form})
 
 def editar_receta(request, pk):
     receta = get_object_or_404(RecetaMedica, pk=pk)
