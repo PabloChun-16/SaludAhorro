@@ -48,13 +48,10 @@
           data-producto="{{ detalle.id_receta.id_producto.nombre }}"
           data-usuario-venta="{{ detalle.id_receta.id_usuario_venta.nombre }}">
 
-        <!-- Envios_Recetas -->
         <td class="px-4 py-2">{{ detalle.id_envio.nombre_reporte }}</td>
         <td class="px-4 py-2">{{ detalle.id_envio.id_usuario.nombre }}</td>
         <td class="px-4 py-2">{{ detalle.id_envio.id_estado_envio.nombre_estado }}</td>
         <td class="px-4 py-2">{{ detalle.id_envio.fecha_envio|date:"d/m/Y H:i" }}</td>
-
-        <!-- Recetas asociadas -->
         <td class="px-4 py-2">{{ detalle.id_receta.referencia_factura }}</td>
         <td class="px-4 py-2">{{ detalle.id_receta.referente_receta }}</td>
         <td class="px-4 py-2">{{ detalle.id_receta.id_producto.nombre }}</td>
@@ -78,6 +75,12 @@
        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-full inline-flex items-center gap-2">
       <i class="bi bi-filetype-pdf"></i> Exportar PDF
     </a>
+    <!-- Botón Dashboard -->
+    <button class="btn btn-purple rounded-pill px-4 text-white" 
+            data-bs-toggle="modal" data-bs-target="#dashboardModal"
+            style="background-color:#8b5cf6; border:none;">
+      <i class="bi bi-bar-chart"></i> Dashboard
+    </button>
   </div>
 </section>
 
@@ -149,7 +152,65 @@
   @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
 </style>
 
-<!-- ============================= SCRIPT ============================= -->
+<!-- ============================= MODAL DASHBOARD ============================= -->
+<div class="modal fade" id="dashboardModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-purple-600 text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart"></i> Dashboard de Envíos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-slate-50">
+        <!-- Filtros -->
+        <div class="d-flex gap-3 mb-3">
+          <select id="filtroUsuario" class="form-select">
+            <option value="">Filtrar por Usuario</option>
+            {% for detalle in detalles %}
+              <option value="{{ detalle.id_envio.id_usuario.nombre }}">{{ detalle.id_envio.id_usuario.nombre }}</option>
+            {% endfor %}
+          </select>
+
+          <select id="filtroEstado" class="form-select">
+            <option value="">Filtrar por Estado</option>
+            {% for detalle in detalles %}
+              <option value="{{ detalle.id_envio.id_estado_envio.nombre_estado }}">{{ detalle.id_envio.id_estado_envio.nombre_estado }}</option>
+            {% endfor %}
+          </select>
+
+          <div class="flex gap-2">
+          <label>Desde: <input type="date" id="filtroFechaInicio"></label>
+          <label>Hasta: <input type="date" id="filtroFechaFin"></label>
+        </div>
+
+        </div>
+
+        <!-- Gráficas -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div style="height: 300px;">
+              <canvas id="chartEstados"></canvas>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div style="height: 300px;">
+              <canvas id="chartUsuarios"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SCRIPTS ============================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   let selectedRow = null;
@@ -175,7 +236,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("detalleUsuario").innerText = selectedRow.dataset.usuario;
     document.getElementById("detalleEstado").innerText = selectedRow.dataset.estado;
 
-    // Recetas asociadas (ejemplo básico)
+    // Recetas asociadas
     const tbody = document.getElementById("detalleRecetasAsociadas");
     tbody.innerHTML = `
       <tr>
@@ -190,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
     new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
   });
 
-  // Filtros
+  // Filtros en tabla
   document.querySelectorAll(".filtro").forEach((input, index) => {
     input.addEventListener("keyup", function () {
       const value = this.value.toLowerCase();
@@ -201,5 +262,147 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
+// ============================= DASHBOARD =============================
+document.addEventListener("DOMContentLoaded", () => {
+  const rows = document.querySelectorAll("#tablaEnvios tbody tr");
+  const filtroUsuario = document.getElementById("filtroUsuario");
+  const filtroEstado = document.getElementById("filtroEstado");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
+  const filtroFechaFin = document.getElementById("filtroFechaFin");
+
+  let chartEstados = null;
+  let chartUsuarios = null;
+  let chartFechas = null;
+
+  // Normalizar dd/mm/yyyy -> yyyy-mm-dd
+  function normalizarFecha(fechaStr) {
+    if (!fechaStr) return "";
+    const partes = fechaStr.split(" ")[0].split("/"); // ["21","09","2025"]
+    return `${partes[2]}-${partes[1]}-${partes[0]}`; // "2025-09-21"
+  }
+
+  function obtenerDatos() {
+    let data = [];
+    rows.forEach(row => {
+      data.push({
+        usuario: row.dataset.usuario,
+        estado: row.dataset.estado,
+        fecha: normalizarFecha(row.dataset.fecha), // yyyy-mm-dd
+      });
+    });
+    return data;
+  }
+
+  function filtrarDatos() {
+    let data = obtenerDatos();
+    if (filtroUsuario.value) {
+      data = data.filter(d => d.usuario === filtroUsuario.value);
+    }
+    if (filtroEstado.value) {
+      data = data.filter(d => d.estado === filtroEstado.value);
+    }
+    if (filtroFechaInicio.value) {
+      data = data.filter(d => d.fecha >= filtroFechaInicio.value);
+    }
+    if (filtroFechaFin.value) {
+      data = data.filter(d => d.fecha <= filtroFechaFin.value);
+    }
+    return data;
+  }
+
+  function renderCharts() {
+    const data = filtrarDatos();
+
+    // Conteo por estado
+    const estados = [...new Set(data.map(d => d.estado))];
+    const conteoEstados = estados.map(e => data.filter(d => d.estado === e).length);
+
+    // Conteo por usuario
+    const usuarios = [...new Set(data.map(d => d.usuario))];
+    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
+
+    // Conteo por fecha
+    const fechas = [...new Set(data.map(d => d.fecha))].sort();
+    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
+
+    // --- ACTUALIZAR O CREAR ---
+    if (chartEstados) chartEstados.destroy();
+    if (chartUsuarios) chartUsuarios.destroy();
+    if (chartFechas) chartFechas.destroy();
+
+    chartEstados = new Chart(document.getElementById("chartEstados"), {
+      type: "bar",
+      data: {
+        labels: estados,
+        datasets: [{ 
+          label: "Cantidad por Estado", 
+          data: conteoEstados, 
+          backgroundColor: "#34d399" 
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    chartUsuarios = new Chart(document.getElementById("chartUsuarios"), {
+      type: "pie",
+      data: {
+        labels: usuarios,
+        datasets: [{ 
+          label: "Cantidad por Usuario", 
+          data: conteoUsuarios, 
+          backgroundColor: ["#6366f1","#fbbf24","#ef4444","#10b981"] 
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    chartFechas = new Chart(document.getElementById("chartFechas"), {
+      type: "line",
+      data: {
+        labels: fechas,
+        datasets: [{ 
+          label: "Envíos por Fecha", 
+          data: conteoFechas, 
+          borderColor: "#8b5cf6",
+          backgroundColor: "#c4b5fd",
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+
+  // Llenar filtros dinámicamente
+  function llenarFiltros() {
+    const data = obtenerDatos();
+    const usuarios = [...new Set(data.map(d => d.usuario))];
+    const estados = [...new Set(data.map(d => d.estado))];
+
+    filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>`;
+    usuarios.forEach(u => {
+      filtroUsuario.innerHTML += `<option value="${u}">${u}</option>`;
+    });
+
+    filtroEstado.innerHTML = `<option value="">Filtrar por Estado</option>`;
+    estados.forEach(e => {
+      filtroEstado.innerHTML += `<option value="${e}">${e}</option>`;
+    });
+  }
+
+  // Eventos
+  filtroUsuario.addEventListener("change", renderCharts);
+  filtroEstado.addEventListener("change", renderCharts);
+  filtroFechaInicio.addEventListener("change", renderCharts);
+  filtroFechaFin.addEventListener("change", renderCharts);
+
+  // Inicializar al abrir modal
+  document.getElementById("dashboardModal").addEventListener("shown.bs.modal", () => {
+    llenarFiltros();
+    renderCharts();
+  });
+});
 </script>
+
 {% endblock %}
