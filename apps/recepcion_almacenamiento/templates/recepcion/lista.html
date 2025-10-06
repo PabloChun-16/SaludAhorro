@@ -24,7 +24,7 @@
         </thead>
         <tbody>
           {% for r in recepciones %}
-          <tr data-id="{{ r.id }}">
+          <tr data-id="{{ r.id }}" style="cursor:pointer;">
             <td>{{ r.id }}</td>
             <td>{{ r.numero_envio_bodega }}</td>
             <td>{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
@@ -39,10 +39,16 @@
     </div>
 
     <div class="px-3 py-3 text-center">
-      <button id="btnCrear" class="btn btn-warning me-2" data-bs-toggle="modal"
-              data-bs-target="#modalRecepcion" data-url="{% url 'recepcion:crear' %}">
+      <!-- CREAR -->
+      <button id="btnCrear"
+              class="btn btn-warning me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#modalRecepcion"
+              data-url="{% url 'recepcion:recepcion_create' %}">
         <i class="bi bi-plus-circle"></i> CREAR
       </button>
+
+      <!-- CONSULTAR -->
       <button id="btnConsultar" class="btn btn-primary me-2" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
@@ -50,56 +56,191 @@
   </div>
 </section>
 
-<!-- Modal principal -->
+<!-- Modal CREAR: contenedor donde se inyectará el form -->
 <div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-recepcion-content"></div>
   </div>
 </div>
 
-<!-- Incluimos el modal de productos -->
+<!-- Modal CONSULTAR: contenedor donde se inyectará el parcial _consultar.html -->
+<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" id="modal-consultar-content"></div>
+  </div>
+</div>
+
+<!-- Modales auxiliares (se incluyen una sola vez en la página) -->
 {% include "recepcion/partials/producto_modal.html" %}
-<!-- Incluimos el modal de lotes -->
 {% include "recepcion/partials/lote_modal.html" %}
 
-{% endblock %} {# <- cierre de block content #}
+{% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const modalEl       = document.getElementById("modalRecepcion");
-  const modalContent  = document.getElementById("modal-recepcion-content");
-  const btnCrear      = document.getElementById("btnCrear");
+  // ---------------- CREAR (carga del formulario en modal) ----------------
+  const modalEl = document.getElementById("modalRecepcion");
+  const modalContent = document.getElementById("modal-recepcion-content");
+  const btnCrear = document.getElementById("btnCrear");
   const modalInstance = new bootstrap.Modal(modalEl);
 
-  // Cargar el form de creación por AJAX
+  // Se vacía/llena cada vez que se abre el form
+  let detalles = [];
+
+  function inicializarFormulario() {
+    // ----- Añadir línea al detalle -----
+    const addBtn = document.getElementById("btnAddDetalle");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        const productoIdEl = document.getElementById("productoIdInput");
+        const productoTextEl = document.getElementById("productoInput");
+        const loteIdEl      = document.getElementById("loteIdInput");
+        const loteTextEl    = document.getElementById("loteInput");
+        const caducidadEl   = document.getElementById("caducidadInput");
+        const cantidadEl    = document.getElementById("cantidadInput");
+        const costoEl       = document.getElementById("costoInput");
+        const tableBody     = document.getElementById("detalleTable");
+
+        if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
+
+        const productoId = (productoIdEl?.value || "").trim();
+        const productoTx = (productoTextEl?.value || "").trim();
+        const loteId     = (loteIdEl?.value || "").trim();     // si escogió un lote existente
+        const numeroLote = (loteTextEl?.value || "").trim();   // si escribe/crea uno nuevo
+        const caducidad  = caducidadEl?.value || "";
+        const cantidad   = cantidadEl?.value;
+        const costo      = costoEl?.value;
+
+        if (!productoId) { alert("Seleccione un producto."); return; }
+        if (!loteId && !numeroLote) { alert("Ingrese o seleccione el número de lote."); return; }
+        if (!loteId && !caducidad) { alert("Para un lote nuevo, ingrese fecha de caducidad."); return; }
+        if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad inválida."); return; }
+
+        const item = {
+          producto_id: parseInt(productoId, 10),
+          // Para mostrar:
+          producto: productoTx,
+          // Para backend:
+          lote_id: loteId ? parseInt(loteId, 10) : null,
+          numero_lote: numeroLote || null,
+          fecha_caducidad: caducidad || null,
+          cantidad_recibida: parseInt(cantidad, 10),
+          costo_unitario: costo ? parseFloat(costo) : 0
+        };
+        detalles.push(item);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="text-start">${item.producto}</td>
+          <td>${item.numero_lote ?? ('#' + item.lote_id)}</td>
+          <td>${item.fecha_caducidad ?? ''}</td>
+          <td>${item.cantidad_recibida}</td>
+          <td>${item.costo_unitario.toFixed(2)}</td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
+        `;
+        row.querySelector(".btnRemove").addEventListener("click", () => {
+          row.remove();
+          detalles = detalles.filter(d => d !== item);
+        });
+        tableBody.appendChild(row);
+
+        // limpiar campos de la línea
+        loteIdEl.value = "";
+        loteTextEl.value = "";
+        caducidadEl.value = "";
+        cantidadEl.value = "";
+        costoEl.value = "";
+      });
+    }
+
+    // ----- Envío del formulario -----
+    const formRecepcion = document.getElementById("form-recepcion");
+    if (formRecepcion) {
+      const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
+
+      formRecepcion.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const formData = {
+          numero_envio_bodega: document.getElementById("id_numero_envio_bodega")?.value || "",
+          fecha_recepcion: document.getElementById("id_fecha_recepcion")?.value || ""
+        };
+        const comentario = document.getElementById("comentarioInput")?.value?.trim() || "";
+
+        const payload = { form_data: formData, detalles: detalles, comentario: comentario };
+
+        fetch(urlCrearRecepcion, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(errorData => {
+              console.error("Error del servidor:", errorData);
+              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
+              throw new Error("HTTP error: " + response.status);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            alert("Recepción creada exitosamente.");
+            window.location.reload();
+          } else {
+            console.error("Errores de validación:", data.errors);
+            alert("Error de validación: " + JSON.stringify(data.errors));
+          }
+        })
+        .catch(error => {
+          console.error("Error en la solicitud:", error);
+          alert("Error en la solicitud: " + error.message);
+        });
+      });
+    }
+  }
+
+  // Abrir modal y cargar el form por AJAX
   btnCrear.addEventListener("click", function () {
-    const url = btnCrear.getAttribute("data-url");
+    const url = this.getAttribute("data-url");
     modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
     modalInstance.show();
 
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r => r.text())
-      .then(html => { modalContent.innerHTML = html; })
+      .then(html => {
+        modalContent.innerHTML = html;
+        inicializarFormulario();
+      })
       .catch(() => {
         modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>';
       });
   });
 
-  // Modal de búsqueda de productos
+  // ----------- Auxiliares: búsqueda de productos y lotes -----------
   const modalBuscar     = document.getElementById("modalBuscarProducto");
   const searchInput     = document.getElementById("searchProducto");
   const tbodyResultados = document.getElementById("tablaBuscarProductos");
 
+  const modalLote       = document.getElementById("modalBuscarLote");
+  const searchLoteInput = document.getElementById("searchLote");
+  const tablaLotes      = document.getElementById("tablaBuscarLotes");
+
+  // Autocomplete de productos
   modalBuscar.addEventListener("shown.bs.modal", () => {
     const productoInput   = document.querySelector("#modalRecepcion #productoInput");
     const productoIdInput = document.querySelector("#modalRecepcion #productoIdInput");
-
     searchInput.value = "";
     tbodyResultados.innerHTML = "";
     searchInput.focus();
 
-    searchInput.oninput = function() {
+    searchInput.oninput = function () {
       const term = this.value;
       fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
         .then(r => r.json())
@@ -119,14 +260,10 @@ document.addEventListener("DOMContentLoaded", function () {
               <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
             `;
             tr.querySelector("button").addEventListener("click", () => {
-              if (productoInput)   productoInput.value   = `${p.codigo} - ${p.nombre}`;
+              if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`;
               if (productoIdInput) productoIdInput.value = p.id;
-
-              const buscarInst = bootstrap.Modal.getInstance(modalBuscar);
-              buscarInst.hide();
-
-              const recepInst = bootstrap.Modal.getOrCreateInstance(modalEl);
-              recepInst.show();
+              bootstrap.Modal.getInstance(modalBuscar).hide();
+              bootstrap.Modal.getOrCreateInstance(modalEl).show();
             });
             tbodyResultados.appendChild(tr);
           });
@@ -142,67 +279,38 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.value = "";
   });
 
-  
-});
-
-// -----------------------------
-//  Modal de búsqueda de lotes
-// -----------------------------
- const modalLote        = document.getElementById("modalBuscarLote");
-  const searchLoteInput  = document.getElementById("searchLote");
-  const tablaLotes       = document.getElementById("tablaBuscarLotes");
-  const loteInput        = document.getElementById("loteInput");
-  const caducidadInput   = document.getElementById("caducidadInput");
-
-  // helper: arma la URL /lotes/<producto_id>/search/?term=...
+  // Helpers lotes
   function lotesUrl(productoId, term) {
-    // base con producto_id=0 para usar reverse y luego reemplazar el 0
     const base = "{% url 'recepcion:search_lotes' 0 %}".replace("0/", productoId + "/");
-    const q = term ? "?term=" + encodeURIComponent(term) : "?term=";
+    const q = term ? "?term=" + encodeURIComponent(term) : "";
     return base + q;
   }
-
   function renderLotes(rows) {
-  if (!rows || rows.length === 0) {
-    tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para este producto.</td></tr>`;
-    return;
-  }
-  tablaLotes.innerHTML = "";
-  rows.forEach(l => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${l.numero_lote}</td>
-      <td>${l.fecha_caducidad || ""}</td>
-      <td>${l.cantidad}</td>
-      <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
-    `;
-
-    // 🔗 Acción al seleccionar el lote
-    tr.querySelector("button").addEventListener("click", () => {
-      // rellenamos campos del form principal
-      document.getElementById("loteInput").value     = l.numero_lote;
-      document.getElementById("caducidadInput").value = l.fecha_caducidad || "";
-      const loteIdHidden = document.getElementById("loteIdInput");
-      if (loteIdHidden) loteIdHidden.value = l.id;
-
-      // cerramos solo el modal de lotes
-      bootstrap.Modal.getInstance(modalLote).hide();
-
-      // reabrimos modal de recepción
-      const recepInst = bootstrap.Modal.getOrCreateInstance(
-        document.getElementById("modalRecepcion")
-      );
-      recepInst.show();
-
-      // foco al campo cantidad (flujo natural)
-      document.getElementById("cantidadInput")?.focus();
+    if (!rows || rows.length === 0) {
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para este producto.</td></tr>`;
+      return;
+    }
+    tablaLotes.innerHTML = "";
+    rows.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.numero_lote}</td>
+        <td>${l.fecha_caducidad || ""}</td>
+        <td>${l.cantidad}</td>
+        <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+      `;
+      tr.querySelector("button").addEventListener("click", () => {
+        document.getElementById("loteInput").value = l.numero_lote;
+        document.getElementById("caducidadInput").value = l.fecha_caducidad || "";
+        const loteIdHidden = document.getElementById("loteIdInput");
+        if (loteIdHidden) loteIdHidden.value = l.id;
+        bootstrap.Modal.getInstance(modalLote).hide();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
+        document.getElementById("cantidadInput")?.focus();
+      });
+      tablaLotes.appendChild(tr);
     });
-
-    tablaLotes.appendChild(tr);
-  });
-}
-
-
+  }
   function loadLotes(term = "") {
     const productoId = document.getElementById("productoIdInput")?.value;
     if (!productoId) {
@@ -217,190 +325,106 @@ document.addEventListener("DOMContentLoaded", function () {
         tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
       });
   }
-
-  // Al mostrar el modal → carga lotes del producto (sin filtro)
   modalLote.addEventListener("shown.bs.modal", () => {
     searchLoteInput.value = "";
-    loadLotes("");               // ✅ carga inicial
-    // Buscar mientras escribe
+    loadLotes("");
     searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
   });
 
+  // Crear lote rápido
+  const modalCrearLote = document.getElementById("modalCrearLote");
+  const btnGuardarLote = document.getElementById("btnGuardarLote");
+  if (btnGuardarLote) {
+    btnGuardarLote.addEventListener("click", () => {
+      const productoId = document.getElementById("productoIdInput").value;
+      const numero = document.getElementById("numeroLote").value;
+      const caducidad = document.getElementById("fechaCaducidad").value;
+      const ubicacion = document.getElementById("ubicacionAlmacen").value;
+      if (!productoId) { alert("Primero debe seleccionar un producto."); return; }
 
-
-// -----------------------------
-//  Crear lote manualmente
-// -----------------------------
-const modalCrearLote  = document.getElementById("modalCrearLote");
-const btnGuardarLote  = document.getElementById("btnGuardarLote");
-
-if (btnGuardarLote) {
-  btnGuardarLote.addEventListener("click", () => {
-    const productoId = document.getElementById("productoIdInput").value;
-    const numero     = document.getElementById("numeroLote").value;
-    const caducidad  = document.getElementById("fechaCaducidad").value;
-    const ubicacion  = document.getElementById("ubicacionAlmacen").value;
-
-    if (!productoId) {
-      alert("Primero debe seleccionar un producto.");
-      return;
-    }
-
-    fetch("{% url 'recepcion:create_lote' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-      },
-      body: JSON.stringify({
-        producto_id: productoId,
-        numero_lote: numero,
-        fecha_caducidad: caducidad,
-        ubicacion: ubicacion
+      fetch("{% url 'recepcion:create_lote' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+          producto_id: productoId,
+          numero_lote: numero,
+          fecha_caducidad: caducidad,
+          ubicacion: ubicacion
+        })
       })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        // Cerrar SOLO el modal de crear lote
-        bootstrap.Modal.getInstance(modalCrearLote).hide();
-
-        // Volver a mostrar modal de búsqueda
-        const buscarInst = bootstrap.Modal.getOrCreateInstance(modalLote);
-        buscarInst.show();
-
-        // recarga y además selecciona el lote recién creado en el form principal
-        loadLotes("");
-        loteInput.value = data.numero_lote;
-        caducidadInput.value = data.fecha_caducidad || "";
-
-      } else {
-        alert(data.error || "Error al crear el lote.");
-      }
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          bootstrap.Modal.getInstance(modalCrearLote).hide();
+          bootstrap.Modal.getOrCreateInstance(modalLote).show();
+          loadLotes("");
+          // Pre-cargar en el form principal
+          document.getElementById("loteInput").value = data.numero_lote;
+          document.getElementById("caducidadInput").value = data.fecha_caducidad || "";
+          document.getElementById("loteIdInput").value = data.id;
+        } else {
+          alert(data.error || "Error al crear el lote.");
+        }
+      });
     });
-  });
-}
+  }
 
-const btnCancelarLote = document.getElementById("btnCancelarLote");
-
-if (btnCancelarLote) {
-  btnCancelarLote.addEventListener("click", () => {
-    // Cierra SOLO modalCrearLote
+  // Botones cerrar auxiliares
+  document.getElementById("btnCancelarLote")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalCrearLote).hide();
-
-    // Vuelve a mostrar modalBuscarLote
-    const buscarInst = bootstrap.Modal.getOrCreateInstance(modalLote);
-    buscarInst.show();
+    bootstrap.Modal.getOrCreateInstance(modalLote).show();
   });
-}
-
-const btnCerrarProducto = document.getElementById("btnCerrarProducto");
-
-document.addEventListener("DOMContentLoaded", function () {
-  const modalBuscar     = document.getElementById("modalBuscarProducto");
-  const modalRecepcion  = document.getElementById("modalRecepcion");
-  const btnCerrarProducto = document.getElementById("btnCerrarProducto");
-
-  if (btnCerrarProducto) {
-    btnCerrarProducto.addEventListener("click", () => {
-      // Cierra SOLO el modal de productos
-      bootstrap.Modal.getInstance(modalBuscar)?.hide();
-
-      // Reabre el modal de recepción
-      const recepInst = bootstrap.Modal.getOrCreateInstance(modalRecepcion);
-      recepInst.show();
-    });
-  }
-});
-
-
-const btnCerrarLote = document.getElementById("btnCerrarLote");
-
-if (btnCerrarLote) {
-  btnCerrarLote.addEventListener("click", () => {
-    // Cierra SOLO el modal de lotes
+  document.getElementById("btnCerrarProducto")?.addEventListener("click", () => {
+    bootstrap.Modal.getInstance(modalBuscar)?.hide();
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  });
+  document.getElementById("btnCerrarLote")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalLote).hide();
-
-    // Reabre modal de recepción
-    const recepInst = bootstrap.Modal.getOrCreateInstance(
-      document.getElementById("modalRecepcion")
-    );
-    recepInst.show();
-  });
-}
-  
-
-// -----------------------------
-//  Añadir detalle a la tabla temporal
-// -----------------------------
-let detalles = [];  // vive mientras esté abierto el modal
-
-document.addEventListener("click", function (ev) {
-  // Soporta clicks sobre el <i> dentro del botón
-  const addBtn = ev.target.closest("#btnAddDetalle");
-  if (!addBtn) return;
-
-  // Buscar elementos *ahora* (el form llegó por AJAX)
-  const productoIdEl   = document.getElementById("productoIdInput");
-  const productoTextEl = document.getElementById("productoInput");
-  const loteIdEl       = document.getElementById("loteIdInput");
-  const loteTextEl     = document.getElementById("loteInput");
-  const caducidadEl    = document.getElementById("caducidadInput");
-  const cantidadEl     = document.getElementById("cantidadInput");
-  const costoEl        = document.getElementById("costoInput");
-  const tableBody      = document.getElementById("detalleTable");
-
-  if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
-
-  const productoId   = productoIdEl?.value.trim();
-  const productoText = productoTextEl?.value.trim();
-  const loteId       = loteIdEl?.value.trim();
-  const loteText     = loteTextEl?.value.trim();
-  const caducidad    = caducidadEl?.value || "";
-  const cantidad     = cantidadEl?.value;
-  const costo        = costoEl?.value;
-
-  if (!productoId || !loteId || !cantidad || !costo) {
-    alert("Debe seleccionar producto, lote y llenar cantidad/costo.");
-    return;
-  }
-
-  const item = {
-    producto_id: productoId,
-    producto: productoText,
-    lote_id: loteId,
-    lote: loteText,
-    fecha_caducidad: caducidad,
-    cantidad: parseInt(cantidad, 10),
-    costo: parseFloat(costo),
-  };
-  detalles.push(item);
-
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${item.producto}</td>
-    <td>${item.lote}</td>
-    <td>${item.fecha_caducidad || ""}</td>
-    <td>${item.cantidad}</td>
-    <td>${item.costo.toFixed(2)}</td>
-    <td><button type="button" class="btn btn-sm btn-danger btnRemove">✖</button></td>
-  `;
-
-  row.querySelector(".btnRemove").addEventListener("click", () => {
-    row.remove();
-    detalles = detalles.filter(d => d !== item);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
   });
 
-  tableBody.appendChild(row);
+  // ---------------- CONSULTAR (selección + modal) ----------------
+  const tbody = document.querySelector("#tablaRecepciones tbody");
+  const btnConsultar = document.getElementById("btnConsultar");
+  let selectedId = null;
+  let selectedTr = null;
 
-  // Limpia para capturar otro lote del mismo producto (dejamos el producto tal cual)
-  loteIdEl.value = "";
-  loteTextEl.value = "";
-  caducidadEl.value = "";
-  cantidadEl.value = "";
-  costoEl.value = "";
+  // Selección de fila
+  tbody.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    if (selectedTr) selectedTr.classList.remove("table-active");
+    selectedTr = tr;
+    tr.classList.add("table-active");
+    selectedId = tr.dataset.id;
+    btnConsultar.disabled = !selectedId;
+  });
+
+  // Abrir modal de consulta
+  btnConsultar.addEventListener("click", () => {
+    if (!selectedId) return;
+
+    const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+    const url = urlBase.replace("0/", selectedId + "/");
+
+    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
+    const container = document.getElementById("modal-consultar-content");
+    container.innerHTML = '<div class="p-4">Cargando...</div>';
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => {
+        container.innerHTML = html;
+        modalConsultar.show();
+      })
+      .catch(() => {
+        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>';
+        modalConsultar.show();
+      });
+  });
 });
-
-
 </script>
 {% endblock %}

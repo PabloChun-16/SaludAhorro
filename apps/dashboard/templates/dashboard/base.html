@@ -82,7 +82,7 @@
             </button>
           </form>
           <span class="text-white/80 text-sm hidden sm:inline">
-            Hola, {{ request.user.first_name|default:request.user.username }}
+            Hola, {% firstof request.user.first_name request.user.get_short_name request.user.get_username request.user %}
           </span>
         {% endif %}
       </div>
@@ -316,5 +316,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
   {% block extra_js %}{% endblock %}
+  {% block modals %}{% endblock %}
 </body>
 </html>

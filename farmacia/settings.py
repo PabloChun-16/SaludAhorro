@@ -159,11 +159,14 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 
+# Configuración de autenticación personalizada
 AUTHENTICATION_BACKENDS = [
-    'apps.accounts.backends.ExternalUsuariosBackend',  # primero el tuyo
-    'django.contrib.auth.backends.ModelBackend',       # luego el de Django
+    "apps.accounts.backends.ExternalUsuariosBackend",  # tu backend
+    "django.contrib.auth.backends.ModelBackend",       # fallback
 ]
 
+# Indica a Django que use tu modelo de usuario personalizado
+AUTH_USER_MODEL = "mnt_usuarios.Usuario"
 
 
 
@@ -184,6 +187,7 @@ LOGIN_EXEMPT_PREFIXES = [
     "/saif/",
     # agrega otras públicas si existen
 ]
+
 
 # Media files (user-uploaded content)
 import os
