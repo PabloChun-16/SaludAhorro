@@ -1,0 +1,351 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Lista Recetas · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+
+  <!-- ================== TABLA ================== -->
+  <div class="border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
+      <i class="bi bi-list-ul"></i> Lista de Recetas
+    </div>
+
+    <table class="w-full text-sm text-left text-slate-700" id="tablaRecetas">
+      <thead class="bg-emerald-50 text-emerald-900">
+        <tr>
+          <th class="px-4 py-2">Factura</th>
+          <th class="px-4 py-2">Referente</th>
+          <th class="px-4 py-2">Producto</th>
+          <th class="px-4 py-2">Usuario Venta</th>
+          <th class="px-4 py-2">Fecha</th>
+        </tr>
+        <tr>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for receta in recetas %}
+        <tr class="fila-receta"
+            data-id="{{ receta.id }}"
+            data-factura="{{ receta.referencia_factura }}"
+            data-referente="{{ receta.referente_receta }}"
+            data-producto="{{ receta.id_producto.nombre }}"
+            data-usuario="{{ receta.id_usuario_venta.nombre }}"
+            data-fecha="{{ receta.fecha_venta|date:'Y-m-d' }}">
+          <td class="px-4 py-2">{{ receta.referencia_factura }}</td>
+          <td class="px-4 py-2">{{ receta.referente_receta }}</td>
+          <td class="px-4 py-2">{{ receta.id_producto.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.id_usuario_venta.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.fecha_venta|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-slate-500">
+            No hay recetas registradas
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================== BOTONES ================== -->
+<div class="d-flex justify-content-center gap-3 mt-3">
+  <button id="btnConsultar" class="btn btn-primary rounded-pill px-4">
+    <i class="bi bi-file-earmark-text"></i> Consultar
+  </button>
+  <a href="{% url 'recetas:exportar_recetas_pdf' %}" class="btn btn-success rounded-pill px-4">
+    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+  </a>
+  <button class="btn btn-info rounded-pill px-4 text-white" data-bs-toggle="modal" data-bs-target="#dashboardModal" style="background-color:#8b5cf6; border:none;">
+  <i class="bi bi-bar-chart"></i> Dashboard
+</button>
+</div>
+
+<!-- Modal estilo SAIF -->
+<div class="modal fade" id="consultarRecetaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content saif-modal">
+
+      <div class="modal-header bg-emerald-700 text-white">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo" 
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;"> 
+          <h5 class="modal-title mb-0 fw-bold">Detalle de Receta</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-capsule"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body py-3">
+        <div class="kv-grid">
+          <div class="kv"><div class="kv__key"><i class="bi bi-upc-scan"></i> Factura</div><div class="kv__val" id="detalleFactura">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-person-badge"></i> Referente</div><div class="kv__val" id="detalleReferente">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-capsule"></i> Producto</div><div class="kv__val" id="detalleProducto">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-person"></i> Usuario Venta</div><div class="kv__val" id="detalleUsuario">—</div></div>
+          <div class="kv"><div class="kv__key"><i class="bi bi-calendar-event"></i> Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
+        </div>
+      </div>
+
+      <div class="modal-footer py-2 bg-white">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos SAIF -->
+<style>
+  .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+  .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+  .saif-modal .saif-badge { background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+  .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+  .kv__key { font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
+  .kv__val { color:#0f172a; word-break:break-word }
+  .kv__val.text-muted { color:#64748b }
+  @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+</style>
+
+<!-- ================== MODAL DASHBOARD ================== -->
+<div class="modal fade" id="dashboardModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-purple-700 text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart"></i> Dashboard de Recetas</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-slate-50">
+        <!-- Filtros -->
+        <div class="d-flex flex-wrap gap-3 mb-3">
+          <select id="filtroProducto" class="form-select w-auto">
+            <option value="">Filtrar por Producto</option>
+            {% for receta in recetas %}
+            <option value="{{ receta.id_producto.nombre }}">{{ receta.id_producto.nombre }}</option>
+            {% endfor %}
+          </select>
+          <select id="filtroUsuario" class="form-select w-auto">
+            <option value="">Filtrar por Usuario</option>
+            {% for receta in recetas %}
+            <option value="{{ receta.id_usuario_venta.nombre }}">{{ receta.id_usuario_venta.nombre }}</option>
+            {% endfor %}
+          </select>
+          <div class="flex gap-2">
+          <label>Desde: <input type="date" id="filtroFechaInicio"></label>
+          <label>Hasta: <input type="date" id="filtroFechaFin"></label>
+        </div>
+        </div>
+
+        <!-- Gráficas -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white p-3 rounded shadow">
+            <h6 class="fw-bold mb-2">Recetas por Producto</h6>
+            <canvas id="chartProductos"></canvas>
+          </div>
+          <div class="bg-white p-3 rounded shadow">
+            <h6 class="fw-bold mb-2">Recetas por Usuario</h6>
+            <canvas id="chartUsuarios"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-3 rounded shadow mt-4">
+          <h6 class="fw-bold mb-2">Recetas por Fecha</h6>
+          <canvas id="chartFechas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================== SCRIPTS ================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  
+  let selectedRow = null;
+
+  // Selección de filas
+  document.querySelectorAll(".fila-receta").forEach(row => {
+    row.addEventListener("click", function () {
+      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
+      selectedRow = this;
+      this.classList.add("bg-emerald-100");
+    });
+  });
+
+  // Consultar
+  document.getElementById("btnConsultar").addEventListener("click", function () {
+    if (!selectedRow) {
+      alert("Selecciona una receta primero.");
+      return;
+    }
+    document.getElementById("detalleFactura").innerText = selectedRow.dataset.factura;
+    document.getElementById("detalleReferente").innerText = selectedRow.dataset.referente;
+    document.getElementById("detalleProducto").innerText = selectedRow.dataset.producto;
+    document.getElementById("detalleUsuario").innerText = selectedRow.dataset.usuario;
+    document.getElementById("detalleFecha").innerText = selectedRow.dataset.fecha;
+
+    new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
+  });
+
+  // Filtros de búsqueda
+  document.querySelectorAll(".filtro").forEach((input, index) => {
+    input.addEventListener("keyup", function () {
+      const value = this.value.toLowerCase();
+      document.querySelectorAll("#tablaRecetas tbody tr").forEach(row => {
+        const cell = row.cells[index]?.textContent.toLowerCase();
+        row.style.display = cell.includes(value) ? "" : "none";
+      });
+    });
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const rows = document.querySelectorAll("#tablaRecetas tbody tr");
+  const filtroProducto = document.getElementById("filtroProducto");
+  const filtroUsuario = document.getElementById("filtroUsuario");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
+  const filtroFechaFin = document.getElementById("filtroFechaFin");
+
+  let chartProductos = null;
+  let chartUsuarios = null;
+  let chartFechas = null;
+
+  // ================== OBTENER DATOS ==================
+  function obtenerDatos() {
+    let data = [];
+    rows.forEach(row => {
+      data.push({
+        producto: row.dataset.producto,
+        usuario: row.dataset.usuario,
+        fecha: row.dataset.fecha.split(" ")[0], // yyyy-mm-dd
+      });
+    });
+    return data;
+  }
+
+  // ================== FILTRAR DATOS ==================
+  function filtrarDatos() {
+    let data = obtenerDatos();
+
+    if (filtroProducto.value) {
+      data = data.filter(d => d.producto === filtroProducto.value);
+    }
+    if (filtroUsuario.value) {
+      data = data.filter(d => d.usuario === filtroUsuario.value);
+    }
+    if (filtroFechaInicio.value) {
+      data = data.filter(d => d.fecha >= filtroFechaInicio.value);
+    }
+    if (filtroFechaFin.value) {
+      data = data.filter(d => d.fecha <= filtroFechaFin.value);
+    }
+
+    return data;
+  }
+
+  // ================== RENDER CHARTS ==================
+  function renderCharts() {
+    const data = filtrarDatos();
+
+    // Conteo por producto
+    const productos = [...new Set(data.map(d => d.producto))];
+    const conteoProductos = productos.map(p => data.filter(d => d.producto === p).length);
+
+    // Conteo por usuario
+    const usuarios = [...new Set(data.map(d => d.usuario))];
+    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
+
+    // Conteo por fecha
+    const fechas = [...new Set(data.map(d => d.fecha))].sort(); // ordenar fechas
+    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
+
+    // --- ACTUALIZAR O CREAR ---
+    if (chartProductos) chartProductos.destroy();
+    if (chartUsuarios) chartUsuarios.destroy();
+    if (chartFechas) chartFechas.destroy();
+
+    chartProductos = new Chart(document.getElementById("chartProductos"), {
+      type: "bar",
+      data: {
+        labels: productos,
+        datasets: [{ 
+          label: "Cantidad por Producto", 
+          data: conteoProductos, 
+          backgroundColor: "#3b82f6" 
+        }]
+      }
+    });
+
+    chartUsuarios = new Chart(document.getElementById("chartUsuarios"), {
+      type: "pie",
+      data: {
+        labels: usuarios,
+        datasets: [{ 
+          label: "Cantidad por Usuario", 
+          data: conteoUsuarios, 
+          backgroundColor: ["#10b981","#f59e0b","#ef4444","#6366f1"] 
+        }]
+      }
+    });
+
+    chartFechas = new Chart(document.getElementById("chartFechas"), {
+      type: "line",
+      data: {
+        labels: fechas,
+        datasets: [{ 
+          label: "Recetas por Fecha", 
+          data: conteoFechas, 
+          borderColor: "#8b5cf6",
+          backgroundColor: "#c4b5fd",
+          fill: true,
+          tension: 0.3
+        }]
+      }
+    });
+  }
+
+  // ================== LLENAR COMBOS (únicos) ==================
+  function llenarFiltros() {
+    const data = obtenerDatos();
+
+    const productos = [...new Set(data.map(d => d.producto))];
+    const usuarios = [...new Set(data.map(d => d.usuario))];
+
+    filtroProducto.innerHTML = `<option value="">Filtrar por Producto</option>`;
+    productos.forEach(p => {
+      filtroProducto.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>`;
+    usuarios.forEach(u => {
+      filtroUsuario.innerHTML += `<option value="${u}">${u}</option>`;
+    });
+  }
+
+  // ================== EVENTOS ==================
+  filtroProducto.addEventListener("change", renderCharts);
+  filtroUsuario.addEventListener("change", renderCharts);
+  filtroFechaInicio.addEventListener("change", renderCharts);
+  filtroFechaFin.addEventListener("change", renderCharts);
+
+  // Inicializar al abrir modal
+  document.getElementById("dashboardModal").addEventListener("shown.bs.modal", () => {
+    llenarFiltros();
+    renderCharts();
+  });
+});
+</script>
+{% endblock %}

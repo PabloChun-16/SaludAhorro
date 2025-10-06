@@ -1,0 +1,414 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% load tz %}
+
+{% block title %}Registro de Recetas · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+
+  <!-- ============================= ESTILOS ============================= -->
+  <style>
+    .saif-modal .modal-content {
+      border: 0;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .saif-modal .modal-header {
+      background: #0E7A3A;
+      color: #fff;
+      border-bottom: 0;
+      padding: .6rem .9rem;
+    }
+    .saif-modal .modal-header .saif-badge {
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(4px);
+      border-radius: 999px;
+      padding: .12rem .5rem;
+      font-weight: 600;
+      font-size: .8rem;
+    }
+    .saif-modal .modal-body {
+      background: #f7fbf9;
+      padding: 1rem 1.1rem;
+    }
+    .saif-modal .modal-footer {
+      border-top: 0;
+      background: #fff;
+    }
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .85rem 1rem;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      align-items: start;
+      gap: .35rem .5rem;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: .65rem .75rem;
+      box-shadow: 0 4px 12px rgba(15,23,42,.04);
+    }
+    .kv--block {
+      grid-column: 1 / -1;
+      grid-template-columns: 230px 1fr;
+    }
+    .kv__key {
+      font-weight: 700;
+      color: #0b1220;
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      white-space: nowrap;
+    }
+    .kv__val { color: #0f172a; word-break: break-word; }
+    .kv__val.text-muted { color: #64748b; }
+    @media (max-width:768px) {
+      .kv-grid{grid-template-columns:1fr}
+      .kv,.kv--block{grid-template-columns:160px 1fr}
+    }
+  </style>
+
+  <!-- ============================= TABLA ============================= -->
+  <div class="border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
+      <i class="bi bi-journal-medical"></i> Registro de Recetas
+    </div>
+
+    <table class="w-full text-sm text-left text-slate-700" id="tablaRecetas">
+      <thead class="bg-emerald-50 text-emerald-900">
+        <tr>
+          <th class="px-4 py-2">Factura</th>
+          <th class="px-4 py-2">Referente</th>
+          <th class="px-4 py-2">Producto</th>
+          <th class="px-4 py-2">Usuario Venta</th>
+          <th class="px-4 py-2">Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for receta in recetas %}
+        <tr data-id="{{ receta.id }}"
+            data-factura="{{ receta.referencia_factura }}"
+            data-referente="{{ receta.referente_receta }}"
+            data-producto-id="{{ receta.id_producto.id }}"
+            data-producto-nombre="{{ receta.id_producto.nombre }}"
+            data-usuario-id="{{ receta.id_usuario_venta.id }}"
+            data-usuario-nombre="{{ receta.id_usuario_venta.nombre }}"
+            data-fecha="{{ receta.fecha_venta|date:'Y-m-d' }}"
+            class="cursor-pointer hover:bg-emerald-50">
+
+          <td class="px-4 py-2">{{ receta.referencia_factura }}</td>
+          <td class="px-4 py-2">{{ receta.referente_receta }}</td>
+          <td class="px-4 py-2">{{ receta.id_producto.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.id_usuario_venta.nombre }}</td>
+          <td class="px-4 py-2">{{ receta.fecha_venta|localtime|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-slate-500">No hay recetas registradas</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================= BOTONES ============================= -->
+  <div class="flex justify-center gap-3 mt-4">
+    <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2 rounded-full"
+            data-bs-toggle="modal" data-bs-target="#crearRecetaModal">
+      <i class="bi bi-plus-circle"></i> Crear
+    </button>
+    <button id="btnConsultar" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-eye"></i> Consultar
+    </button>
+    <button id="btnEditar" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-pencil"></i> Editar
+    </button>
+    <button id="btnEliminar" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-trash"></i> Eliminar
+    </button>
+  </div>
+</section>
+
+<!-- ============================= MODAL CREAR ============================= -->
+<div class="modal fade saif-modal" id="crearRecetaModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'recetas:crear_receta' %}">
+        {% csrf_token %}
+
+        <!-- Header -->
+        <div class="modal-header bg-emerald-700 text-white py-3">
+          <div class="d-flex align-items-center gap-3">
+            <!-- Logo -->
+            <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo" 
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;">
+
+            <!-- Título -->
+            <h5 class="modal-title mb-0 fw-bold">
+              Nueva Receta
+            </h5>
+
+            <!-- Badge -->
+            <span class="saif-badge ms-2">
+              <i class="bi bi-shield-check"></i> SAIF
+            </span>
+          </div>
+          <!-- Botón cerrar -->
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body bg-slate-50 py-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <input type="text" name="referencia_factura" class="form-control rounded-lg" placeholder="Referencia Factura" required>
+            <input type="text" name="referente_receta" class="form-control rounded-lg" placeholder="Referente Receta" required>
+
+            <select name="id_producto" class="form-control rounded-lg" required>
+              <option value="">Seleccione un producto</option>
+              {% for producto in productos %}
+              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+              {% endfor %}
+            </select>
+
+            <select name="id_usuario_venta" class="form-control rounded-lg" required>
+              <option value="">Seleccione un usuario</option>
+              {% for usuario in usuarios %}
+              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer bg-white">
+          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button class="btn btn-success rounded-pill px-4">
+            <i class="bi bi-check2-circle"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= MODAL CONSULTAR ============================= -->
+<div class="modal fade saif-modal" id="consultarRecetaModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-emerald-700 text-white py-3">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{% static 'home/img/logo_empresa.png' %}" 
+               alt="Logo" 
+               class="rounded-circle bg-white p-2 shadow-sm" 
+               style="width: 38px; height: 38px;">
+          <h5 class="modal-title mb-0 fw-bold">
+           Detalle de Receta
+          </h5>
+          <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body py-3 bg-slate-50">
+        <div class="kv-grid">
+          <div class="kv"><div class="kv__key">Factura</div><div class="kv__val" id="detalleFactura"></div></div>
+          <div class="kv"><div class="kv__key">Referente</div><div class="kv__val" id="detalleReferente"></div></div>
+          <div class="kv"><div class="kv__key">Producto</div><div class="kv__val" id="detalleProducto"></div></div>
+          <div class="kv"><div class="kv__key">Usuario Venta</div><div class="kv__val" id="detalleUsuario"></div></div>
+          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha"></div></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-white">
+        <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= MODAL EDITAR ============================= -->
+<div class="modal fade saif-modal" id="editarRecetaModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="editarRecetaForm">
+        {% csrf_token %}
+        <div class="modal-header bg-green-600 text-white">
+          <h5 class="modal-title fw-bold">Editar Receta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
+          <input type="text" name="referencia_factura" id="editFactura" class="form-control rounded-lg">
+          <input type="text" name="referente_receta" id="editReferente" class="form-control rounded-lg">
+
+          <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
+            <option value="">Seleccione un producto</option>
+            {% for producto in productos %}
+            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg" required>
+            <option value="">Seleccione un usuario</option>
+            {% for usuario in usuarios %}
+            <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= MODAL ELIMINAR ============================= -->
+<div class="modal fade saif-modal" id="eliminarRecetaModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="eliminarRecetaForm">
+        {% csrf_token %}
+        <!-- Header -->
+        <div class="modal-header bg-red-700 text-white py-3">
+          <div class="d-flex align-items-center gap-3">
+            <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo" 
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;">
+            <h5 class="modal-title mb-0 fw-bold">
+              Eliminar Receta
+            </h5>
+            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body text-center py-4 bg-slate-50">
+          <p class="fw-semibold text-slate-700">
+            ¿Seguro que deseas eliminar la receta <strong id="eliminarFactura" class="text-red-600"></strong>?
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer justify-center bg-white">
+          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button class="btn btn-danger rounded-pill px-4">
+            <i class="bi bi-trash-fill"></i> Eliminar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= ESTILOS ============================= -->
+<style>
+  .saif-badge {
+    background: rgba(255, 255, 255, .2);
+    border-radius: 999px;
+    padding: .25rem .7rem;
+    font-weight: 600;
+    font-size: .85rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem 1rem;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    align-items: start;
+    gap: .35rem .5rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: .65rem .75rem;
+    box-shadow: 0 4px 12px rgba(15,23,42,.04);
+  }
+  .kv__key {
+    font-weight: 700;
+    color: #0b1220;
+  }
+  .kv__val {
+    color: #0f172a;
+  }
+</style>
+
+<!-- ============================= SCRIPT ============================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  let selectedRow = null;
+
+  document.querySelectorAll("#tablaRecetas tbody tr").forEach(row => {
+    row.addEventListener("click", function () {
+      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
+      selectedRow = this;
+      this.classList.add("bg-emerald-100");
+    });
+  });
+
+  // CONSULTAR
+  document.getElementById("btnConsultar").addEventListener("click", function () {
+    if (!selectedRow) { alert("Selecciona una receta primero."); return; }
+    document.getElementById("detalleFactura").textContent = selectedRow.dataset.factura;
+    document.getElementById("detalleReferente").textContent = selectedRow.dataset.referente;
+    document.getElementById("detalleProducto").textContent = selectedRow.dataset.producto;
+    document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario;
+    document.getElementById("detalleFecha").textContent = selectedRow.dataset.fecha;
+    new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
+  });
+
+  // EDITAR
+document.getElementById("btnEditar").addEventListener("click", function () {
+  if (!selectedRow) { alert("Selecciona una receta primero."); return; }
+  const id = selectedRow.dataset.id;
+
+  document.getElementById("editFactura").value = selectedRow.dataset.factura;
+  document.getElementById("editReferente").value = selectedRow.dataset.referente;
+
+  // Seleccionar opción correcta en producto
+  document.getElementById("editProducto").value = selectedRow.dataset.productoId;
+  // Seleccionar opción correcta en usuario
+  document.getElementById("editUsuario").value = selectedRow.dataset.usuarioId;
+
+  // Action dinámico
+  document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
+
+  new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
+});
+
+  // ELIMINAR
+  document.getElementById("btnEliminar").addEventListener("click", function () {
+    if (!selectedRow) { alert("Selecciona una receta primero."); return; }
+    const id = selectedRow.dataset.id;
+    document.getElementById("eliminarFactura").textContent = selectedRow.dataset.factura;
+    document.getElementById("eliminarRecetaForm").action = `/recetas/${id}/eliminar/`;
+    new bootstrap.Modal(document.getElementById("eliminarRecetaModal")).show();
+  });
+});
+</script>
+{% endblock %}

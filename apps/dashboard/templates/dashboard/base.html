@@ -156,9 +156,52 @@
         <a href="/solicitudes_bodega_central/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
           <i class="bi bi-inboxes"></i><span>Solicitudes a Bodega Central</span>
         </a>
-        <a href="/recetas/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
-          <i class="bi bi-bookmark"></i><span>Gestión de Recetas</span>
-        </a>
+        <!-- ==== Gestión de Recetas ==== -->
+<div id="recetas-group" class="space-y-1">
+  <!-- Botón toggle -->
+  <button type="button"
+          id="recetas-toggle"
+          class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+          aria-expanded="false"
+          aria-controls="recetas-submenu">
+    <i class="bi bi-bookmark"></i>
+    <span class="flex-1">Gestión Recetas</span>
+    <i id="recetas-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+  </button>
+
+  <!-- Submenú -->
+  <div id="recetas-submenu"
+       class="saif-collapse mt-1 ms-8"
+       data-index-url="/recetas/">
+
+    <a href="/recetas/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-grid"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <a href="/recetas/registrar/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-journal-plus"></i>
+      <span>Registrar Receta</span>
+    </a>
+
+    <a href="/recetas/lista/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-list-ul"></i>
+      <span>Listado Recetas</span>
+    </a>
+
+    <a href="/recetas/registrar_envio/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-send-plus"></i>
+      <span>Registrar Envío</span>
+    </a>
+
+    <a href="/recetas/lista_envios/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+      <i class="bi bi-archive"></i>
+      <span>Listado Envíos</span>
+    </a>
+  </div>
+</div>
+<!-- ==== /Gestión de Recetas ==== -->
+
         <a href="/ajustes_inventario/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
           <i class="bi bi-sliders"></i><span>Conteo Físico y Ajustes</span>
         </a>
@@ -299,6 +342,13 @@ document.addEventListener('DOMContentLoaded', function () {
     openIfStartsWith: '/inventario/'
   });
 
+  const gRec = setupGroup({
+  toggleId: 'recetas-toggle',
+  submenuId: 'recetas-submenu',
+  caretId:  'recetas-caret',
+  openIfStartsWith: '/recetas/'
+});
+
   // ====== Auto-apertura por ruta pero en modo acordeón (solo uno abierto) ======
   // Si varias rutas coinciden, se queda abierto el primero que haga match.
   const firstMatch = groups.find(g => g.openIfStartsWith && path.startsWith(g.openIfStartsWith));
@@ -314,7 +364,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 </script>
-
   {% block extra_js %}{% endblock %}
   {% block modals %}{% endblock %}
 </body>
