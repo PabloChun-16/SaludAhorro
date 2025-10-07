@@ -10,7 +10,7 @@
   <div class="mb-8 flex items-start justify-between gap-4">
     <div>
       <div class="text-sm text-slate-500">
-        Hola, {{ request.user.first_name|default:request.user.username }} 👋
+        Hola, {% firstof request.user.first_name request.user.get_full_name request.user.get_username request.user %} 👋
       </div>
 
       <h1 class="cheto-title text-4xl md:text-5xl">Panel De Control</h1>

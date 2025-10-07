@@ -1,0 +1,281 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
+
+<div class="saif-modal">
+  <!-- ENCABEZADO -->
+  <div class="modal-header py-3 bg-success text-white">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold">Crear Recepción</h5>
+      <span class="saif-badge ms-2"><i class="bi bi-box-arrow-in-down"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <!-- FORMULARIO (envío por fetch) -->
+  <form method="post" id="form-recepcion" novalidate autocomplete="off">
+    {% csrf_token %}
+    <div class="modal-body">
+      <div class="container-fluid">
+        <div id="formAlert" class="alert alert-danger d-none" role="alert"></div>
+
+        <!-- Sección 1: Datos Generales -->
+        <div class="row g-3">
+          <!-- Número de Envío -->
+          <div class="col-md-6">
+            <label class="form-label">Número de Envío</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+              {{ form.numero_envio_bodega }}
+            </div>
+          </div>
+
+          <!-- Fecha Recepción -->
+          <div class="col-md-6">
+            <label class="form-label">Fecha Recepción</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+              {{ form.fecha_recepcion }}
+            </div>
+          </div>
+
+          <!-- Comentario (campo no-modelo) -->
+          <div class="col-12">
+            <label class="form-label">Comentario</label>
+            <textarea name="comentario" id="comentarioInput" class="form-control" rows="2" placeholder="Comentario opcional..."></textarea>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Sección 2: Detalle de Productos por Lote -->
+        <h6 class="fw-bold mb-2"><i class="bi bi-box"></i> Detalle de Productos</h6>
+        <div class="row g-3 align-items-end">
+          <!-- Producto -->
+          <div class="col-md-4">
+            <label class="form-label">Producto</label>
+            <div class="input-group">
+              <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre...">
+              <input type="hidden" id="productoIdInput">
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBuscarProducto">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Lote -->
+          <div class="col-md-3">
+            <label class="form-label">Lote</label>
+            <div class="input-group">
+              <input type="text" id="loteInput" class="form-control" placeholder="Nº de lote...">
+              <input type="hidden" id="loteIdInput">
+              <button type="button" class="btn btn-outline-secondary"
+                      data-bs-toggle="modal" data-bs-target="#modalBuscarLote">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fecha Caducidad -->
+          <div class="col-md-3">
+            <label class="form-label">Fecha Caducidad</label>
+            <input type="date" id="caducidadInput" class="form-control">
+          </div>
+
+          <!-- Cantidad -->
+          <div class="col-md-2">
+            <label class="form-label">Cantidad Recibida</label>
+            <input type="number" id="cantidadInput" class="form-control" min="1" step="1">
+          </div>
+
+          <!-- Costo -->
+          <div class="col-md-2">
+            <label class="form-label">Costo Unitario</label>
+            <input type="number" step="0.01" id="costoInput" class="form-control" min="0">
+          </div>
+
+          <!-- Botón añadir -->
+          <div class="col-md-2 text-end">
+            <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+              <i class="bi bi-plus-circle"></i> Añadir
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla Detalles -->
+        <div class="table-responsive mt-3">
+          <table class="table table-bordered align-middle text-center">
+            <thead class="table-light">
+              <tr>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th>Fecha Caducidad</th>
+                <th>Cantidad</th>
+                <th>Costo</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="detalleTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer bg-light">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check2-circle"></i> Guardar Recepción
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ====================== JS ====================== -->
+<script>
+(function () {
+  // Array en memoria con los ítems del detalle
+  const detalles = [];
+  const form = document.getElementById('form-recepcion');
+  const alertBox = document.getElementById('formAlert');
+
+  function showAlert(msg) {
+    alertBox.textContent = msg;
+    alertBox.classList.remove('d-none');
+  }
+  function hideAlert() {
+    alertBox.classList.add('d-none');
+    alertBox.textContent = '';
+  }
+
+  function getCsrfToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const c = cookies.find(s => s.startsWith(name + '='));
+    if (c) return decodeURIComponent(c.split('=')[1]);
+    const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+  }
+
+  // Helpers para que los modales coloquen selección en el formulario
+  window.setProductoSeleccionado = function ({id, texto}) {
+    document.getElementById('productoIdInput').value = id;
+    document.getElementById('productoInput').value = texto || '';
+    // Al cambiar de producto, limpiar lote/fecha seleccionados
+    document.getElementById('loteIdInput').value = '';
+    document.getElementById('loteInput').value = '';
+    document.getElementById('caducidadInput').value = '';
+  }
+  window.setLoteSeleccionado = function ({id, numero, fecha}) {
+    document.getElementById('loteIdInput').value = id || '';
+    document.getElementById('loteInput').value = numero || '';
+    if (fecha) document.getElementById('caducidadInput').value = fecha;
+  }
+
+  // Añadir detalle a la tabla
+  document.getElementById('btnAddDetalle').addEventListener('click', () => {
+    hideAlert();
+
+    const productoId = document.getElementById('productoIdInput').value;
+    const productoTxt = document.getElementById('productoInput').value.trim();
+
+    const loteId = document.getElementById('loteIdInput').value;          // si seleccionan un lote existente
+    const numeroLote = document.getElementById('loteInput').value.trim(); // si crean un lote nuevo
+    const caducidad = document.getElementById('caducidadInput').value;
+    const cantidad = document.getElementById('cantidadInput').value;
+    const costo = document.getElementById('costoInput').value;
+
+    if (!productoId) { showAlert('Seleccione un producto.'); return; }
+    if (!loteId && !numeroLote) { showAlert('Ingrese o seleccione el número de lote.'); return; }
+    if (!caducidad && !loteId) { showAlert('Ingrese la fecha de caducidad para nuevos lotes.'); return; }
+    if (!cantidad || parseInt(cantidad) <= 0) { showAlert('Cantidad inválida.'); return; }
+
+    const item = {
+      producto_id: parseInt(productoId, 10),
+      lote_id: loteId ? parseInt(loteId, 10) : null,
+      numero_lote: numeroLote || null,
+      fecha_caducidad: caducidad || null,
+      cantidad_recibida: parseInt(cantidad, 10),
+      costo_unitario: costo ? parseFloat(costo) : 0
+    };
+    const idx = detalles.push(item) - 1;
+
+    const tr = document.createElement('tr');
+    tr.dataset.idx = String(idx);
+    tr.innerHTML = `
+      <td class="text-start">${productoTxt}</td>
+      <td>${item.numero_lote ?? ('#' + item.lote_id)}</td>
+      <td>${item.fecha_caducidad ?? ''}</td>
+      <td>${item.cantidad_recibida}</td>
+      <td>${item.costo_unitario}</td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>
+    `;
+    document.getElementById('detalleTable').appendChild(tr);
+
+    // Limpia campos del detalle
+    document.getElementById('loteInput').value = '';
+    document.getElementById('loteIdInput').value = '';
+    document.getElementById('caducidadInput').value = '';
+    document.getElementById('cantidadInput').value = '';
+    document.getElementById('costoInput').value = '';
+  });
+
+  // Quitar fila
+  document.getElementById('detalleTable').addEventListener('click', (e) => {
+    const delBtn = e.target.closest('.btn-del');
+    if (!delBtn) return;
+    const tr = delBtn.closest('tr');
+    const idx = parseInt(tr.dataset.idx, 10);
+    detalles[idx] = null; // marca eliminado
+    tr.remove();
+  });
+
+  // Submit por fetch: envía JSON como espera la vista
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAlert();
+
+    const numeroEnvio = document.querySelector('[name="numero_envio_bodega"]').value.trim();
+    const fechaRecep  = document.querySelector('[name="fecha_recepcion"]').value;
+    const comentario  = document.getElementById('comentarioInput').value.trim();
+    const items = detalles.filter(Boolean);
+
+    if (!numeroEnvio) { showAlert('Ingrese el número de envío.'); return; }
+    if (!items.length) { showAlert('Agrega al menos un producto.'); return; }
+
+    const payload = {
+      form_data: { numero_envio_bodega: numeroEnvio, fecha_recepcion: fechaRecep },
+      detalles: items,
+      comentario: comentario
+    };
+
+    try {
+      const resp = await fetch("{% url 'recepcion:recepcion_create' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+
+      if (!resp.ok || !data.success) {
+        console.error('Errores:', data);
+        const msg = (data && data.errors) ? (typeof data.errors === 'string' ? data.errors : JSON.stringify(data.errors)) : 'Error al guardar la recepción.';
+        showAlert(msg);
+        return;
+      }
+      // Éxito
+      window.location.href = "{% url 'recepcion:recepcion_list' %}";
+    } catch (err) {
+      console.error(err);
+      showAlert('Error de red al guardar la recepción.');
+    }
+  });
+})();
+</script>

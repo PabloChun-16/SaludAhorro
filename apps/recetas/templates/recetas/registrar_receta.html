@@ -95,10 +95,13 @@
         <tr data-id="{{ receta.id }}"
             data-factura="{{ receta.referencia_factura }}"
             data-referente="{{ receta.referente_receta }}"
-            data-producto="{{ receta.id_producto.nombre }}"
-            data-usuario="{{ receta.id_usuario_venta.nombre }}"
-            data-fecha="{{ receta.fecha_venta|date:'d/m/Y H:i' }}"
+            data-producto-id="{{ receta.id_producto.id }}"
+            data-producto-nombre="{{ receta.id_producto.nombre }}"
+            data-usuario-id="{{ receta.id_usuario_venta.id }}"
+            data-usuario-nombre="{{ receta.id_usuario_venta.nombre }}"
+            data-fecha="{{ receta.fecha_venta|date:'Y-m-d' }}"
             class="cursor-pointer hover:bg-emerald-50">
+
           <td class="px-4 py-2">{{ receta.referencia_factura }}</td>
           <td class="px-4 py-2">{{ receta.referente_receta }}</td>
           <td class="px-4 py-2">{{ receta.id_producto.nombre }}</td>
@@ -244,37 +247,33 @@
     <div class="modal-content">
       <form method="post" id="editarRecetaForm">
         {% csrf_token %}
-        <!-- Header -->
-        <div class="modal-header bg-green-600 text-white py-3">
-          <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" 
-                 alt="Logo" 
-                 class="rounded-circle bg-white p-2 shadow-sm" 
-                 style="width: 38px; height: 38px;">
-            <h5 class="modal-title mb-0 fw-bold">
-              Editar Receta
-            </h5>
-            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
-          </div>
+        <div class="modal-header bg-green-600 text-white">
+          <h5 class="modal-title fw-bold">Editar Receta</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <!-- Body -->
         <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
           <input type="text" name="referencia_factura" id="editFactura" class="form-control rounded-lg">
           <input type="text" name="referente_receta" id="editReferente" class="form-control rounded-lg">
-          <input type="text" name="id_producto" id="editProducto" class="form-control rounded-lg">
-          <input type="text" name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg">
+
+          <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
+            <option value="">Seleccione un producto</option>
+            {% for producto in productos %}
+            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg" required>
+            <option value="">Seleccione un usuario</option>
+            {% for usuario in usuarios %}
+            <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <!-- Footer -->
         <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-            <i class="bi bi-x-lg"></i> Cancelar
-          </button>
-          <button type="submit" class="btn btn-success rounded-pill px-4">
-            <i class="bi bi-check2-circle"></i> Guardar
-          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar</button>
         </div>
       </form>
     </div>
@@ -384,16 +383,23 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // EDITAR
-  document.getElementById("btnEditar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona una receta primero."); return; }
-    const id = selectedRow.dataset.id;
-    document.getElementById("editFactura").value = selectedRow.dataset.factura;
-    document.getElementById("editReferente").value = selectedRow.dataset.referente;
-    document.getElementById("editProducto").value = selectedRow.dataset.producto;
-    document.getElementById("editUsuario").value = selectedRow.dataset.usuario;
-    document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
-    new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
-  });
+document.getElementById("btnEditar").addEventListener("click", function () {
+  if (!selectedRow) { alert("Selecciona una receta primero."); return; }
+  const id = selectedRow.dataset.id;
+
+  document.getElementById("editFactura").value = selectedRow.dataset.factura;
+  document.getElementById("editReferente").value = selectedRow.dataset.referente;
+
+  // Seleccionar opción correcta en producto
+  document.getElementById("editProducto").value = selectedRow.dataset.productoId;
+  // Seleccionar opción correcta en usuario
+  document.getElementById("editUsuario").value = selectedRow.dataset.usuarioId;
+
+  // Action dinámico
+  document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
+
+  new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
+});
 
   // ELIMINAR
   document.getElementById("btnEliminar").addEventListener("click", function () {

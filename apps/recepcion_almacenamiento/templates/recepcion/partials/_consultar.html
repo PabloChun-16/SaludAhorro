@@ -1,29 +1,72 @@
-<div class="p-3">
-  <h5><i class="bi bi-file-earmark-text"></i> Detalle Recepción</h5>
-  <p><b>Número Envío:</b> {{ recepcion.numero_envio_bodega }}</p>
-  <p><b>Fecha:</b> {{ recepcion.fecha_recepcion|date:"d/m/Y H:i" }}</p>
-  <p><b>Usuario:</b> {{ recepcion.id_usuario }}</p>
-  <p><b>Estado:</b> {{ recepcion.estado_recepcion }}</p>
+{% load static %}
+<div class="modal-header bg-success text-white">
+  <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detalle de Recepción</h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
 
-  <h6>Productos Recibidos:</h6>
-  <table class="table table-sm">
-    <thead>
-      <tr>
-        <th>Lote</th>
-        <th>Cantidad</th>
-        <th>Costo Unitario</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for d in detalles %}
-      <tr>
-        <td>{{ d.id_lote.numero_lote }}</td>
-        <td>{{ d.cantidad_recibida }}</td>
-        <td>{{ d.costo_unitario }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="3" class="text-muted">Sin detalles</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="modal-body">
+  <div class="row g-3 mb-2">
+    <div class="col-md-4">
+      <div class="small text-muted">Número de Envío</div>
+      <div class="fw-semibold">{{ recepcion.numero_envio_bodega }}</div>
+    </div>
+    <div class="col-md-4">
+      <div class="small text-muted">Fecha Recepción</div>
+      <div class="fw-semibold">{{ recepcion.fecha_recepcion|date:"d/m/Y H:i" }}</div>
+    </div>
+    <div class="col-md-4">
+      <div class="small text-muted">Usuario</div>
+      <div class="fw-semibold">{{ recepcion.id_usuario }}</div>
+    </div>
+    <div class="col-md-4">
+      <div class="small text-muted">Estado</div>
+      <div class="fw-semibold">{{ recepcion.estado_recepcion }}</div>
+    </div>
+    {% if comentario %}
+    <div class="col-12">
+      <div class="small text-muted">Comentario</div>
+      <div class="fw-semibold">{{ comentario }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <hr>
+
+  <h6 class="fw-bold mb-2"><i class="bi bi-box"></i> Productos Recibidos</h6>
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Lote</th>
+          <th>Fecha Caducidad</th>
+          <th>Cantidad</th>
+          <th>Costo Unit.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in detalles %}
+        <tr>
+          <td>{{ d.id_lote.id_producto.codigo_producto }}</td>
+          <td class="text-start">{{ d.id_lote.id_producto.nombre }}</td>
+          <td>{{ d.id_lote.numero_lote }}</td>
+          <td>{{ d.id_lote.fecha_caducidad|date:"d/m/Y" }}</td>
+          <td>{{ d.cantidad_recibida }}</td>
+          <td>{{ d.costo_unitario }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">Sin detalles</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-end fw-bold">Total (estimado): {{ total }}</div>
+</div>
+
+<div class="modal-footer bg-light">
+  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+    <i class="bi bi-x-lg"></i> Cerrar
+  </button>
 </div>

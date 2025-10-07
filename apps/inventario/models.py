@@ -52,4 +52,10 @@ class Lotes(models.Model):
     class Meta:
         verbose_name = 'Lote'
         verbose_name_plural = 'Lotes'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['id_producto', 'numero_lote'],
+                name='uq_lotes_producto_numero'
+            )
+        ]
 
