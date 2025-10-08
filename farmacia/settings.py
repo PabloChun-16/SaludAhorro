@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     #Apps Gestion Inventario
     'apps.inventario.productos',
     'apps.inventario.stock',
+    'apps.inventario.lotes',
 ]
 
 MIDDLEWARE = [
