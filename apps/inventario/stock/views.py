@@ -15,6 +15,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
+from apps.inventario.models import Productos
+from django.http import JsonResponse
+from django.db.models import Sum
 
 # ---------- helpers PDF ----------
 def _register_fonts():
@@ -208,3 +211,17 @@ def exportar_stock_pdf(request):
     doc.build([Spacer(1, 4), table], onFirstPage=_header_footer, onLaterPages=_header_footer)
     buf.seek(0)
     return FileResponse(buf, as_attachment=True, filename="reporte_stock.pdf")
+
+
+# =============== REPORTE STOCK CRÍTICO (JSON) ===============
+def reporte_stock_critico(request):
+    # Sumar stock disponible por producto
+    productos = (
+        Productos.objects
+        .annotate(stock_total=Sum("lotes__cantidad_disponible"))
+        .filter(stock_total__lte=5)  # límite configurable
+        .values("codigo_producto", "nombre", "stock_total")
+    )
+
+    data = list(productos)
+    return JsonResponse(data, safe=False)

@@ -222,6 +222,9 @@ select.filter-control{
       <a href="{% url 'inventario:stock:exportar_pdf' %}" id="btnExportPdf" class="btn btn-success rounded-pill px-4 shadow-sm">
         <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
       </a>
+      <button id="btnReporteStockCritico" class="btn btn-warning">
+        <i class="bi bi-bar-chart-line"></i> Reporte Stock Crítico
+      </button>
     </div>
   </div>
 </section>
@@ -231,6 +234,39 @@ select.filter-control{
     <div class="modal-content" id="modal-stock-content"></div>
   </div>
 </div>
+
+<!-- Modal Reporte Stock Crítico -->
+<div class="modal fade" id="modalReporteStockCritico" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title"><i class="bi bi-bar-chart-line"></i> Productos con Stock Crítico</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <canvas id="graficaStockCritico" style="width:100%;height:300px;"></canvas>
+        <hr>
+        <div class="table-responsive">
+          <table class="table table-bordered text-center align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Stock Disponible</th>
+              </tr>
+            </thead>
+            <tbody id="tablaStockCritico"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -516,6 +552,58 @@ function applyPagination(){
   // Si fuentes/estilos cambian alturas tras pintar
   setTimeout(()=>{ fixStickyOffsets(); recomputarPageSize(); applyPagination(); }, 0);
 });
+
+// Reporte Stock Crítico
+document.addEventListener("DOMContentLoaded", () => {
+  const btnReporte = document.getElementById("btnReporteStockCritico");
+  const modalEl    = document.getElementById("modalReporteStockCritico");
+  const modalInst  = new bootstrap.Modal(modalEl);
+
+  btnReporte.addEventListener("click", () => {
+    fetch("{% url 'inventario:stock:reporte_stock_critico' %}")
+      .then(r => r.json())
+      .then(data => {
+        // llenar tabla
+        const tbody = document.getElementById("tablaStockCritico");
+        tbody.innerHTML = "";
+        data.forEach(p => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${p.codigo_producto}</td>
+            <td>${p.nombre}</td>
+            <td>${p.stock_total ?? 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+       // gráfica
+          const ctx = document.getElementById("graficaStockCritico").getContext("2d");
+
+          // destruir solo si es una instancia de Chart
+          if (window.graficaStockCritico instanceof Chart) {
+              window.graficaStockCritico.destroy();
+          }
+
+          window.graficaStockCritico = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: data.map(p => p.nombre),
+              datasets: [{
+                label: "Stock Disponible",
+                data: data.map(p => p.stock_total ?? 0),
+                backgroundColor: "#ffc107"
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+          });
+
+        modalInst.show();
+      });
+  });
+});
+
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 {% endblock %}
 
