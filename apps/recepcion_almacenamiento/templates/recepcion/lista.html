@@ -1,7 +1,7 @@
-﻿{% extends "dashboard/base.html" %}
+{% extends "dashboard/base.html" %}
 {% load static %}
 
-{% block title %}Recepciones � SAIF{% endblock %}
+{% block title %}Recepciones · SAIF{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
@@ -11,7 +11,7 @@
 .table-container{
   overflow-x:auto;
   width:100%;
-  scroll-padding-top:90px; /* evita que el sticky “tape” al saltar */
+  scroll-padding-top:90px; /* evita que el sticky solape al saltar */
 }
 
 /* ====== Tabla ====== */
@@ -125,7 +125,7 @@ select.filter-control{
 /* ====== Utilidades de ancho ====== */
 .wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
 
-/* ====== P�ginaci�n: ocultar filas fuera de página ====== */
+/* ====== Paginación: ocultar filas fuera de página ====== */
 .hidden-by-pagination{ display:none !important; }
 
 /* ====== FIX bordes duplicados vs contorno ====== */
@@ -159,7 +159,7 @@ select.filter-control{
       <table class="table table-hover align-middle text-center" id="tablaRecepciones">
         <colgroup>
           <col class="wp-12"><!-- ID -->
-          <col class="wp-20"><!-- Número Env�o -->
+          <col class="wp-20"><!-- Número Envío -->
           <col class="wp-16"><!-- Fecha -->
           <col class="wp-20"><!-- Usuario -->
           <col class="wp-14"><!-- Estado -->
@@ -168,8 +168,8 @@ select.filter-control{
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">N�mero Env�o</th>
-            <th scope="col">Fecha Recepci�n</th>
+            <th scope="col">Número Envío</th>
+            <th scope="col">Fecha Recepción</th>
             <th scope="col">Usuario</th>
             <th scope="col">Estado</th>
           </tr>
@@ -223,7 +223,7 @@ select.filter-control{
       </table>
     </div>
 
-    <!-- P�ginador -->
+    <!-- Paginador -->
     <div id="pagerRecepciones" class="saif-pager"></div>
 
     <!-- Botones -->
@@ -241,9 +241,9 @@ select.filter-control{
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> Consultar
       </button>
-      <!-- GR�FICAS -->
+      <!-- GRÁFICAS -->
       <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
-        <i class="bi bi-graph-up"></i> Gr�ficas
+        <i class="bi bi-graph-up"></i> Gráficas
       </a>
     </div>
   </div>
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // ----- Env�o del formulario -----
+    // ----- Envío del formulario -----
     const formRecepcion = document.getElementById("form-recepcion");
     if (formRecepcion) {
       const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
@@ -374,32 +374,40 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) {
             return response.json().then(errorData => {
               console.error("Error del servidor:", errorData);
-              alert("Error: " + (errorData.errors || "Ocurri� un error inesperado."));
-              throw new Error("HTTP error: " + response.status);
+              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
             });
           }
           return response.json();
         })
         .then(data => {
+          if (!data) return;
           if (data.success) {
-            alert("recepci�n creada exitosamente.");
+            alert("Recepción creada exitosamente.");
+            modalInstance.hide();
             window.location.reload();
           } else {
-            console.error("Errores de validación:", data.errors);
-            alert("Error de validación: " + JSON.stringify(data.errors));
+            alert(data.error || "Ocurrió un error al crear la recepción.");
           }
         })
-        .catch(error => {
-          console.error("Error en la solicitud:", error);
-          alert("Error en la solicitud: " + error.message);
+        .catch(err => {
+          console.error(err);
+          alert("Ocurrió un error de red al crear la recepción.");
         });
       });
     }
-  }
 
-  // Abrir modal y cargar el form por AJAX
-  btnCrear.addEventListener("click", function () {
-    const url = this.getAttribute("data-url");
+    // Botón seleccionar producto/lote abre modales correspondientes ya incluidos por partials
+    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto")).show();
+    });
+    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarLote")).show();
+    });
+  } // fin inicializarFormulario
+
+  // Abrir modal CREAR y cargar form vía AJAX
+  btnCrear?.addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
     modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
     modalInstance.show();
 
@@ -449,7 +457,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <td>${p.condicion ?? ""}</td>
               <td>${p.receta ? "Sí" : "No"}</td>
               <td>${p.controlado ? "Sí" : "No"}</td>
-              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+              <td><button type="button" class="btn btn-sm btn-success">✓</button></td>
             `;
             tr.querySelector("button").addEventListener("click", () => {
               if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`;
@@ -491,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>${l.numero_lote}</td>
         <td>${l.fecha_caducidad || ""}</td>
         <td>${l.cantidad}</td>
-        <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+        <td><button type="button" class="btn btn-sm btn-success">✓</button></td>
       `;
       tr.querySelector("button").addEventListener("click", () => {
         document.getElementById("loteInput").value = l.numero_lote;
@@ -582,7 +590,7 @@ document.addEventListener("DOMContentLoaded", function () {
     bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
   });
 
-  /* ==================== TABLA: selección, filtros, P�ginaci�n ==================== */
+  /* ==================== TABLA: selección, filtros, Paginación ==================== */
   const table = document.getElementById("tablaRecepciones");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerRecepciones");
@@ -674,12 +682,12 @@ document.addEventListener("DOMContentLoaded", function () {
         modalConsultar.show();
       })
       .catch(() => {
-        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepci�n.</div>';
+        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>';
         modalConsultar.show();
       });
   }
 
-  /* ====== P�ginaci�n ====== */
+  /* ====== Paginación ====== */
   let currentPage=1; let pageSize=15; const rowHeight=42;
 
   function recomputarPageSize(){
@@ -711,14 +719,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const start=(currentPage-1)*pageSize; const end=start+pageSize;
     rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
     renderPager(totalPages);
-    // Marcar �ltima visible para quitar borde inferior
+    // Marcar última visible para quitar borde inferior
     tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
     const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
     const last = visibles[visibles.length-1];
     if(last) last.classList.add('last-visible');
-    // Normaliza label del pager (evita caracteres raros en "P�gina")
+    // Normaliza label del pager (evita caracteres raros en "Página")
     const info=pagerEl.querySelector('span');
-    if(info){ info.textContent=`P�gina ${currentPage} de ${totalPages}`; }
+    if(info){ info.textContent=`Página ${currentPage} de ${totalPages}`; }
     if(selectedId){
       const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
       if(sel && sel.classList.contains("hidden-by-pagination")){
@@ -740,7 +748,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputs=[fId,fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
     const cleanAccents=(s)=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-
     function applyFilters(){
       const idVal=cleanAccents(fId?.value);
       const envioVal=cleanAccents(fEnvio?.value);
