@@ -1,23 +1,73 @@
 {% load static %}
 
-<!-- MODAL DE BUSCAR LOTE -->
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
+
+<style>
+  /* ------- Ajustes visuales suaves SAIF ------- */
+  .saif-modal .modal-content{
+    border-radius:18px; overflow:hidden;
+    box-shadow:0 12px 35px rgba(14,122,58,.25);
+    font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+  .saif-modal .modal-header{ border-bottom:0; }
+  .saif-modal .modal-footer{ border-top:0; background:#f8fafc; }
+  .saif-modal .modal-body{ background:#f9fafb; }
+
+  /* Tabla con encabezado verde */
+  .saif-modal .table{
+    border:1px solid #e3e6ea; border-radius:10px; overflow:hidden;
+  }
+  .saif-modal thead th{
+    background:#e8f5ec !important; color:#0b3f2e; font-weight:700;
+    border-bottom:1px solid #d7dbdf !important;
+  }
+  .saif-modal .table-hover tbody tr:hover{ background:#f4fbf7; }
+
+  /* Inputs */
+  .saif-modal .form-control{
+    border-radius:10px; border:1px solid #d1d5db; transition:.2s;
+  }
+  .saif-modal .form-control:focus{
+    border-color:#0E7A3A; box-shadow:0 0 0 .15rem rgba(14,122,58,.15);
+  }
+
+  /* Botones */
+  .saif-modal .btn-success{ background:#0E7A3A !important; border-color:#0E7A3A !important; }
+  .saif-modal .btn-success:hover{ background:#0c5f2d !important; }
+  .saif-modal .btn-outline-secondary:hover{ background:#f3f4f6; }
+  /* Badge SAIF */
+  .saif-badge{
+    background:rgba(255,255,255,.15);
+    border-radius:999px;
+    padding:.15rem .55rem;
+    font-weight:600;
+    font-size:.85rem;
+  }
+</style>
+
+<!-- ================== MODAL: BUSCAR LOTE ================== -->
 <div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content saif-modal">
 
-      <!-- ENCABEZADO -->
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="bi bi-search"></i> Buscar Lote</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      <!-- Header SAIF -->
+      <div class="modal-header py-3 bg-success text-white">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+               class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+          <h5 class="modal-title mb-0 fw-bold">Buscar Lote</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <!-- CUERPO -->
+      <!-- Body -->
       <div class="modal-body">
         <input type="text" id="searchLote" class="form-control mb-3" placeholder="Buscar lote...">
 
-        <div class="table-responsive">
-          <table class="table table-hover table-bordered text-center">
-            <thead class="table-light">
+        <div class="table-responsive shadow-sm">
+          <table class="table table-hover table-bordered text-center align-middle">
+            <thead>
               <tr>
                 <th>Número Lote</th>
                 <th>Fecha Caducidad</th>
@@ -26,64 +76,76 @@
               </tr>
             </thead>
             <tbody id="tablaBuscarLotes">
-              <!-- JS llenará dinámicamente -->
+              {# Se llena por JS #}
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- FOOTER -->
-      <div class="modal-footer bg-light d-flex justify-content-between">
+      <!-- Footer -->
+      <div class="modal-footer d-flex justify-content-between">
         <button type="button" class="btn btn-outline-secondary" id="btnCerrarLote" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cancelar
         </button>
         <button type="button" class="btn btn-success" data-bs-target="#modalCrearLote" data-bs-toggle="modal">
           <i class="bi bi-plus-circle"></i> Crear Nuevo Lote
         </button>
-    </div>
-
+      </div>
 
     </div>
   </div>
 </div>
 
-
-<!-- MODAL DE CREAR LOTE -->
+<!-- ================== MODAL: CREAR LOTE ================== -->
 <div class="modal fade" id="modalCrearLote" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content saif-modal">
 
-      <!-- ENCABEZADO -->
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Crear Lote</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      <!-- Header SAIF -->
+      <div class="modal-header py-3 bg-success text-white">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+               class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+          <h5 class="modal-title mb-0 fw-bold">Crear Lote</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <!-- CUERPO -->
+      <!-- Body -->
       <div class="modal-body">
         <form id="formCrearLote" autocomplete="off">
           {% csrf_token %}
           <input type="hidden" id="productoIdHidden">
 
           <div class="mb-3">
-            <label for="numeroLote" class="form-label">Número de Lote</label>
-            <input type="text" id="numeroLote" class="form-control" required>
+            <label for="numeroLote" class="form-label fw-semibold">Número de Lote</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+              <input type="text" id="numeroLote" class="form-control" required>
+            </div>
           </div>
 
           <div class="mb-3">
-            <label for="fechaCaducidad" class="form-label">Fecha de Caducidad</label>
-            <input type="date" id="fechaCaducidad" class="form-control">
+            <label for="fechaCaducidad" class="form-label fw-semibold">Fecha de Caducidad</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+              <input type="date" id="fechaCaducidad" class="form-control">
+            </div>
           </div>
 
           <div class="mb-3">
-            <label for="ubicacionAlmacen" class="form-label">Ubicación en Almacén</label>
-            <input type="text" id="ubicacionAlmacen" class="form-control" placeholder="Ej. Estante A - Nivel 3">
+            <label for="ubicacionAlmacen" class="form-label fw-semibold">Ubicación en Almacén</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+              <input type="text" id="ubicacionAlmacen" class="form-control" placeholder="Ej. Estante A - Nivel 3">
+            </div>
           </div>
         </form>
       </div>
 
-      <!-- FOOTER -->
-      <div class="modal-footer bg-light">
+      <!-- Footer -->
+      <div class="modal-footer">
         <button type="button" id="btnCancelarLote" class="btn btn-outline-secondary" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cancelar
         </button>
@@ -92,7 +154,6 @@
         </button>
       </div>
 
-      </div>
     </div>
   </div>
 </div>

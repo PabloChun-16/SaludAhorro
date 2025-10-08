@@ -6,32 +6,101 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
-<section class="p-6 md:p-8">
-  <div class="saif-card mb-4">
-    <div class="saif-card-header">
-      <i class="bi bi-rulers"></i>
-      <h3>Condiciones de Almacenamiento</h3>
+<style>
+/* ====== Contenedor con scroll ====== */
+.table-container{
+  overflow-x:auto;
+  width:100%;
+  scroll-padding-top:90px;
+}
+
+/* ====== Tabla ====== */
+#tablaCondiciones{
+  table-layout:fixed; width:100%; min-width:600px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px;
+  border-radius:.5rem; margin-bottom:0;
+}
+#tablaCondiciones th,#tablaCondiciones td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box;
+  border:1px solid #e3e6ea; /* líneas internas */
+}
+#tablaCondiciones tbody tr{ background:#ffffff; }
+
+/* ====== Encabezados pegajosos (doble fila: títulos + filtros) ====== */
+#tablaCondiciones thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaCondiciones thead.sticky-top tr:first-child th{
+  position:sticky; top:0; z-index:11;
+  background:#e8f5ec; border-bottom:1px solid #d7dbdf; /* división header/filtros */
+}
+#tablaCondiciones thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf;
+  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+/* ====== Controles de filtro ====== */
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{
+  width:100%; height:32px; padding:.25rem .5rem;
+  border:1px solid #cfe9d7; background:#fff; border-radius:.5rem;
+  transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+#tablaCondiciones thead .filter-row th{ min-width:260px; }
+#tablaCondiciones thead .filter-row th .filter-wrap{ display:flex; justify-content:center; }
+
+/* ====== Colgroup ====== */
+.wp-100{ width:100% }
+
+/* ====== Paginación & líneas ====== */
+.hidden-by-pagination{ display:none !important; }
+#tablaCondiciones thead tr:first-child th{ border-top:0; }
+#tablaCondiciones tbody tr:last-child td{ border-bottom:0; }
+#tablaCondiciones tr>*:first-child{ border-left:0; }
+#tablaCondiciones tr>*:last-child{  border-right:0; }
+#tablaCondiciones tbody tr.last-visible td{ border-bottom:0 !important; }
+
+/* ====== Hover ====== */
+#tablaCondiciones tbody tr:hover{ background:#fafafa; }
+</style>
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-rulers me-2"></i> Condiciones de Almacenamiento</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <div class="table-wrap">
-      <table class="table table-saif align-middle text-center" id="tablaCondiciones">
-        <thead>
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaCondiciones">
+        <colgroup><col class="wp-100"></colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
-            <th style="min-width: 260px;">Nombre</th>
+            <th>Nombre</th>
           </tr>
           <tr class="filter-row">
-            <th><input type="text" class="form-control form-control-sm" placeholder="Filtrar nombre"></th>
+            <th>
+              <input id="f-nombre" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar">
+            </th>
           </tr>
         </thead>
 
         <tbody>
           {% for c in condiciones %}
           <tr data-id="{{ c.pk }}">
-            <td class="text-capitalize">{{ c.nombre_condicion }}</td>
+            <td class="text-capitalize text-truncate">{{ c.nombre_condicion }}</td>
           </tr>
          {% empty %}
           <tr>
-            <td colspan="1" class="py-4 text-muted">No hay Condiciones De Almacenamiento registrados.</td>
+            <td class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay Condiciones de Almacenamiento registradas.
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -40,25 +109,25 @@
 
     <div id="pagerCondiciones" class="saif-pager"></div>
 
-    <div class="px-3 py-3 text-center">
+    <div class="px-3 py-3 text-center border-top bg-light">
       <button id="btnCrear"
-              class="btn btn-warning me-2"
+              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
               data-bs-toggle="modal"
               data-bs-target="#modalCondicion"
               data-url="{% url 'mantenimiento:condicionesalmacenamiento:crear' %}">
-        <i class="bi bi-plus-circle"></i> CREAR
+        <i class="bi bi-plus-circle"></i> Crear
       </button>
 
-      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
-        <i class="bi bi-search"></i> CONSULTAR
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-search"></i> Consultar
       </button>
 
-      <button id="btnEditar" class="btn btn-success me-2" disabled>
-        <i class="bi bi-pencil"></i> EDITAR
+      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-pencil"></i> Editar
       </button>
 
-      <button id="btnEliminar" class="btn btn-danger" disabled>
-        <i class="bi bi-x-circle"></i> ELIMINAR
+      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-x-circle"></i> Eliminar
       </button>
     </div>
   </div>
@@ -74,180 +143,184 @@
 
 {% block extra_js %}
 {{ block.super }}
-<!-- Agregamos el enlace del JavaScript de Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const table       = document.getElementById("tablaCondiciones");
-  const inputs      = table.querySelectorAll("thead input");
-  const tbody       = table.querySelector("tbody");
-  const pagerEl     = document.getElementById("pagerCondiciones");
-  const modalEl     = document.getElementById("modalCondicion");
-  const modalContent= document.getElementById("modal-condicion-content");
+  const table         = document.getElementById("tablaCondiciones");
+  const tbody         = table.querySelector("tbody");
+  const pagerEl       = document.getElementById("pagerCondiciones");
+  const modalEl       = document.getElementById("modalCondicion");
+  const modalContent  = document.getElementById("modal-condicion-content");
   const modalInstance = new bootstrap.Modal(modalEl);
 
   let selectedId = null;
-  let currentModalUrl = null;
 
-  /* ---- Filtro por columna (solo una) ---- */
-  inputs.forEach((input, i) => {
-    input.addEventListener("keyup", function () {
-      const filtro = input.value.toLowerCase();
-      const filas = tbody.querySelectorAll("tr");
-      filas.forEach(fila => {
-        if (fila.hasAttribute("data-empty-row")) return;
-        const celda = fila.cells[i];
-        if (!celda) return;
-        const texto = celda.textContent.toLowerCase();
-        fila.style.display = texto.includes(filtro) ? "" : "none";
-      });
-      currentPage = 1;
-      recomputarPageSize();
-      applyPagination();
+  /* ====== Helpers ====== */
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
     });
+  }
+  function getCookie(name){
+    let cookieValue=null;
+    if(document.cookie && document.cookie!==''){
+      const cookies=document.cookie.split(';');
+      for(let i=0;i<cookies.length;i++){
+        const cookie=cookies[i].trim();
+        if(cookie.substring(0,name.length+1)===(name+'=')){
+          cookieValue=decodeURIComponent(cookie.substring(name.length+1)); break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  /* ====== Modal ====== */
+  function abrirModal(url){
+    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    modalInstance.show();
+    fetch(url,{headers:{ "X-Requested-With":"XMLHttpRequest"}})
+      .then(r=>r.text()).then(html=>{modalContent.innerHTML=html})
+      .catch(()=>{modalContent.innerHTML='<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+  }
+
+  modalContent.addEventListener("submit",function(e){
+    const form=e.target.closest("form"); if(!form) return; e.preventDefault();
+    fetch(form.action||window.location.href,{
+      method:"POST",
+      body:new FormData(form),
+      headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") }
+    })
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); }
+      else if(data.html){ modalContent.innerHTML=data.html; }
+    })
+    .catch(()=>{ modalContent.innerHTML='<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>'; });
   });
 
-  /* ---- Selección de fila ---- */
-  tbody.addEventListener("click", (ev) => {
-    const row = ev.target.closest("tr");
-    if (!row || row.hasAttribute("data-empty-row")) return;
-    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+  /* ====== Selección de fila ====== */
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
     row.classList.add("table-active");
     selectedId = row.getAttribute("data-id");
     document.getElementById("btnConsultar").disabled = false;
-    document.getElementById("btnEditar").disabled  = false;
+    document.getElementById("btnEditar").disabled    = false;
     document.getElementById("btnEliminar").disabled  = false;
-  });
-
-  /* ---- Modal (cargar parcial por fetch) ---- */
-  function abrirModal(url) {
-    currentModalUrl = url;
-    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
-    modalInstance.show();
-
-    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-      .then(r => r.text())
-      .then(html => { modalContent.innerHTML = html; })
-      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
   }
-
-  modalEl.addEventListener('hidden.bs.modal', () => {
-    currentModalUrl = null;
-    modalContent.innerHTML = '';
+  tbody.addEventListener("click",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+  });
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    if(selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/consultar/`);
   });
 
-  /* ---- Envío del form dentro del modal ---- */
-  modalContent.addEventListener('submit', function (e) {
-    const form = e.target.closest('form');
-    if (!form) return;
-    e.preventDefault();
-
-    const action = form.getAttribute('action') || currentModalUrl;
-    const data   = new FormData(form);
-
-    fetch(action, {
-      method: 'POST',
-      body: data,
-      headers: {'X-Requested-With': 'XMLHttpRequest'}
-    })
-    .then(async (r) => {
-      if (r.ok) return r.json();          // { ok: true }
-      const json = await r.json().catch(() => ({})); // { ok:false, html:'...' }
-      if (json.html) modalContent.innerHTML = json.html;
-      throw new Error('validation');
-    })
-    .then((json) => { if (json.ok) window.location.reload(); })
-    .catch((err) => {
-      if (err.message !== 'validation') {
-        modalContent.innerHTML = '<div class="p-4 text-danger">Ocurrió un error. Inténtalo de nuevo.</div>';
-      }
-    });
+  /* ====== Accesos rápidos ====== */
+  document.addEventListener('keydown', (ev)=>{
+    if(ev.key==='Enter' && selectedId){
+      abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/consultar/`); ev.preventDefault();
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='e' && selectedId){
+      abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/editar/`); ev.preventDefault();
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='d' && selectedId){
+      document.getElementById("btnEliminar").click(); ev.preventDefault();
+    }
   });
 
-  /* ---- Botones ---- */
-  document.getElementById("btnCrear").addEventListener("click", (ev) => {
+  /* ====== Botones ====== */
+  document.getElementById("btnCrear").addEventListener("click",(ev)=>{
     const url = ev.currentTarget.getAttribute("data-url");
     abrirModal(url);
   });
+  document.getElementById("btnConsultar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/consultar/`) });
+  document.getElementById("btnEditar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/editar/`) });
+  document.getElementById("btnEliminar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/eliminar/`) });
 
-  document.getElementById("btnConsultar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/consultar/`);
-  });
+  /* ====== Filtro (1 columna) ====== */
+  (function installFilter(){
+    const fNombre=document.getElementById("f-nombre");
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    function applyFilter(){
+      const val=norm(fNombre?.value);
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const txt=norm(tr.cells[0]?.textContent);
+        tr.style.display = (!val || txt.includes(val)) ? "" : "none";
+      });
+      currentPage=1; applyPagination();
+    }
+    fNombre.addEventListener("input",applyFilter);
+  })();
 
-  document.getElementById("btnEditar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/editar/`);
-  });
-
-  document.getElementById("btnEliminar").addEventListener("click", () => {
-    if (selectedId) abrirModal(`/mantenimiento/condicionesalmacenamiento/${selectedId}/eliminar/`);
-  });
-
-  /* ---- Paginación “inteligente” (mismo patrón que usuarios) ---- */
-  let currentPage = 1;
-  let pageSize    = 20;
-  const rowHeight = 45;
-
+  /* ====== Paginación dinámica (igual a Productos) ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
   function getDataRows(){
     return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr => !tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
   }
-
-  function recomputarPageSize() {
-    const rect  = tbody.getBoundingClientRect();
-    const margenInf = 160;
-    const espacio = window.innerHeight - rect.top - margenInf;
-    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+  function renderPager(totalPages){
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
+    pagerEl.style.display="flex"; pagerEl.innerHTML="";
+    const prev=document.createElement("button");
+    prev.className="btn btn-outline-secondary me-2";
+    prev.innerHTML="&laquo; Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{currentPage--;applyPagination();};
+    const info=document.createElement("span");
+    info.className="align-self-center mx-2";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+    const next=document.createElement("button");
+    next.className="btn btn-outline-secondary ms-2";
+    next.innerHTML="Siguiente &raquo;";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{currentPage++;applyPagination();};
+    pagerEl.append(prev,info,next);
   }
-
   function applyPagination(){
-    const rows        = getDataRows();
-    const total       = rows.length;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    if (currentPage > totalPages) currentPage = totalPages;
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
 
-    const start = (currentPage - 1) * pageSize;
-    const end   = start + pageSize;
-
-    rows.forEach((tr, idx) => {
-      tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end));
-    });
+    // marcar última visible para cortar la línea inferior
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
 
     renderPager(totalPages);
+    refreshAutoTitles();
   }
 
-  function renderPager(totalPages){
-    if (totalPages <= 1){
-      pagerEl.innerHTML = "";
-      pagerEl.style.display = "none";
-      return;
-    }
-    pagerEl.style.display = "flex";
-    pagerEl.innerHTML = "";
-
-    const prev = document.createElement("button");
-    prev.className = "page-btn";
-    prev.textContent = "←";
-    prev.disabled = currentPage === 1;
-    prev.onclick = () => { currentPage--; applyPagination(); };
-
-    const info = document.createElement("span");
-    info.className = "info";
-    info.textContent = `Página ${currentPage} de ${totalPages}`;
-
-    const next = document.createElement("button");
-    next.className = "page-btn";
-    next.textContent = "→";
-    next.disabled = currentPage === totalPages;
-    next.onclick = () => { currentPage++; applyPagination(); };
-
-    pagerEl.append(prev, info, next);
-  }
-
-  // init
-  tbody.querySelectorAll("tr[data-empty-row]").forEach(tr => tr.remove());
+  /* ====== Init ====== */
+  removeEmptyRows();
   recomputarPageSize();
   applyPagination();
-  window.addEventListener("resize", () => { recomputarPageSize(); applyPagination(); });
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 {% endblock %}

@@ -1,57 +1,250 @@
-{% extends "dashboard/base.html" %}
+﻿{% extends "dashboard/base.html" %}
 {% load static %}
 
-{% block title %}Recepciones · SAIF{% endblock %}
+{% block title %}Recepciones � SAIF{% endblock %}
 
 {% block content %}
-<section class="p-6 md:p-8">
-  <div class="saif-card mb-4">
-    <div class="saif-card-header">
-      <i class="bi bi-box-arrow-in-down"></i>
-      <h3>Recepciones de Productos</h3>
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<style>
+/* ====== Contenedor con scroll ====== */
+.table-container{
+  overflow-x:auto;
+  width:100%;
+  scroll-padding-top:90px; /* evita que el sticky “tape” al saltar */
+}
+
+/* ====== Tabla ====== */
+#tablaRecepciones{
+  table-layout:fixed;
+  width:100%;
+  min-width:900px;
+  border-collapse:separate;   /* necesario para sticky + bordes finos */
+  border-spacing:0;
+  outline:1px solid #e3e6ea;  /* contorno sin ocupar espacio */
+  outline-offset:-1px;
+  border-radius:.5rem;
+}
+
+/* ====== Celdas ====== */
+#tablaRecepciones th,
+#tablaRecepciones td{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  vertical-align:middle;
+  padding:.5rem;
+  font-size:.875rem;
+  background-clip:padding-box; /* evita solapes con sticky */
+  border:1px solid #e3e6ea;    /* líneas internas */
+}
+
+/* Mismo color en todas las filas */
+#tablaRecepciones tbody tr{ background:#ffffff; }
+
+/* ====== Encabezado pegajoso (2 filas: títulos + filtros) ====== */
+#tablaRecepciones thead.sticky-top{
+  position:sticky;
+  top:0;
+  z-index:10;
+  box-shadow:0 2px 4px rgba(0,0,0,.06);
+}
+
+/* Fila de títulos */
+#tablaRecepciones thead.sticky-top tr:first-child th{
+  position:sticky;
+  top:0;
+  z-index:11;
+  background:#e8f5ec;               /* verde muy suave */
+  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
+}
+
+/* Fila de filtros */
+#tablaRecepciones thead.sticky-top tr.filter-row th{
+  position:sticky;
+  top:42px;                          /* altura aproximada de la fila de títulos */
+  z-index:10;
+  background:#f4fbf6;
+  border-top:1px solid #d9f3e0;
+  border-bottom:1px solid #d7dbdf;
+  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem;
+  overflow:visible;
+}
+
+/* ====== Controles de filtro ====== */
+thead .form-control-sm,
+thead .form-select-sm{
+  padding-top:.25rem;
+  padding-bottom:.25rem;
+  height:28px;
+}
+
+.filter-control{
+  width:100%;
+  height:32px;
+  padding:.25rem .5rem;
+  border:1px solid #cfe9d7;
+  background:#fff;
+  border-radius:.5rem;
+  transition:border-color .15s, box-shadow .15s;
+  font-size:.85rem;
+  box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{
+  border-color:#62c07b;
+  outline:0;
+  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
+}
+
+select.filter-control{
+  padding-right:1.75rem;
+  appearance:none;
+  min-width:100px;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap{
+  display:flex; justify-content:center;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap>select{
+  width:100%; max-width:100%;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th select.form-select.filter-control{
+  -moz-text-align-last:center !important;
+  text-align-last:center !important;
+  text-align:center !important;
+}
+
+/* Mínimos para inputs angostos */
+#tablaRecepciones thead .filter-row th{ min-width:100px; }
+#tablaRecepciones thead .filter-row th:nth-child(1){ min-width:110px; } /* ID */
+#tablaRecepciones thead .filter-row th:nth-child(3){ min-width:140px; } /* Fecha */
+#tablaRecepciones thead .filter-row th:nth-child(5){ min-width:120px; } /* Estado */
+
+/* ====== Utilidades de ancho ====== */
+.wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
+
+/* ====== P�ginaci�n: ocultar filas fuera de página ====== */
+.hidden-by-pagination{ display:none !important; }
+
+/* ====== FIX bordes duplicados vs contorno ====== */
+#tablaRecepciones thead tr:first-child th{ border-top:0; }
+#tablaRecepciones tbody tr:last-child td{ border-bottom:0; }
+#tablaRecepciones tr>*:first-child{ border-left:0; }
+#tablaRecepciones tr>*:last-child{  border-right:0; }
+#tablaRecepciones tbody tr.last-visible td{ border-bottom:0 !important; }
+
+/* Hover suave */
+#tablaRecepciones tbody tr:hover{ background:#fafafa; }
+</style>
+<!-- Overrides para evitar salto y unificar comportamiento -->
+<style>
+.table-container{ max-height: calc(100vh - 250px); overflow-y: auto; }
+</style>
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- Header -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6">
+        <i class="bi bi-box-arrow-in-down me-2"></i> Recepciones de Productos
+      </h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <div class="table-wrap">
-      <table class="table table-saif align-middle text-center" id="tablaRecepciones">
-        <thead>
+    <!-- Contenedor de tabla con scroll -->
+    <div class="table-container">
+      <!-- OJO: sin table-bordered -->
+      <table class="table table-hover align-middle text-center" id="tablaRecepciones">
+        <colgroup>
+          <col class="wp-12"><!-- ID -->
+          <col class="wp-20"><!-- Número Env�o -->
+          <col class="wp-16"><!-- Fecha -->
+          <col class="wp-20"><!-- Usuario -->
+          <col class="wp-14"><!-- Estado -->
+        </colgroup>
+
+        <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
-            <th>ID</th>
-            <th>Número Envío</th>
-            <th>Fecha Recepción</th>
-            <th>Usuario</th>
-            <th>Estado</th>
+            <th scope="col">ID</th>
+            <th scope="col">N�mero Env�o</th>
+            <th scope="col">Fecha Recepci�n</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Estado</th>
+          </tr>
+          <!-- Fila de filtros -->
+          <tr class="filter-row">
+            <th><input id="f-id" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-envio" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="completada">Completada</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="anulada">Anulada</option>
+                </select>
+              </div>
+            </th>
           </tr>
         </thead>
+
         <tbody>
           {% for r in recepciones %}
           <tr data-id="{{ r.id }}" style="cursor:pointer;">
-            <td>{{ r.id }}</td>
-            <td>{{ r.numero_envio_bodega }}</td>
-            <td>{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
-            <td>{{ r.id_usuario }}</td>
-            <td>{{ r.estado_recepcion }}</td>
+            <td class="text-truncate">{{ r.id }}</td>
+            <td class="text-truncate">{{ r.numero_envio_bodega }}</td>
+            <td class="text-truncate">{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
+            <td class="text-truncate">{{ r.id_usuario }}</td>
+            <td class="text-truncate">
+              {% if r.estado_recepcion == "Completada" %}
+                <span class="badge bg-success">Completada</span>
+              {% elif r.estado_recepcion == "Pendiente" %}
+                <span class="badge bg-warning text-dark">Pendiente</span>
+              {% elif r.estado_recepcion == "Anulada" %}
+                <span class="badge bg-danger">Anulada</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ r.estado_recepcion }}</span>
+              {% endif %}
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="py-4 text-muted">No hay recepciones registradas.</td></tr>
+          <tr>
+            <td colspan="5" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay recepciones registradas.
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <div class="px-3 py-3 text-center">
+    <!-- P�ginador -->
+    <div id="pagerRecepciones" class="saif-pager"></div>
+
+    <!-- Botones -->
+    <div class="px-3 py-3 text-center border-top bg-light">
       <!-- CREAR -->
       <button id="btnCrear"
-              class="btn btn-warning me-2"
+              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
               data-bs-toggle="modal"
               data-bs-target="#modalRecepcion"
               data-url="{% url 'recepcion:recepcion_create' %}">
-        <i class="bi bi-plus-circle"></i> CREAR
+        <i class="bi bi-plus-circle"></i> Crear
       </button>
 
       <!-- CONSULTAR -->
-      <button id="btnConsultar" class="btn btn-primary me-2" disabled>
-        <i class="bi bi-search"></i> CONSULTAR
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-search"></i> Consultar
       </button>
+      <!-- GR�FICAS -->
+      <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
+        <i class="bi bi-graph-up"></i> Gr�ficas
+      </a>
     </div>
   </div>
 </section>
@@ -79,7 +272,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // ---------------- CREAR (carga del formulario en modal) ----------------
+  /* ==================== MODAL CREAR ==================== */
   const modalEl = document.getElementById("modalRecepcion");
   const modalContent = document.getElementById("modal-recepcion-content");
   const btnCrear = document.getElementById("btnCrear");
@@ -106,8 +299,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const productoId = (productoIdEl?.value || "").trim();
         const productoTx = (productoTextEl?.value || "").trim();
-        const loteId     = (loteIdEl?.value || "").trim();     // si escogió un lote existente
-        const numeroLote = (loteTextEl?.value || "").trim();   // si escribe/crea uno nuevo
+        const loteId     = (loteIdEl?.value || "").trim();
+        const numeroLote = (loteTextEl?.value || "").trim();
         const caducidad  = caducidadEl?.value || "";
         const cantidad   = cantidadEl?.value;
         const costo      = costoEl?.value;
@@ -119,9 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const item = {
           producto_id: parseInt(productoId, 10),
-          // Para mostrar:
           producto: productoTx,
-          // Para backend:
           lote_id: loteId ? parseInt(loteId, 10) : null,
           numero_lote: numeroLote || null,
           fecha_caducidad: caducidad || null,
@@ -154,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // ----- Envío del formulario -----
+    // ----- Env�o del formulario -----
     const formRecepcion = document.getElementById("form-recepcion");
     if (formRecepcion) {
       const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
@@ -183,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) {
             return response.json().then(errorData => {
               console.error("Error del servidor:", errorData);
-              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
+              alert("Error: " + (errorData.errors || "Ocurri� un error inesperado."));
               throw new Error("HTTP error: " + response.status);
             });
           }
@@ -191,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(data => {
           if (data.success) {
-            alert("Recepción creada exitosamente.");
+            alert("recepci�n creada exitosamente.");
             window.location.reload();
           } else {
             console.error("Errores de validación:", data.errors);
@@ -223,7 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-  // ----------- Auxiliares: búsqueda de productos y lotes -----------
+  /* ==================== AUXILIARES PRODUCTOS/LOTES ==================== */
   const modalBuscar     = document.getElementById("modalBuscarProducto");
   const searchInput     = document.getElementById("searchProducto");
   const tbodyResultados = document.getElementById("tablaBuscarProductos");
@@ -233,9 +424,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const tablaLotes      = document.getElementById("tablaBuscarLotes");
 
   // Autocomplete de productos
-  modalBuscar.addEventListener("shown.bs.modal", () => {
+  modalBuscar?.addEventListener("shown.bs.modal", () => {
     const productoInput   = document.querySelector("#modalRecepcion #productoInput");
     const productoIdInput = document.querySelector("#modalRecepcion #productoIdInput");
+    if (!searchInput || !tbodyResultados) return;
     searchInput.value = "";
     tbodyResultados.innerHTML = "";
     searchInput.focus();
@@ -274,7 +466,8 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   });
 
-  modalBuscar.addEventListener("hidden.bs.modal", () => {
+  modalBuscar?.addEventListener("hidden.bs.modal", () => {
+    if (!tbodyResultados || !searchInput) return;
     tbodyResultados.innerHTML = "";
     searchInput.value = "";
   });
@@ -286,6 +479,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return base + q;
   }
   function renderLotes(rows) {
+    if (!tablaLotes) return;
     if (!rows || rows.length === 0) {
       tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para este producto.</td></tr>`;
       return;
@@ -313,6 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function loadLotes(term = "") {
     const productoId = document.getElementById("productoIdInput")?.value;
+    if (!tablaLotes) return;
     if (!productoId) {
       tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Primero seleccione un producto.</td></tr>`;
       return;
@@ -325,7 +520,8 @@ document.addEventListener("DOMContentLoaded", function () {
         tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
       });
   }
-  modalLote.addEventListener("shown.bs.modal", () => {
+  modalLote?.addEventListener("shown.bs.modal", () => {
+    if (!searchLoteInput) return;
     searchLoteInput.value = "";
     loadLotes("");
     searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
@@ -386,30 +582,87 @@ document.addEventListener("DOMContentLoaded", function () {
     bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
   });
 
-  // ---------------- CONSULTAR (selección + modal) ----------------
-  const tbody = document.querySelector("#tablaRecepciones tbody");
-  const btnConsultar = document.getElementById("btnConsultar");
-  let selectedId = null;
-  let selectedTr = null;
+  /* ==================== TABLA: selección, filtros, P�ginaci�n ==================== */
+  const table = document.getElementById("tablaRecepciones");
+  const tbody = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerRecepciones");
 
-  // Selección de fila
-  tbody.addEventListener("click", (e) => {
-    const tr = e.target.closest("tr");
-    if (!tr) return;
-    if (selectedTr) selectedTr.classList.remove("table-active");
-    selectedTr = tr;
-    tr.classList.add("table-active");
-    selectedId = tr.dataset.id;
-    btnConsultar.disabled = !selectedId;
+  let selectedId = null;
+
+  /* Titles auto para truncados */
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
+    });
+  }
+
+  // Elimina posibles filas vacías (fila fantasma)
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  /* Selección de fila */
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = !selectedId;
+  }
+
+  tbody.addEventListener("click",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
   });
 
-  // Abrir modal de consulta
-  btnConsultar.addEventListener("click", () => {
-    if (!selectedId) return;
+  // Doble click = Consultar
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    if(selectedId){
+      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+      const url = urlBase.replace("0/", selectedId + "/");
+      abrirModalConsultar(url);
+    }
+  });
 
+  // Teclado para navegar/abrir
+  table.addEventListener("keydown",(ev)=>{
+    const current = tbody.querySelector("tr.table-active");
+    const rows = Array.from(tbody.querySelectorAll("tr"))
+      .filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
+    if(!rows.length) return;
+
+    const idx = rows.indexOf(current);
+    if(ev.key==="ArrowDown"){
+      const next = rows[Math.min(rows.length-1, idx+1>=0?idx+1:0)];
+      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="ArrowUp"){
+      const prev = rows[Math.max(0, idx-1>=0?idx-1:0)];
+      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="Enter" && selectedId){
+      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+      const url = urlBase.replace("0/", selectedId + "/");
+      abrirModalConsultar(url); ev.preventDefault();
+    }
+  });
+
+  /* Botón Consultar (reutiliza la misma apertura de modal) */
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (!selectedId) return;
     const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
     const url = urlBase.replace("0/", selectedId + "/");
+    abrirModalConsultar(url);
+  });
 
+  function abrirModalConsultar(url){
     const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
     const container = document.getElementById("modal-consultar-content");
     container.innerHTML = '<div class="p-4">Cargando...</div>';
@@ -421,10 +674,114 @@ document.addEventListener("DOMContentLoaded", function () {
         modalConsultar.show();
       })
       .catch(() => {
-        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>';
+        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepci�n.</div>';
         modalConsultar.show();
       });
-  });
+  }
+
+  /* ====== P�ginaci�n ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect(); const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+  function renderPager(totalPages){
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
+    pagerEl.style.display="flex"; pagerEl.innerHTML="";
+    const prev=document.createElement("button");
+    prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
+    prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
+    const info=document.createElement("span");
+    info.className="align-self-center mx-2"; info.textContent=`Página ${currentPage} de ${totalPages}`;
+    const next=document.createElement("button");
+    next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
+    next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
+    pagerEl.append(prev,info,next);
+  }
+  function applyPagination(){
+    const rows=getDataRows(); const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+    const start=(currentPage-1)*pageSize; const end=start+pageSize;
+    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
+    renderPager(totalPages);
+    // Marcar �ltima visible para quitar borde inferior
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+    // Normaliza label del pager (evita caracteres raros en "P�gina")
+    const info=pagerEl.querySelector('span');
+    if(info){ info.textContent=`P�gina ${currentPage} de ${totalPages}`; }
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  /* ====== Filtros ====== */
+  function installFilters(){
+    const fId=document.getElementById("f-id");
+    const fEnvio=document.getElementById("f-envio");
+    const fFecha=document.getElementById("f-fecha");
+    const fUsuario=document.getElementById("f-usuario");
+    const fEstado=document.getElementById("f-estado");
+
+    const inputs=[fId,fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    const cleanAccents=(s)=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+    function applyFilters(){
+      const idVal=cleanAccents(fId?.value);
+      const envioVal=cleanAccents(fEnvio?.value);
+      const fechaVal=cleanAccents(fFecha?.value);
+      const usuarioVal=cleanAccents(fUsuario?.value);
+      const estadoVal=cleanAccents(fEstado?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>cleanAccents(tds[i]?.textContent);
+
+        // Nota: la columna Estado tiene badge, igual se filtra por su texto
+        const ok =
+          (!idVal     || txt(0).includes(idVal)) &&
+          (!envioVal  || txt(1).includes(envioVal)) &&
+          (!fechaVal  || txt(2).includes(fechaVal)) &&
+          (!usuarioVal|| txt(3).includes(usuarioVal)) &&
+          (!estadoVal || txt(4).includes(estadoVal));
+
+        tr.style.display = ok ? "" : "none";
+      });
+
+      currentPage=1; applyPagination();
+    }
+
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+  }
+
+  /* ====== Inicializar ====== */
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 {% endblock %}
+

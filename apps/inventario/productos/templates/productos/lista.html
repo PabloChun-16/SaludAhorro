@@ -7,116 +7,38 @@
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <style>
-/* ====== Contenedor con scroll ====== */
-.table-container{
-  overflow-x:auto;
-  width:100%;
-  scroll-padding-top:90px; /* evita que el sticky tape al saltar */
-}
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
 
-/* ====== Tabla ====== */
 #tablaProductos{
-  table-layout:fixed;
-  width:100%;
-  min-width:1200px;
-  border-collapse:separate;   /* necesario para sticky + bordes finos */
-  border-spacing:0;
-  outline:1px solid #e3e6ea;  /* contorno SIN ocupar espacio (evita “fila fantasma”) */
-  outline-offset:-1px;
-  border-radius:.5rem;
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
 }
 
-/* ====== Celdas ====== */
-#tablaProductos th,
-#tablaProductos td{
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  vertical-align:middle;
-  padding:.5rem;
-  font-size:.875rem;
-  background-clip:padding-box; /* evita solapes con sticky */
-  border:1px solid #e3e6ea;    /* líneas internas */
+#tablaProductos th,#tablaProductos td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea; /* líneas internas */
 }
 
-/* Mismo color en todas las filas (sin rayado) */
 #tablaProductos tbody tr{ background:#ffffff; }
 
-/* ====== Encabezado pegajoso (2 filas) ====== */
-#tablaProductos thead.sticky-top{
-  position:sticky;
-  top:0;
-  z-index:10;
-  box-shadow:0 2px 4px rgba(0,0,0,.06);
-}
-
-/* Fila de títulos (1ª fila del thead) */
-#tablaProductos thead.sticky-top tr:first-child th{
-  position:sticky;
-  top:0;
-  z-index:11;
-  background:#e8f5ec;               /* verde muy suave */
-  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
-}
-
-/* Fila de filtros (2ª fila del thead) */
+#tablaProductos thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaProductos thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; /* división header/filtros */ }
 #tablaProductos thead.sticky-top tr.filter-row th{
-  position:sticky;
-  top:42px;                          /* altura aprox de la fila de títulos */
-  z-index:10;
-  background:#f4fbf6;
-  border-top:1px solid #d9f3e0;
-  border-bottom:1px solid #d7dbdf;   /* marca separación con el tbody */
-  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
-  padding:.35rem .5rem;
-  overflow:visible;                   /* para que no se corte “Todos” */
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
 }
 
-/* ====== Controles de filtro ====== */
-thead .form-control-sm,
-thead .form-select-sm{
-  padding-top:.25rem;
-  padding-bottom:.25rem;
-  height:28px;
-}
-
-.filter-control{
-  width:100%;
-  height:32px;
-  padding:.25rem .5rem;
-  border:1px solid #cfe9d7;
-  background:#fff;
-  border-radius:.5rem;
-  transition:border-color .15s, box-shadow .15s;
-  font-size:.85rem;
-  box-sizing:border-box;
-}
-
+thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
 .filter-control::placeholder{ color:#94a3b8; }
 .filter-control.text-center{ text-align:center; }
-.filter-control:focus{
-  border-color:#62c07b;
-  outline:0;
-  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
-}
-
-/* Selects: misma altura y centrado del texto visible */
-select.filter-control{
-  padding-right:1.75rem;
-  appearance:none;
-  min-width:100px; /* base suficiente para “Todos” */
-}
-#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap{
-  display:flex; justify-content:center;
-}
-#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap>select{
-  width:100%; max-width:100%;
-}
-#tablaProductos thead.sticky-top tr.filter-row th select.form-select.filter-control{
-  -moz-text-align-last:center !important;
-  text-align-last:center !important;
-  text-align:center !important;
-}
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; }
+#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+#tablaProductos thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
+#tablaProductos thead.sticky-top tr.filter-row th select.form-select.filter-control{ -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important; }
 
 /* Mínimos para inputs angostos */
 #tablaProductos thead .filter-row th{ min-width:80px; }
@@ -126,56 +48,36 @@ select.filter-control{
 #tablaProductos thead .filter-row th:nth-child(10){ min-width:110px; }
 
 /* Fuerza ancho de columnas con select estrecho */
-#tablaProductos col:nth-child(7),   /* Receta  */
-#tablaProductos col:nth-child(8),   /* Control */
-#tablaProductos col:nth-child(10){  /* Estado  */
-  width:120px !important;
-}
+#tablaProductos col:nth-child(7), #tablaProductos col:nth-child(8), #tablaProductos col:nth-child(10){ width:120px !important; }
 
-/* ====== Utilidades de ancho usadas en <colgroup> ====== */
 .wp-5{width:5%}.wp-6{width:6%}.wp-7{width:7%}.wp-8{width:8%}
 .wp-11{width:11%}.wp-12{width:12%}.wp-14{width:14%}.wp-16{width:16%}
 .wp-15{width:15%}.wp-22{width:22%}
 
-/* ====== Paginación: ocultar filas fuera de página ====== */
 .hidden-by-pagination{ display:none !important; }
 
-/* ====== FIX bordes duplicados vs contorno (evita “celda fantasma”) ====== */
 #tablaProductos thead tr:first-child th{ border-top:0; }
 #tablaProductos tbody tr:last-child td{ border-bottom:0; }
 #tablaProductos tr>*:first-child{ border-left:0; }
 #tablaProductos tr>*:last-child{  border-right:0; }
+#tablaProductos tbody tr.last-visible td{ border-bottom:0 !important; }
 
-/* Hover suave */
 #tablaProductos tbody tr:hover{ background:#fafafa; }
 </style>
 
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
-
-    <!-- Header -->
     <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
       <h3 class="mb-0 fs-6"><i class="bi bi-box-seam me-2"></i> Gestión de Productos</h3>
       <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <!-- Contenedor de tabla con scroll -->
     <div class="table-container">
-      <!-- OJO: sin table-bordered -->
       <table class="table table-hover align-middle text-center" id="tablaProductos">
         <colgroup>
-          <col class="wp-7">
-          <col class="wp-15">
-          <col class="wp-22">
-          <col class="wp-12">
-          <col class="wp-12">
-          <col class="wp-8">
-          <col class="wp-6">
-          <col class="wp-6">
-          <col class="wp-6">
-          <col class="wp-6">
+          <col class="wp-7"><col class="wp-15"><col class="wp-22"><col class="wp-12"><col class="wp-12">
+          <col class="wp-8"><col class="wp-6"><col class="wp-6"><col class="wp-6"><col class="wp-6">
         </colgroup>
-
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th scope="col">Código</th>
@@ -189,7 +91,6 @@ select.filter-control{
             <th scope="col">Stock</th>
             <th scope="col">Estado</th>
           </tr>
-          <!-- Fila de filtros -->
           <tr class="filter-row">
             <th><input id="f-codigo" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-nombre" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
@@ -197,37 +98,12 @@ select.filter-control{
             <th><input id="f-lab" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-pres" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-unidad" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-receta" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  <option value="sí">Sí</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-            </th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-control" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  <option value="sí">Sí</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-            </th>
+            <th><div class="filter-wrap"><select id="f-receta" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div></th>
+            <th><div class="filter-wrap"><select id="f-control" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div></th>
             <th></th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
-            </th>
+            <th><div class="filter-wrap"><select id="f-estado" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div></th>
           </tr>
         </thead>
-
         <tbody>
           {% for p in productos %}
           <tr data-id="{{ p.id }}" data-estado="{{ p.id_estado_producto.nombre_estado }}" tabindex="0">
@@ -237,34 +113,14 @@ select.filter-control{
             <td class="text-truncate">{{ p.id_laboratorio.nombre_laboratorio }}</td>
             <td class="text-truncate">{{ p.id_presentacion.nombre_presentacion }}</td>
             <td class="text-truncate">{{ p.id_unidad_medida.nombre_unidad }}</td>
-            <td>
-              {% if p.requiere_receta %}
-                <span class="badge bg-primary">Sí</span>
-              {% else %}
-                <span class="badge bg-secondary">No</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if p.es_controlado %}
-                <span class="badge bg-danger">Sí</span>
-              {% else %}
-                <span class="badge bg-secondary">No</span>
-              {% endif %}
-            </td>
+            <td>{% if p.requiere_receta %}<span class="badge bg-primary">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+            <td>{% if p.es_controlado %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
             <td>{{ p.stock_minimo }}</td>
-            <td>
-              {% if p.id_estado_producto.nombre_estado == "Activo" %}
-                <span class="badge bg-success">Activo</span>
-              {% elif p.id_estado_producto.nombre_estado == "Inactivo" %}
-                <span class="badge bg-danger">Inactivo</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ p.id_estado_producto.nombre_estado }}</span>
-              {% endif %}
-            </td>
+            <td>{% if p.id_estado_producto.nombre_estado == "Activo" %}<span class="badge bg-success">Activo</span>{% elif p.id_estado_producto.nombre_estado == "Inactivo" %}<span class="badge bg-danger">Inactivo</span>{% else %}<span class="badge bg-secondary">{{ p.id_estado_producto.nombre_estado }}</span>{% endif %}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="11" class="py-5 text-muted" data-empty-row>
+            <td colspan="10" class="py-5 text-muted" data-empty-row>
               <i class="bi bi-inbox fs-3 d-block mb-2"></i>
               No hay productos registrados.
             </td>
@@ -274,34 +130,18 @@ select.filter-control{
       </table>
     </div>
 
-    <!-- Paginador -->
     <div id="pagerProductos" class="saif-pager"></div>
 
-    <!-- Botones -->
     <div class="px-3 py-3 text-center border-top bg-light">
-      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#modalProducto"
-              data-url="{% url 'inventario:productos:crear' %}">
-        <i class="bi bi-plus-circle"></i> Crear
-      </button>
-      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
-        <i class="bi bi-search"></i> Consultar
-      </button>
-      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
-        <i class="bi bi-pencil"></i> Editar
-      </button>
-      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 me-2 shadow-sm" disabled>
-        <i class="bi bi-x-circle"></i> Inactivar
-      </button>
-      <button id="btnActivar" class="btn btn-secondary rounded-pill px-3 shadow-sm" disabled>
-        <i class="bi bi-check-circle"></i> Activar
-      </button>
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalProducto" data-url="{% url 'inventario:productos:crear' %}"><i class="bi bi-plus-circle"></i> Crear</button>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-search"></i> Consultar</button>
+      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-pencil"></i> Editar</button>
+      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-x-circle"></i> Inactivar</button>
+      <button id="btnActivar" class="btn btn-secondary rounded-pill px-3 shadow-sm" disabled><i class="bi bi-check-circle"></i> Activar</button>
     </div>
   </div>
 </section>
 
-<!-- Modal -->
 <div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-producto-content"></div>
@@ -322,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let selectedId = null;
 
-  /* ===== Utilidad: pone title a textos truncados ===== */
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
       if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
@@ -330,7 +169,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ====== Modal ====== */
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
   function abrirModal(url){
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
     modalInstance.show();
@@ -339,7 +186,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(()=>{modalContent.innerHTML='<div class="p-4 text-danger">Error cargando el formulario.</div>'});
   }
 
-  /* ====== Selección de fila ====== */
   function selectRow(row){
     if(!row) return;
     tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
@@ -368,7 +214,6 @@ document.addEventListener("DOMContentLoaded", function () {
     selectRow(row);
   });
 
-  // Doble click = Consultar
   tbody.addEventListener("dblclick",(ev)=>{
     const row = ev.target.closest("tr");
     if(!row || row.hasAttribute("data-empty-row")) return;
@@ -376,27 +221,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if(selectedId) abrirModal(`/inventario/productos/${selectedId}/consultar/`);
   });
 
-  // Teclado para navegar/abrir
-  table.addEventListener("keydown",(ev)=>{
-    const current = tbody.querySelector("tr.table-active");
-    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
-    if(!rows.length) return;
-
-    const idx = rows.indexOf(current);
-    if(ev.key==="ArrowDown"){
-      const next = rows[Math.min(rows.length-1, idx+1>=0?idx+1:0)];
-      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
-    }else if(ev.key==="ArrowUp"){
-      const prev = rows[Math.max(0, idx-1>=0?idx-1:0)];
-      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
-    }else if(ev.key==="Enter" && selectedId){
+  document.addEventListener('keydown', (ev)=>{
+    if(ev.key==='Enter' && selectedId){
       abrirModal(`/inventario/productos/${selectedId}/consultar/`); ev.preventDefault();
-    }else if((ev.key==="Delete"||ev.key==="Backspace") && selectedId){
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='e' && selectedId){
+      abrirModal(`/inventario/productos/${selectedId}/editar/`); ev.preventDefault();
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='d' && selectedId){
       document.getElementById("btnEliminar").click(); ev.preventDefault();
     }
   });
 
-  /* ====== Botones CRUD ====== */
   document.getElementById("btnCrear").addEventListener("click",(ev)=>{
     const url = ev.currentTarget.getAttribute("data-url"); abrirModal(url);
   });
@@ -405,7 +241,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btnEliminar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/inactivar/`) });
   document.getElementById("btnActivar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/activar/`) });
 
-  /* ===== Submit universal dentro del modal ===== */
   function getCookie(name){
     let cookieValue=null;
     if(document.cookie && document.cookie!==''){
@@ -422,113 +257,100 @@ document.addEventListener("DOMContentLoaded", function () {
 
   modalContent.addEventListener("submit",function(e){
     const form=e.target.closest("form"); if(!form) return; e.preventDefault();
-    fetch(form.action||window.location.href,{
-      method:"POST", body:new FormData(form),
-      headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") }
-    })
+    fetch(form.action||window.location.href,{ method:"POST", body:new FormData(form), headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") } })
     .then(r=>r.json())
-    .then(data=>{
-      if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); }
-      else if(data.html){ modalContent.innerHTML=data.html; }
-    })
+    .then(data=>{ if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); } else if(data.html){ modalContent.innerHTML=data.html; } })
     .catch(err=>console.error(err));
   });
 
-  /* ====== Paginación ====== */
-  let currentPage=1; let pageSize=15; const rowHeight=42;
+/* ====== Paginación ====== */
+let currentPage=1; let pageSize=15; const rowHeight=42;
 
-  function recomputarPageSize(){
-    const rect=tbody.getBoundingClientRect(); const margenInf=160;
-    const espacio=window.innerHeight-rect.top-margenInf;
-    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+function recomputarPageSize(){
+  const rect=tbody.getBoundingClientRect();
+  const margenInf=160;
+  const espacio=window.innerHeight-rect.top-margenInf;
+  pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+}
+
+function getDataRows(){
+  return Array.from(tbody.querySelectorAll("tr"))
+    .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+}
+
+function renderPager(totalPages){
+  if(totalPages<=1){
+    pagerEl.innerHTML="";
+    pagerEl.style.display="none";
+    return;
   }
-  function getDataRows(){
-    return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
-  }
-  function renderPager(totalPages){
-    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
-    pagerEl.style.display="flex"; pagerEl.innerHTML="";
-    const prev=document.createElement("button");
-    prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
-    prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
-    const info=document.createElement("span");
-    info.className="align-self-center mx-2"; info.textContent=`Página ${currentPage} de ${totalPages}`;
-    const next=document.createElement("button");
-    next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
-    next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
-    pagerEl.append(prev,info,next);
-  }
-  function applyPagination(){
-    const rows=getDataRows(); const total=rows.length;
-    const totalPages=Math.max(1,Math.ceil(total/pageSize));
-    if(currentPage>totalPages) currentPage=totalPages;
-    const start=(currentPage-1)*pageSize; const end=start+pageSize;
-    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
-    renderPager(totalPages);
-    if(selectedId){
-      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
-      if(sel && sel.classList.contains("hidden-by-pagination")){
-        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
-        if(firstVisible) selectRow(firstVisible);
-      }
+
+  pagerEl.style.display="flex";
+  // Estilo elegante y centrado
+  pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+  pagerEl.innerHTML="";
+
+  const prev=document.createElement("button");
+  prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+  prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+  prev.disabled=currentPage===1;
+  prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+  const info=document.createElement("span");
+  info.className="fw-semibold text-success small";
+  info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+  const next=document.createElement("button");
+  next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+  next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+  next.disabled=currentPage===totalPages;
+  next.onclick=()=>{ currentPage++; applyPagination(); };
+
+  pagerEl.append(prev,info,next);
+}
+
+function applyPagination(){
+  const rows=getDataRows();
+  const total=rows.length;
+  const totalPages=Math.max(1,Math.ceil(total/pageSize));
+  if(currentPage>totalPages) currentPage=totalPages;
+
+  const start=(currentPage-1)*pageSize;
+  const end=start+pageSize;
+
+  rows.forEach((tr,idx)=>{
+    tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+  });
+
+  renderPager(totalPages);
+
+  tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+  const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+  const last = visibles[visibles.length-1];
+  if(last) last.classList.add('last-visible');
+
+  if(selectedId){
+    const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+    if(sel && sel.classList.contains("hidden-by-pagination")){
+      const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+      if(firstVisible) selectRow(firstVisible);
     }
-    refreshAutoTitles();
   }
 
-  /* ====== Filtros (incluye descripción) ====== */
-  function installFilters(){
-    const fCodigo=document.getElementById("f-codigo");
-    const fNombre=document.getElementById("f-nombre");
-    const fDesc=document.getElementById("f-desc");
-    const fLab=document.getElementById("f-lab");
-    const fPres=document.getElementById("f-pres");
-    const fUnidad=document.getElementById("f-unidad");
-    const fReceta=document.getElementById("f-receta");
-    const fControl=document.getElementById("f-control");
-    const fEstado=document.getElementById("f-estado");
+  refreshAutoTitles();
+}
 
+  /* ====== Filtros ====== */
+  function installFilters(){
+    const fCodigo=document.getElementById("f-codigo"); const fNombre=document.getElementById("f-nombre"); const fDesc=document.getElementById("f-desc"); const fLab=document.getElementById("f-lab"); const fPres=document.getElementById("f-pres"); const fUnidad=document.getElementById("f-unidad"); const fReceta=document.getElementById("f-receta"); const fControl=document.getElementById("f-control"); const fEstado=document.getElementById("f-estado");
     const inputs=[fCodigo,fNombre,fDesc,fLab,fPres,fUnidad,fReceta,fControl,fEstado].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
     const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
-
-    function applyFilters(){
-      const codeVal=norm(fCodigo?.value), nameVal=norm(fNombre?.value),
-            descVal=norm(fDesc?.value), labVal=norm(fLab?.value),
-            presVal=norm(fPres?.value), uniVal=norm(fUnidad?.value),
-            recetaVal=yesNo(fReceta?.value), ctrlVal=yesNo(fControl?.value),
-            estVal=norm(fEstado?.value);
-
-      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
-
-      rows.forEach(tr=>{
-        const tds=tr.querySelectorAll("td");
-        const txt=i=>norm(tds[i]?.textContent);
-
-        const ok =
-          (!codeVal || txt(0).includes(codeVal)) &&
-          (!nameVal || txt(1).includes(nameVal)) &&
-          (!descVal || txt(2).includes(descVal)) &&
-          (!labVal  || txt(3).includes(labVal))  &&
-          (!presVal || txt(4).includes(presVal)) &&
-          (!uniVal  || txt(5).includes(uniVal))  &&
-          (!recetaVal || yesNo(txt(6))===recetaVal) &&
-          (!ctrlVal   || yesNo(txt(7))===ctrlVal)   &&
-          (!estVal    || norm(tr.getAttribute("data-estado")||txt(9))===estVal);
-
-        tr.style.display = ok ? "" : "none";
-      });
-
-      currentPage=1; applyPagination();
-    }
-
-    inputs.forEach(inp=>{
-      const ev=(inp.tagName==="SELECT")?"change":"input";
-      inp.addEventListener(ev,applyFilters);
-    });
+    function applyFilters(){ const codeVal=norm(fCodigo?.value), nameVal=norm(fNombre?.value), descVal=norm(fDesc?.value), labVal=norm(fLab?.value), presVal=norm(fPres?.value), uniVal=norm(fUnidad?.value), recetaVal=yesNo(fReceta?.value), ctrlVal=yesNo(fControl?.value), estVal=norm(fEstado?.value); const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row")); rows.forEach(tr=>{ const tds=tr.querySelectorAll("td"); const txt=i=>norm(tds[i]?.textContent); const ok = (!codeVal || txt(0).includes(codeVal)) && (!nameVal || txt(1).includes(nameVal)) && (!descVal || txt(2).includes(descVal)) && (!labVal  || txt(3).includes(labVal))  && (!presVal || txt(4).includes(presVal)) && (!uniVal  || txt(5).includes(uniVal))  && (!recetaVal || yesNo(txt(6))===recetaVal) && (!ctrlVal   || yesNo(txt(7))===ctrlVal)   && (!estVal    || norm(tr.getAttribute("data-estado")||txt(9))===estVal); tr.style.display = ok ? "" : "none"; }); currentPage=1; applyPagination(); }
+    inputs.forEach(inp=>{ const ev=(inp.tagName==="SELECT")?"change":"input"; inp.addEventListener(ev,applyFilters); });
   }
 
-  // ===== Inicializar =====
+  removeEmptyRows();
   recomputarPageSize();
   installFilters();
   applyPagination();
@@ -537,3 +359,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+

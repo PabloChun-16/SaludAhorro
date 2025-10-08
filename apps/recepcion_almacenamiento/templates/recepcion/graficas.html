@@ -1,0 +1,426 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Gráficas · Recepciones · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-4">
+  <div class="saif-card mb-4 shadow rounded-3 overflow-hidden">
+    <!-- Header -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-graph-up me-2"></i> Gráficas de Recepciones</h3>
+      <div class="d-flex gap-2">
+        <a id="btnDownloadDias" class="btn btn-light btn-sm" title="Descargar gráfico días (PNG)">
+          <i class="bi bi-download me-1"></i> Días
+        </a>
+        <a id="btnDownloadEstados" class="btn btn-light btn-sm" title="Descargar gráfico estados (PNG)">
+          <i class="bi bi-download me-1"></i> Estados
+        </a>
+        <a href="{% url 'recepcion:recepcion_list' %}" class="btn btn-outline-light btn-sm">Volver</a>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-3">
+
+      <!-- KPIs -->
+      <div class="row g-3 mb-2">
+        <div class="col-6 col-lg-3">
+          <div class="border rounded-3 bg-white p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small">Recepciones (total)</span>
+              <i class="bi bi-inboxes-fill text-success"></i>
+            </div>
+            <div class="fs-4 fw-semibold mt-1" id="kpiTotal">—</div>
+            <div class="small text-muted" id="kpiRango">Último rango</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="border rounded-3 bg-white p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small">Promedio diario</span>
+              <i class="bi bi-graph-up-arrow text-success"></i>
+            </div>
+            <div class="fs-4 fw-semibold mt-1" id="kpiProm">—</div>
+            <div class="small text-muted">Sobre días visibles</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="border rounded-3 bg-white p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small">Máximo diario</span>
+              <i class="bi bi-bar-chart-fill text-success"></i>
+            </div>
+            <div class="fs-4 fw-semibold mt-1" id="kpiMax">—</div>
+            <div class="small text-muted" id="kpiMaxDia">—</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="border rounded-3 bg-white p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small">Estados (distintos)</span>
+              <i class="bi bi-pie-chart-fill text-success"></i>
+            </div>
+            <div class="fs-4 fw-semibold mt-1" id="kpiEstados">—</div>
+            <div class="small text-muted">Gráfico de estados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <form method="get" class="border rounded-3 bg-white p-3 mb-3" id="formFiltros">
+        <div class="row g-3 align-items-end">
+          <!-- Rango rápido -->
+          <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Rango rápido</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-outline-success btn-sm quick-range" data-days="7">7 días</button>
+              <button type="button" class="btn btn-outline-success btn-sm quick-range" data-days="14">14 días</button>
+              <button type="button" class="btn btn-outline-success btn-sm quick-range" data-days="30">30 días</button>
+              <button type="button" class="btn btn-outline-success btn-sm quick-range" data-days="max">Todo</button>
+            </div>
+          </div>
+
+          <!-- Fechas (para backend, opcional) -->
+          <div class="col-6 col-md-2">
+            <label for="fInicio" class="form-label mb-1">Desde</label>
+            <input type="date" class="form-control" id="fInicio" name="desde" />
+          </div>
+          <div class="col-6 col-md-2">
+            <label for="fFin" class="form-label mb-1">Hasta</label>
+            <input type="date" class="form-control" id="fFin" name="hasta" />
+          </div>
+
+          <!-- Estado (se llena desde labels_estados) -->
+          <div class="col-6 col-md-2">
+            <label for="estado" class="form-label mb-1">Estado</label>
+            <select class="form-select" id="estado" name="estado">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <!-- Usuario (texto libre, para backend si lo usas) -->
+          <div class="col-6 col-md-2">
+            <label for="usuario" class="form-label mb-1">Usuario</label>
+            <input type="text" class="form-control" id="usuario" name="usuario" placeholder="usuario..." />
+          </div>
+
+          <!-- Acciones -->
+          <div class="col-12 d-flex gap-2 mt-1">
+            <button class="btn btn-success"><i class="bi bi-funnel me-1"></i> Aplicar (GET)</button>
+            <button type="button" class="btn btn-outline-secondary" id="btnLimpiar"><i class="bi bi-x-circle me-1"></i> Limpiar</button>
+            <div class="ms-auto d-flex gap-2">
+              <div class="btn-group" role="group" aria-label="Tipo de gráfica">
+                <input type="radio" class="btn-check" name="tipo" id="tipoBar" autocomplete="off" checked>
+                <label class="btn btn-outline-success btn-sm" for="tipoBar" title="Barras"><i class="bi bi-bar-chart"></i></label>
+                <input type="radio" class="btn-check" name="tipo" id="tipoLine" autocomplete="off">
+                <label class="btn btn-outline-success btn-sm" for="tipoLine" title="Línea"><i class="bi bi-activity"></i></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Gráficas -->
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="border rounded p-3 bg-white position-relative">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Recepciones por día</h6>
+              <span class="text-muted small" id="badgeRangoDias">—</span>
+            </div>
+            <canvas id="chartDias" height="180"></canvas>
+            <div class="spinner-border text-success position-absolute top-50 start-50 translate-middle d-none" id="spinDias" role="status" aria-hidden="true"></div>
+            <div class="text-center text-muted small mt-2 d-none" id="emptyDias">Sin datos para el rango seleccionado.</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="border rounded p-3 bg-white position-relative">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Recepciones por estado</h6>
+              <span class="text-muted small" id="badgeEstados">—</span>
+            </div>
+            <canvas id="chartEstados" height="180"></canvas>
+            <div class="spinner-border text-success position-absolute top-50 start-50 translate-middle d-none" id="spinEstados" role="status" aria-hidden="true"></div>
+            <div class="text-center text-muted small mt-2 d-none" id="emptyEstados">Sin datos para mostrar.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .saif-card .form-label { font-size:.8rem; color:#4b5563; }
+  .quick-range.active { color:#fff !important; background-color:#16a34a !important; border-color:#16a34a !important; }
+  .border { border-color:#e5e7eb !important; }
+  .rounded-3 { border-radius: .8rem !important; }
+  .table-shadow, .shadow { box-shadow: 0 6px 20px rgba(16,185,129,.08) !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+{{ labels_dias|json_script:"labels-dias-data" }}
+{{ data_dias|json_script:"data-dias-data" }}
+{{ labels_estados|json_script:"labels-estados-data" }}
+{{ data_estados|json_script:"data-estados-data" }}
+
+<script>
+(() => {
+  // ===== Datos base (del backend) =====
+  const labelsDiasBase    = JSON.parse(document.getElementById('labels-dias-data').textContent || '[]');
+  const dataDiasBase      = JSON.parse(document.getElementById('data-dias-data').textContent || '[]');
+  const labelsEstadosBase = JSON.parse(document.getElementById('labels-estados-data').textContent || '[]');
+  const dataEstadosBase   = JSON.parse(document.getElementById('data-estados-data').textContent || '[]');
+
+  // ===== Elementos UI =====
+  const rangoBtns   = document.querySelectorAll('.quick-range');
+  const tipoBar     = document.getElementById('tipoBar');
+  const tipoLine    = document.getElementById('tipoLine');
+  const estadoSel   = document.getElementById('estado');
+  const formFiltros = document.getElementById('formFiltros');
+  const btnLimpiar  = document.getElementById('btnLimpiar');
+  const labelRango  = document.getElementById('badgeRangoDias');
+  const badgeEstados= document.getElementById('badgeEstados');
+  const kpiTotal    = document.getElementById('kpiTotal');
+  const kpiProm     = document.getElementById('kpiProm');
+  const kpiMax      = document.getElementById('kpiMax');
+  const kpiMaxDia   = document.getElementById('kpiMaxDia');
+  const kpiEstados  = document.getElementById('kpiEstados');
+  const kpiRango    = document.getElementById('kpiRango');
+
+  const spinDias    = document.getElementById('spinDias');
+  const spinEstados = document.getElementById('spinEstados');
+  const emptyDias   = document.getElementById('emptyDias');
+  const emptyEstados= document.getElementById('emptyEstados');
+
+  // Poblar select de estados desde labels_estados
+  labelsEstadosBase.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e;
+    opt.textContent = e;
+    estadoSel.appendChild(opt);
+  });
+
+  // ===== Utilidades =====
+  const fmt = new Intl.NumberFormat('es-GT');
+
+  function computeKPIs(labels, data) {
+    const total = data.reduce((a,b)=>a+(+b||0),0);
+    const max = Math.max(0, ...data);
+    const idx = data.findIndex(v => v === max);
+    kpiTotal.textContent = fmt.format(total);
+    kpiProm.textContent  = data.length ? fmt.format(Math.round((total / data.length)*100)/100) : '—';
+    kpiMax.textContent   = data.length ? fmt.format(max) : '—';
+    kpiMaxDia.textContent= (idx>=0 && labels[idx]) ? `Día pico: ${labels[idx]}` : '—';
+    kpiEstados.textContent = labelsEstadosBase.length;
+    kpiRango.textContent = data.length ? `${labels[0]} → ${labels[labels.length-1]}` : '—';
+  }
+
+  function buildGradient(ctx, chartArea) {
+    if (!chartArea) return '#10b981';
+    const { top, bottom } = chartArea;
+    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
+    gradient.addColorStop(0, 'rgba(16,185,129,0.35)');
+    gradient.addColorStop(1, 'rgba(16,185,129,0.05)');
+    return gradient;
+  }
+
+  // ===== CHART: DÍAS =====
+  const ctxDias = document.getElementById('chartDias').getContext('2d');
+  let chartTipo = 'bar';
+  let chartDias = new Chart(ctxDias, {
+    type: chartTipo,
+    data: {
+      labels: labelsDiasBase.slice(),
+      datasets: [{
+        label: 'Recepciones',
+        data: dataDiasBase.slice(),
+        backgroundColor: (ctx) => buildGradient(ctx.chart.ctx, ctx.chart.chartArea),
+        borderColor: '#10b981',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.25,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          callbacks: { label: (c) => ` ${fmt.format(c.parsed.y)} recepciones` }
+        },
+        datalabels: {
+          anchor: 'end', align: 'end', offset: 2,
+          formatter: (v) => v > 0 ? fmt.format(v) : '',
+          font: { size: 10 }, color: '#64748b'
+        }
+      },
+      scales: {
+        y: { beginAtZero:true, ticks:{ precision:0 }, grid:{ color: 'rgba(0,0,0,0.06)' } },
+        x: { grid:{ display:false } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  // ===== CHART: ESTADOS =====
+  const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+  const estadoColors = ['#16a34a','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#14b8a6','#f97316'];
+  let chartEstados = new Chart(ctxEstados, {
+    type: 'doughnut',
+    data: {
+      labels: labelsEstadosBase.slice(),
+      datasets: [{
+        data: dataEstadosBase.slice(),
+        backgroundColor: estadoColors.slice(0, Math.max(labelsEstadosBase.length, 3)),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '62%',
+      plugins: {
+        legend: { position:'bottom' },
+        tooltip: {
+          callbacks: {
+            label: (c) => {
+              const total = c.dataset.data.reduce((a,b)=>a+(+b||0),0);
+              const val = +c.parsed;
+              const pct = total ? (val*100/total) : 0;
+              return ` ${c.label}: ${fmt.format(val)} (${pct.toFixed(1)}%)`;
+            }
+          }
+        },
+        datalabels: {
+          formatter: (v, ctx) => v>0 ? `${ctx.chart.data.labels[ctx.dataIndex]}` : '',
+          color: '#111827',
+          font: { size: 10, weight: '600' },
+          clip: true
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  // Inicializa KPIs
+  computeKPIs(chartDias.data.labels, chartDias.data.datasets[0].data);
+  labelRango.textContent = chartDias.data.labels.length ? `${chartDias.data.labels[0]} → ${chartDias.data.labels.at(-1)}` : '—';
+  badgeEstados.textContent = `${labelsEstadosBase.length} estados`;
+
+  // ===== Interacciones =====
+  function setQuickActive(el) {
+    rangoBtns.forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
+
+  function applyRange(days) {
+    // Simula filtrado por rango usando los datos existentes
+    const total = labelsDiasBase.length;
+    let take = days === 'max' ? total : Math.min(parseInt(days,10)||total, total);
+    const start = Math.max(0, total - take);
+    const labels = labelsDiasBase.slice(start);
+    const data   = dataDiasBase.slice(start);
+
+    // Actualiza gráfico de días
+    chartDias.data.labels = labels;
+    chartDias.data.datasets[0].data = data;
+    chartDias.update();
+
+    // Vacíos / spinners
+    emptyDias.classList.toggle('d-none', data.length !== 0);
+
+    // KPIs & badges
+    computeKPIs(labels, data);
+    labelRango.textContent = data.length ? `${labels[0]} → ${labels.at(-1)}` : '—';
+  }
+
+  rangoBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setQuickActive(btn);
+      applyRange(btn.dataset.days);
+    });
+  });
+
+  // Cambiar tipo de gráfica días
+  function switchType(type) {
+    chartDias.destroy();
+    chartDias = new Chart(ctxDias, {
+      type,
+      data: {
+        labels: chartDias.data.labels,
+        datasets: [{
+          label: 'Recepciones',
+          data: chartDias.data.datasets[0].data,
+          backgroundColor: (ctx) => buildGradient(ctx.chart.ctx, ctx.chart.chartArea),
+          borderColor: '#10b981',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.25,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display:false },
+          tooltip: {
+            callbacks: { label: (c) => ` ${fmt.format(c.parsed.y)} recepciones` }
+          },
+          datalabels: {
+            anchor: 'end', align: 'end', offset: 2,
+            formatter: (v) => v > 0 ? fmt.format(v) : '',
+            font: { size: 10 }, color: '#64748b'
+          }
+        },
+        scales: {
+          y: { beginAtZero:true, ticks:{ precision:0 }, grid:{ color: 'rgba(0,0,0,0.06)' } },
+          x: { grid:{ display:false } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  tipoBar.addEventListener('change', () => { if (tipoBar.checked) switchType('bar'); });
+  tipoLine.addEventListener('change', () => { if (tipoLine.checked) switchType('line'); });
+
+  // Limpiar filtros visuales (no recarga)
+  btnLimpiar.addEventListener('click', () => {
+    document.getElementById('fInicio').value = '';
+    document.getElementById('fFin').value = '';
+    estadoSel.value = '';
+    document.getElementById('usuario').value = '';
+    setQuickActive(null);
+    applyRange('max');
+  });
+
+  // Descarga de imágenes
+  function downloadChart(chart, filename) {
+    const link = document.createElement('a');
+    link.href = chart.toBase64Image('image/png', 1);
+    link.download = filename;
+    link.click();
+  }
+  document.getElementById('btnDownloadDias').addEventListener('click', () => downloadChart(chartDias, 'recepciones_por_dia.png'));
+  document.getElementById('btnDownloadEstados').addEventListener('click', () => downloadChart(chartEstados, 'recepciones_por_estado.png'));
+
+  // Mostrar/ocultar vacíos según datos iniciales
+  emptyDias.classList.toggle('d-none', (dataDiasBase||[]).length !== 0);
+  emptyEstados.classList.toggle('d-none', (dataEstadosBase||[]).length !== 0);
+
+  // Selecciona por defecto "Todo" y activa botón
+  applyRange('max');
+  setQuickActive([...rangoBtns].find(b => b.dataset.days === 'max'));
+})();
+</script>
+{% endblock %}

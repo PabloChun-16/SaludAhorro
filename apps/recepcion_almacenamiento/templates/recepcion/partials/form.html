@@ -2,127 +2,178 @@
 
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
+<style>
+/* ==== Estilos generales y consistencia visual ==== */
+.saif-form .section-card{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:14px;
+}
+.saif-form .section-title{
+  font-weight:700;
+  color:#111827;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+}
+.saif-form .input-group-text{
+  min-width:40px;
+  justify-content:center;
+}
+.saif-form .muted-hint{
+  color:#6b7280;
+  font-size:.875rem;
+}
+.saif-form .fieldset-box{
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:16px;
+  background:#ffffff;
+}
+</style>
+
 <div class="saif-modal">
-  <!-- ENCABEZADO -->
+  <!-- HEADER -->
   <div class="modal-header py-3 bg-success text-white">
     <div class="d-flex align-items-center gap-2">
       <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
            class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-      <h5 class="modal-title mb-0 fw-bold">Crear Recepción</h5>
+      <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Crear Recepción" }}</h5>
       <span class="saif-badge ms-2"><i class="bi bi-box-arrow-in-down"></i> SAIF</span>
     </div>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
-  <!-- FORMULARIO (envío por fetch) -->
-  <form method="post" id="form-recepcion" novalidate autocomplete="off">
-    {% csrf_token %}
+  <!-- FORM -->
+  <form method="post" id="form-recepcion" action="{{ action }}" novalidate autocomplete="off">
     <div class="modal-body">
-      <div class="container-fluid">
+      {% csrf_token %}
+      <div class="container-fluid saif-form">
+
+        <!-- Alerta validación -->
         <div id="formAlert" class="alert alert-danger d-none" role="alert"></div>
 
-        <!-- Sección 1: Datos Generales -->
-        <div class="row g-3">
-          <!-- Número de Envío -->
-          <div class="col-md-6">
-            <label class="form-label">Número de Envío</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-              {{ form.numero_envio_bodega }}
+  <!-- ===== Datos generales ===== -->
+<div class="fieldset-box mb-3">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Número de Envío</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+        <input type="text" name="numero_envio_bodega" id="id_numero_envio_bodega"
+               class="form-control" placeholder="Ingrese número de envío..."
+               value="{{ form.numero_envio_bodega.value|default_if_none:'' }}">
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Fecha Recepción</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+        <input type="datetime-local" name="fecha_recepcion" id="id_fecha_recepcion"
+               class="form-control" value="{{ form.fecha_recepcion.value|default_if_none:'' }}">
+      </div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Comentario <span class="muted-hint">(opcional)</span></label>
+      <textarea name="comentario" id="comentarioInput" class="form-control" rows="2"
+                placeholder="Comentario opcional..."></textarea>
+    </div>
+  </div>
+</div>
+
+
+        <!-- ===== Detalle de productos ===== -->
+        <div class="section-card">
+          <div class="section-title mb-2"><i class="bi bi-box"></i> Detalle de Productos</div>
+
+          <!-- Fila 1: Producto y Lote -->
+          <div class="row g-3">
+            <!-- Producto -->
+            <div class="col-lg-6">
+              <label class="form-label">Producto</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-capsule-pill"></i></span>
+                <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre…">
+                <input type="hidden" id="productoIdInput">
+                <button type="button" class="btn btn-outline-secondary"
+                        data-bs-toggle="modal" data-bs-target="#modalBuscarProducto" title="Buscar producto">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lote -->
+            <div class="col-lg-6">
+              <label class="form-label">Lote</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-123"></i></span>
+                <input type="text" id="loteInput" class="form-control" placeholder="N.º de lote…">
+                <input type="hidden" id="loteIdInput">
+                <button type="button" class="btn btn-outline-secondary"
+                        data-bs-toggle="modal" data-bs-target="#modalBuscarLote" title="Buscar lote">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <div class="form-text">Si seleccionas un lote existente, no es necesario indicar caducidad.</div>
             </div>
           </div>
 
-          <!-- Fecha Recepción -->
-          <div class="col-md-6">
-            <label class="form-label">Fecha Recepción</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
-              {{ form.fecha_recepcion }}
+          <!-- Fila 2: Caducidad / Cantidad / Costo / Añadir -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-4 col-lg-3">
+              <label class="form-label">Fecha Caducidad</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar2-week"></i></span>
+                <input type="date" id="caducidadInput" class="form-control">
+              </div>
             </div>
-          </div>
 
-          <!-- Comentario (campo no-modelo) -->
-          <div class="col-12">
-            <label class="form-label">Comentario</label>
-            <textarea name="comentario" id="comentarioInput" class="form-control" rows="2" placeholder="Comentario opcional..."></textarea>
-          </div>
-        </div>
+            <div class="col-md-4 col-lg-3">
+              <label class="form-label">Cantidad Recibida</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                <input type="number" id="cantidadInput" class="form-control" min="1" step="1" placeholder="0">
+              </div>
+            </div>
 
-        <hr>
+            <div class="col-md-4 col-lg-3">
+              <label class="form-label">Costo Unitario</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+                <input type="number" step="0.01" id="costoInput" class="form-control" min="0" placeholder="0.00">
+              </div>
+            </div>
 
-        <!-- Sección 2: Detalle de Productos por Lote -->
-        <h6 class="fw-bold mb-2"><i class="bi bi-box"></i> Detalle de Productos</h6>
-        <div class="row g-3 align-items-end">
-          <!-- Producto -->
-          <div class="col-md-4">
-            <label class="form-label">Producto</label>
-            <div class="input-group">
-              <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre...">
-              <input type="hidden" id="productoIdInput">
-              <button type="button"
-                      class="btn btn-outline-secondary"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalBuscarProducto">
-                <i class="bi bi-search"></i>
+            <!-- Botón Añadir alineado -->
+            <div class="col-lg-3 d-flex align-items-end justify-content-lg-end">
+              <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+                <i class="bi bi-plus-circle"></i> Añadir
               </button>
             </div>
           </div>
 
-          <!-- Lote -->
-          <div class="col-md-3">
-            <label class="form-label">Lote</label>
-            <div class="input-group">
-              <input type="text" id="loteInput" class="form-control" placeholder="Nº de lote...">
-              <input type="hidden" id="loteIdInput">
-              <button type="button" class="btn btn-outline-secondary"
-                      data-bs-toggle="modal" data-bs-target="#modalBuscarLote">
-                <i class="bi bi-search"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Fecha Caducidad -->
-          <div class="col-md-3">
-            <label class="form-label">Fecha Caducidad</label>
-            <input type="date" id="caducidadInput" class="form-control">
-          </div>
-
-          <!-- Cantidad -->
-          <div class="col-md-2">
-            <label class="form-label">Cantidad Recibida</label>
-            <input type="number" id="cantidadInput" class="form-control" min="1" step="1">
-          </div>
-
-          <!-- Costo -->
-          <div class="col-md-2">
-            <label class="form-label">Costo Unitario</label>
-            <input type="number" step="0.01" id="costoInput" class="form-control" min="0">
-          </div>
-
-          <!-- Botón añadir -->
-          <div class="col-md-2 text-end">
-            <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
-              <i class="bi bi-plus-circle"></i> Añadir
-            </button>
+          <!-- Tabla detalle -->
+          <div class="table-responsive mt-3">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-light">
+                <tr>
+                  <th>Producto</th>
+                  <th>Lote</th>
+                  <th>Fecha Caducidad</th>
+                  <th>Cantidad</th>
+                  <th>Costo</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="detalleTable"></tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Tabla Detalles -->
-        <div class="table-responsive mt-3">
-          <table class="table table-bordered align-middle text-center">
-            <thead class="table-light">
-              <tr>
-                <th>Producto</th>
-                <th>Lote</th>
-                <th>Fecha Caducidad</th>
-                <th>Cantidad</th>
-                <th>Costo</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="detalleTable"></tbody>
-          </table>
-        </div>
+        <input type="hidden" name="detalles_json" id="detallesJson">
       </div>
     </div>
 
@@ -132,7 +183,7 @@
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
       <button type="submit" class="btn btn-success">
-        <i class="bi bi-check2-circle"></i> Guardar Recepción
+        <i class="bi bi-check2-circle"></i> Guardar
       </button>
     </div>
   </form>
@@ -141,69 +192,53 @@
 <!-- ====================== JS ====================== -->
 <script>
 (function () {
-  // Array en memoria con los ítems del detalle
   const detalles = [];
   const form = document.getElementById('form-recepcion');
   const alertBox = document.getElementById('formAlert');
+  const hiddenDetalles = document.getElementById('detallesJson');
 
-  function showAlert(msg) {
-    alertBox.textContent = msg;
-    alertBox.classList.remove('d-none');
-  }
-  function hideAlert() {
-    alertBox.classList.add('d-none');
-    alertBox.textContent = '';
-  }
+  function showAlert(msg){ alertBox.textContent = msg; alertBox.classList.remove('d-none'); }
+  function hideAlert(){ alertBox.classList.add('d-none'); alertBox.textContent=''; }
 
-  function getCsrfToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const c = cookies.find(s => s.startsWith(name + '='));
-    if (c) return decodeURIComponent(c.split('=')[1]);
-    const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
-    return el ? el.value : '';
-  }
-
-  // Helpers para que los modales coloquen selección en el formulario
+  // Helpers modales
   window.setProductoSeleccionado = function ({id, texto}) {
     document.getElementById('productoIdInput').value = id;
     document.getElementById('productoInput').value = texto || '';
-    // Al cambiar de producto, limpiar lote/fecha seleccionados
     document.getElementById('loteIdInput').value = '';
     document.getElementById('loteInput').value = '';
     document.getElementById('caducidadInput').value = '';
-  }
+  };
   window.setLoteSeleccionado = function ({id, numero, fecha}) {
     document.getElementById('loteIdInput').value = id || '';
     document.getElementById('loteInput').value = numero || '';
     if (fecha) document.getElementById('caducidadInput').value = fecha;
-  }
+  };
 
-  // Añadir detalle a la tabla
+  // Añadir ítem
   document.getElementById('btnAddDetalle').addEventListener('click', () => {
     hideAlert();
 
     const productoId = document.getElementById('productoIdInput').value;
     const productoTxt = document.getElementById('productoInput').value.trim();
+    const loteId      = document.getElementById('loteIdInput').value;
+    const numeroLote  = document.getElementById('loteInput').value.trim();
+    const caducidad   = document.getElementById('caducidadInput').value;
+    const cantidad    = document.getElementById('cantidadInput').value;
+    const costo       = document.getElementById('costoInput').value;
 
-    const loteId = document.getElementById('loteIdInput').value;          // si seleccionan un lote existente
-    const numeroLote = document.getElementById('loteInput').value.trim(); // si crean un lote nuevo
-    const caducidad = document.getElementById('caducidadInput').value;
-    const cantidad = document.getElementById('cantidadInput').value;
-    const costo = document.getElementById('costoInput').value;
-
-    if (!productoId) { showAlert('Seleccione un producto.'); return; }
-    if (!loteId && !numeroLote) { showAlert('Ingrese o seleccione el número de lote.'); return; }
-    if (!caducidad && !loteId) { showAlert('Ingrese la fecha de caducidad para nuevos lotes.'); return; }
-    if (!cantidad || parseInt(cantidad) <= 0) { showAlert('Cantidad inválida.'); return; }
+    if (!productoId){ showAlert('Seleccione un producto.'); return; }
+    if (!loteId && !numeroLote){ showAlert('Ingrese o seleccione el número de lote.'); return; }
+    if (!caducidad && !loteId){ showAlert('Ingrese fecha de caducidad para nuevos lotes.'); return; }
+    if (!cantidad || parseInt(cantidad,10) <= 0){ showAlert('Cantidad inválida.'); return; }
 
     const item = {
-      producto_id: parseInt(productoId, 10),
-      lote_id: loteId ? parseInt(loteId, 10) : null,
+      producto_id: parseInt(productoId,10),
+      lote_id: loteId ? parseInt(loteId,10) : null,
       numero_lote: numeroLote || null,
       fecha_caducidad: caducidad || null,
-      cantidad_recibida: parseInt(cantidad, 10),
-      costo_unitario: costo ? parseFloat(costo) : 0
+      cantidad_recibida: parseInt(cantidad,10),
+      costo_unitario: costo ? parseFloat(costo) : 0,
+      _producto_txt: productoTxt
     };
     const idx = detalles.push(item) - 1;
 
@@ -214,12 +249,12 @@
       <td>${item.numero_lote ?? ('#' + item.lote_id)}</td>
       <td>${item.fecha_caducidad ?? ''}</td>
       <td>${item.cantidad_recibida}</td>
-      <td>${item.costo_unitario}</td>
+      <td>${item.costo_unitario.toFixed(2)}</td>
       <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>
     `;
     document.getElementById('detalleTable').appendChild(tr);
 
-    // Limpia campos del detalle
+    // limpiar campos
     document.getElementById('loteInput').value = '';
     document.getElementById('loteIdInput').value = '';
     document.getElementById('caducidadInput').value = '';
@@ -227,55 +262,27 @@
     document.getElementById('costoInput').value = '';
   });
 
-  // Quitar fila
+  // Eliminar ítem
   document.getElementById('detalleTable').addEventListener('click', (e) => {
-    const delBtn = e.target.closest('.btn-del');
-    if (!delBtn) return;
-    const tr = delBtn.closest('tr');
-    const idx = parseInt(tr.dataset.idx, 10);
-    detalles[idx] = null; // marca eliminado
-    tr.remove();
+    const del = e.target.closest('.btn-del'); if(!del) return;
+    const tr = del.closest('tr'); const idx = parseInt(tr.dataset.idx,10);
+    detalles[idx] = null; tr.remove();
   });
 
-  // Submit por fetch: envía JSON como espera la vista
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideAlert();
-
-    const numeroEnvio = document.querySelector('[name="numero_envio_bodega"]').value.trim();
-    const fechaRecep  = document.querySelector('[name="fecha_recepcion"]').value;
-    const comentario  = document.getElementById('comentarioInput').value.trim();
+  // Submit
+  form.addEventListener('submit', (e) => {
     const items = detalles.filter(Boolean);
 
-    if (!numeroEnvio) { showAlert('Ingrese el número de envío.'); return; }
-    if (!items.length) { showAlert('Agrega al menos un producto.'); return; }
-
-    const payload = {
-      form_data: { numero_envio_bodega: numeroEnvio, fecha_recepcion: fechaRecep },
-      detalles: items,
-      comentario: comentario
-    };
-
-    try {
-      const resp = await fetch("{% url 'recepcion:recepcion_create' %}", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-
-      if (!resp.ok || !data.success) {
-        console.error('Errores:', data);
-        const msg = (data && data.errors) ? (typeof data.errors === 'string' ? data.errors : JSON.stringify(data.errors)) : 'Error al guardar la recepción.';
-        showAlert(msg);
-        return;
-      }
-      // Éxito
-      window.location.href = "{% url 'recepcion:recepcion_list' %}";
-    } catch (err) {
-      console.error(err);
-      showAlert('Error de red al guardar la recepción.');
+    const numeroEnvioInput = form.querySelector('[name="numero_envio_bodega"]');
+    if (numeroEnvioInput && !numeroEnvioInput.value.trim()){
+      e.preventDefault(); showAlert('Ingrese el número de envío.'); return false;
     }
+    if (!items.length){
+      e.preventDefault(); showAlert('Agrega al menos un producto.'); return false;
+    }
+
+    hiddenDetalles.value = JSON.stringify(items);
+    hideAlert();
   });
 })();
 </script>

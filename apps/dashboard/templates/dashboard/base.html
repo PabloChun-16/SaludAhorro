@@ -5,7 +5,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}SAIF · Dashboard{% endblock %}</title>
- 
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -39,7 +38,7 @@
     @keyframes shine { to { background-position:200% center; } }
     @keyframes underline { 0%{width:90px;opacity:.7} 50%{width:220px;opacity:1} 100%{width:90px;opacity:.7} }
 
-    /* Submenú de Mantenimiento */
+    /* Submenú desplegable */
     .saif-collapse{ overflow:hidden; max-height:0; transition:max-height .25s ease; }
     .saif-collapse.open{ max-height:500px; }
     .saif-caret{ transition:transform .2s ease; }
@@ -51,6 +50,29 @@
     }
     .saif-item{ border-radius:.5rem; }
     .saif-item:hover{ background:rgba(16,185,129,.2); }
+
+    /* Foco sin anillo azul del navegador */
+    .saif-item:focus { outline: none; box-shadow: none; }
+    .saif-item:focus-visible { outline: none; box-shadow: none; background: rgba(16,185,129,.18); }
+    .saif-item:active { outline: none; box-shadow: none; background: rgba(16,185,129,.22); }
+    aside a:focus, aside a:active { outline: none; box-shadow: none; background: transparent; }
+    /* Evita el destello azul en móviles */
+    a, button { -webkit-tap-highlight-color: transparent; }
+
+    /* Evitar salto por aparición/desaparición de scrollbar */
+    :root { scrollbar-gutter: stable; }
+    html { overflow-y: scroll; }
+    /* Sidebar: heredar color y evitar subrayado */
+    aside { user-select: none; }
+    aside a, aside a:visited { color: inherit; text-decoration: none; }
+
+    /* ===== Bootstrap modal: evitar padding-right forzado y corrimiento ===== */
+    body.modal-open { padding-right: 0 !important; }
+    .modal-open .fixed-top,
+    .modal-open .fixed-bottom,
+    .modal-open .is-fixed,
+    .modal-open .sticky-top { padding-right: 0 !important; }
+    .modal { -webkit-overflow-scrolling: touch; }
   </style>
 
   <!-- Bootstrap (opcional) -->
@@ -95,176 +117,159 @@
       <nav class="space-y-2 text-sm">
         <h6 class="uppercase text-xs text-emerald-200 font-semibold">Principio</h6>
         <hr>
-        <a href="/dashboard/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
+        <a href="/dashboard/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-house-door"></i><span>Inicio</span>
         </a>
 
         <h6 class="uppercase text-xs text-emerald-200 font-semibold">Inventario</h6>
         <hr>
 
+        <!-- ==== Gestión de Inventario: BOTÓN TOGGLE + Submenú ==== -->
+        <div id="inventario-group" class="space-y-1">
+          <!-- Botón que SOLO despliega/colapsa (no navega) -->
+          <button type="button"
+                  id="inventario-toggle"
+                  class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+                  aria-expanded="false"
+                  aria-controls="inventario-submenu">
+            <i class="bi bi-box-seam"></i>
+            <span class="flex-1">Gestión Inventario</span>
+            <i id="inventario-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+          </button>
 
+          <!-- Submenú -->
+          <div id="inventario-submenu"
+               class="saif-collapse mt-1 ms-8"
+               data-index-url="/inventario/">
 
-       <!-- ==== Gestión de Inventario: BOTÓN TOGGLE + Submenú ==== -->
-<div id="inventario-group" class="space-y-1">
-  <!-- Botón que SOLO despliega/colapsa (no navega) -->
-  <button type="button"
-          id="inventario-toggle"
-          class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
-          aria-expanded="false"
-          aria-controls="inventario-submenu">
-    <i class="bi bi-box-seam"></i>
-    <span class="flex-1">Gestión Inventario</span>
-    <i id="inventario-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
-  </button>
+            <a href="/inventario/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-grid"></i>
+              <span>Dashboard</span>
+            </a>
 
-  <!-- Submenú -->
-  <div id="inventario-submenu"
-       class="saif-collapse mt-1 ms-8"
-       data-index-url="/inventario/">
+            <a href="/inventario/productos" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-clipboard-data"></i>
+              <span>Gestión de Productos</span>
+            </a>
 
-<a href="/inventario/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-grid"></i>
-    <span>Dashboard</span>
-  </a>
+            <a href="/inventario/stock/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-boxes"></i>
+              <span>Stock</span>
+            </a>
+          </div>
+        </div>
+        <!-- ==== /Gestión de Inventario ==== -->
 
-    <a href="/inventario/productos" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-clipboard-data"></i>
-      <span>Gestión de Productos</span>
-    </a>
-    <a href="/inventario/stock/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-boxes"></i>
-      <span>Stock</span>
-    </a>
-  </div>
-</div>
-<!-- ==== /Gestión de Inventario ==== -->
-
-
-
-        <a href="/recepcion_almacenamiento/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
+        <a href="/recepcion_almacenamiento/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-truck"></i><span>Recepción y Almacenamiento</span>
         </a>
-        <a href="/salidas_devoluciones/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
+        <a href="/salidas_devoluciones/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-box-arrow-right"></i><span>Salidas y Devoluciones</span>
         </a>
-        <a href="/alertas_vencimientos/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
+        <a href="/alertas_vencimientos/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-exclamation-triangle"></i><span>Alertas y Vencimientos</span>
         </a>
 
         <h6 class="uppercase text-xs text-emerald-200 font-semibold mt-4">Operaciones</h6>
         <hr>
-        <a href="/solicitudes_bodega_central/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
+        <a href="/solicitudes_bodega_central/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-inboxes"></i><span>Solicitudes a Bodega Central</span>
         </a>
+
         <!-- ==== Gestión de Recetas ==== -->
-<div id="recetas-group" class="space-y-1">
-  <!-- Botón toggle -->
-  <button type="button"
-          id="recetas-toggle"
-          class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
-          aria-expanded="false"
-          aria-controls="recetas-submenu">
-    <i class="bi bi-bookmark"></i>
-    <span class="flex-1">Gestión Recetas</span>
-    <i id="recetas-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
-  </button>
+        <div id="recetas-group" class="space-y-1">
+          <!-- Botón toggle -->
+          <button type="button"
+                  id="recetas-toggle"
+                  class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+                  aria-expanded="false"
+                  aria-controls="recetas-submenu">
+            <i class="bi bi-bookmark"></i>
+            <span class="flex-1">Gestión Recetas</span>
+            <i id="recetas-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+          </button>
 
-  <!-- Submenú -->
-  <div id="recetas-submenu"
-       class="saif-collapse mt-1 ms-8"
-       data-index-url="/recetas/">
+          <!-- Submenú -->
+          <div id="recetas-submenu"
+               class="saif-collapse mt-1 ms-8"
+               data-index-url="/recetas/">
 
-    <a href="/recetas/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-grid"></i>
-      <span>Dashboard</span>
-    </a>
+            <a href="/recetas/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-grid"></i>
+              <span>Dashboard</span>
+            </a>
 
-    <a href="/recetas/registrar/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-journal-plus"></i>
-      <span>Registrar Receta</span>
-    </a>
+            <a href="/recetas/registrar/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-journal-plus"></i>
+              <span>Registrar Receta</span>
+            </a>
 
-    <a href="/recetas/lista/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-list-ul"></i>
-      <span>Listado Recetas</span>
-    </a>
+            <a href="/recetas/lista/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-list-ul"></i>
+              <span>Listado Recetas</span>
+            </a>
 
-    <a href="/recetas/registrar_envio/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-send-plus"></i>
-      <span>Registrar Envío</span>
-    </a>
+            <a href="/recetas/registrar_envio/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-send-plus"></i>
+              <span>Registrar Envío</span>
+            </a>
 
-    <a href="/recetas/lista_envios/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-      <i class="bi bi-archive"></i>
-      <span>Listado Envíos</span>
-    </a>
-  </div>
-</div>
-<!-- ==== /Gestión de Recetas ==== -->
+            <a href="/recetas/lista_envios/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-archive"></i>
+              <span>Listado Envíos</span>
+            </a>
+          </div>
+        </div>
+        <!-- ==== /Gestión de Recetas ==== -->
 
-        <a href="/ajustes_inventario/" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-emerald-800 transition">
-          <i class="bi bi-sliders"></i><span>Conteo Físico y Ajustes</span>
-        </a>
-
+        <!-- ==== Administración / Mantenimiento ==== -->
         <h6 class="uppercase text-xs text-emerald-200 font-semibold mt-4">Administración</h6>
         <hr>
 
-        {# ==== Mantenimiento: BOTÓN TOGGLE + Submenú (con Dashboard) ==== #}
         <div id="mantenimiento-group" class="space-y-1">
-          <!-- Botón que SOLO despliega/colapsa (no navega) -->
           <button type="button"
                   id="mantenimiento-toggle"
                   class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
                   aria-expanded="false"
                   aria-controls="mantenimiento-submenu">
-            <i class="bi bi-gear"></i>
+            <i class="bi bi-gear-wide-connected"></i>
             <span class="flex-1">Mantenimiento</span>
             <i id="mantenimiento-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
           </button>
 
-         <!-- Submenú (incluye Dashboard con ícono) -->
-<div id="mantenimiento-submenu"
-     class="saif-collapse mt-1 ms-8"
-     data-index-url="{% url 'mantenimiento:index' %}">
+          <div id="mantenimiento-submenu" class="saif-collapse mt-1 ms-8" data-index-url="/mantenimiento/">
+            <a href="{% url 'mantenimiento:mantenimiento_usuarios:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-people"></i>
+              <span>Usuarios</span>
+            </a>
 
-  <a href="{% url 'mantenimiento:index' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-grid"></i>
-    <span>Dashboard</span>
-  </a>
+            <a href="{% url 'mantenimiento:mantenimiento_roles:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-person-gear"></i>
+              <span>Roles</span>
+            </a>
 
-  <a href="{% url 'mantenimiento:mantenimiento_usuarios:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-people"></i>
-    <span>Usuarios</span>
-  </a>
+            <a href="{% url 'mantenimiento:mantenimiento_laboratorios:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-building"></i>
+              <span>Laboratorios</span>
+            </a>
 
-  <a href="{% url 'mantenimiento:mantenimiento_roles:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-person-badge"></i>
-    <span>Roles</span>
-  </a>
+            <a href="{% url 'mantenimiento:mantenimiento_presentaciones:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-box"></i>
+              <span>Presentaciones</span>
+            </a>
 
-  <a href="{% url 'mantenimiento:mantenimiento_laboratorios:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-building"></i>
-    <span>Laboratorios</span>
-  </a>
+            <a href="{% url 'mantenimiento:mantenimiento_unidadesmedida:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-rulers"></i>
+              <span>Unidades de Medida</span>
+            </a>
 
-  <a href="{% url 'mantenimiento:mantenimiento_presentaciones:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-box"></i>
-    <span>Presentaciones</span>
-  </a>
-
-  <a href="{% url 'mantenimiento:mantenimiento_unidadesmedida:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-rulers"></i>
-    <span>Unidades de Medida</span>
-  </a>
-
-  <a href="{% url 'mantenimiento:mantenimiento_condicionesalmacenamiento:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
-    <i class="bi bi-thermometer-snow"></i>
-    <span>Condiciones de Almacenamiento</span>
-  </a>
-</div>
-
+            <a href="{% url 'mantenimiento:mantenimiento_condicionesalmacenamiento:lista' %}" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-thermometer-snow"></i>
+              <span>Condiciones de Almacenamiento</span>
+            </a>
+          </div>
         </div>
-        {# ==== /Mantenimiento ==== #}
+        <!-- ==== /Mantenimiento ==== -->
       </nav>
     </aside>
 
@@ -275,95 +280,111 @@
   </div>
 
   <footer class="border-t text-xs text-slate-600 px-4 py-3">
-    SAIF | © 2025 Todos los derechos reservados.
+    <div class="flex items-center justify-between">
+      <span>SAIF | &copy; 2025 Todos los derechos reservados.</span>
+      <img src="{% static 'home/img/logomarianogalvezcolor.png' %}" alt="Logo Mariano Gálvez" class="h-6 opacity-80 hover:opacity-100 transition" />
+    </div>
   </footer>
 
- 
-<!-- Script del sidebar (siempre cargado) -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const path = location.pathname || '';
+  <!-- Script del sidebar (siempre cargado) -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const path = location.pathname || '';
 
-  // ===== Utilidades comunes =====
-  const normalize = (s) => (s || '').replace(/\/+$/, '');
-  const groups = [];
+    // ===== Utilidades comunes =====
+    const normalize = (s) => (s || '').replace(/\/+$/, '');
+    const groups = [];
 
-  const setupGroup = ({ toggleId, submenuId, caretId, openIfStartsWith }) => {
-    const toggleBtn = document.getElementById(toggleId);
-    const submenu   = document.getElementById(submenuId);
-    const caret     = document.getElementById(caretId);
-    if (!toggleBtn || !submenu || !caret) return;
+    const setupGroup = ({ toggleId, submenuId, caretId, openIfStartsWith }) => {
+      const toggleBtn = document.getElementById(toggleId);
+      const submenu   = document.getElementById(submenuId);
+      const caret     = document.getElementById(caretId);
+      if (!toggleBtn || !submenu || !caret) return;
 
-    const open  = () => { submenu.classList.add('open');  caret.classList.add('up');  toggleBtn.setAttribute('aria-expanded','true'); };
-    const close = () => { submenu.classList.remove('open');caret.classList.remove('up');toggleBtn.setAttribute('aria-expanded','false'); };
-    const isOpen = () => submenu.classList.contains('open');
+      const open  = () => { submenu.classList.add('open');  caret.classList.add('up');  toggleBtn.setAttribute('aria-expanded','true'); };
+      const close = () => { submenu.classList.remove('open');caret.classList.remove('up');toggleBtn.setAttribute('aria-expanded','false'); };
+      const isOpen = () => submenu.classList.contains('open');
 
-    // Resaltar subitem activo (incluye índice del grupo)
-    const idxURL = submenu.dataset.indexUrl || '';
-    submenu.querySelectorAll('a').forEach(a => {
-      const href = a.getAttribute('href') || '';
-      if (normalize(path) === normalize(href) || path.startsWith(href + '/')) {
-        a.classList.add('saif-active');
-      }
-      if (idxURL && normalize(path) === normalize(idxURL) && normalize(href) === normalize(idxURL)) {
-        a.classList.add('saif-active');
-      }
+      // Resaltar subitem activo (incluye índice del grupo)
+      const idxURL = submenu.dataset.indexUrl || '';
+      submenu.querySelectorAll('a').forEach(a => {
+        const href = a.getAttribute('href') || '';
+        if (normalize(path) === normalize(href) || path.startsWith(href + '/')) {
+          a.classList.add('saif-active');
+        }
+        if (idxURL && normalize(path) === normalize(idxURL) && normalize(href) === normalize(idxURL)) {
+          a.classList.add('saif-active');
+        }
+      });
+
+      // Registra el grupo
+      const group = { toggleBtn, submenu, caret, open, close, isOpen, openIfStartsWith };
+      groups.push(group);
+
+      // Toggle con acordeón: cierra otros antes de abrir este
+      toggleBtn.addEventListener('click', () => {
+        if (group.isOpen()) {
+          group.close();
+        } else {
+          groups.forEach(g => { if (g !== group) g.close(); });
+          group.open();
+        }
+      });
+
+      return group;
+    };
+
+    // ====== Registra tus grupos ======
+    const gMant = setupGroup({
+      toggleId: 'mantenimiento-toggle',
+      submenuId: 'mantenimiento-submenu',
+      caretId:  'mantenimiento-caret',
+      openIfStartsWith: '/mantenimiento/'
     });
 
-    // Registra el grupo
-    const group = { toggleBtn, submenu, caret, open, close, isOpen, openIfStartsWith };
-    groups.push(group);
-
-    // Toggle con acordeón: cierra otros antes de abrir este
-    toggleBtn.addEventListener('click', () => {
-      if (group.isOpen()) {
-        group.close();
-      } else {
-        groups.forEach(g => { if (g !== group) g.close(); });
-        group.open();
-      }
+    const gInv = setupGroup({
+      toggleId: 'inventario-toggle',
+      submenuId: 'inventario-submenu',
+      caretId:  'inventario-caret',
+      openIfStartsWith: '/inventario/'
     });
 
-    return group;
-  };
+    const gRec = setupGroup({
+      toggleId: 'recetas-toggle',
+      submenuId: 'recetas-submenu',
+      caretId:  'recetas-caret',
+      openIfStartsWith: '/recetas/'
+    });
 
-  // ====== Registra tus grupos aquí ======
-  const gMant = setupGroup({
-    toggleId: 'mantenimiento-toggle',
-    submenuId: 'mantenimiento-submenu',
-    caretId:  'mantenimiento-caret',
-    openIfStartsWith: '/mantenimiento/'
-  });
-
-  const gInv = setupGroup({
-    toggleId: 'inventario-toggle',
-    submenuId: 'inventario-submenu',
-    caretId:  'inventario-caret',
-    openIfStartsWith: '/inventario/'
-  });
-
-  const gRec = setupGroup({
-  toggleId: 'recetas-toggle',
-  submenuId: 'recetas-submenu',
-  caretId:  'recetas-caret',
-  openIfStartsWith: '/recetas/'
-});
-
-  // ====== Auto-apertura por ruta pero en modo acordeón (solo uno abierto) ======
-  // Si varias rutas coinciden, se queda abierto el primero que haga match.
-  const firstMatch = groups.find(g => g.openIfStartsWith && path.startsWith(g.openIfStartsWith));
-  if (firstMatch) {
-    groups.forEach(g => g.close());
-    firstMatch.open();
-  } else {
-    // Si el HTML ya trajo alguno abierto, asegura que solo quede uno
-    const alreadyOpen = groups.find(g => g.isOpen());
-    if (alreadyOpen) {
-      groups.forEach(g => { if (g !== alreadyOpen) g.close(); });
+    // ====== Auto-apertura por ruta en modo acordeón (solo uno abierto) ======
+    const firstMatch = groups.find(g => g.openIfStartsWith && path.startsWith(g.openIfStartsWith));
+    if (firstMatch) {
+      groups.forEach(g => g.close());
+      firstMatch.open();
+    } else {
+      const alreadyOpen = groups.find(g => g.isOpen());
+      if (alreadyOpen) {
+        groups.forEach(g => { if (g !== alreadyOpen) g.close(); });
+      }
     }
-  }
-});
-</script>
+  });
+  </script>
+  <script>
+  // Normaliza padding-right inyectado por Bootstrap al abrir cualquier modal
+  (function(){
+    function resetBodyPadding(){
+      try{
+        document.body.style.paddingRight = '';
+        document.querySelectorAll('.fixed-top,.fixed-bottom,.is-fixed,.sticky-top')
+          .forEach(el=>{ el.style.paddingRight=''; });
+      }catch(e){}
+    }
+    document.addEventListener('show.bs.modal', resetBodyPadding, true);
+    document.addEventListener('shown.bs.modal', resetBodyPadding, true);
+    document.addEventListener('hide.bs.modal', resetBodyPadding, true);
+    document.addEventListener('hidden.bs.modal', resetBodyPadding, true);
+  })();
+  </script>
   {% block extra_js %}{% endblock %}
   {% block modals %}{% endblock %}
 </body>

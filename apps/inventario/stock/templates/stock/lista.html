@@ -1,4 +1,4 @@
-{% extends "dashboard/base.html" %}
+﻿{% extends "dashboard/base.html" %}
 {% load static %}
 
 {% block title %}Stock de Productos · SAIF{% endblock %}
@@ -12,19 +12,18 @@
   overflow-x:auto;
   width:100%;
   max-height:calc(100vh - 250px);
-  scroll-padding-top:90px; /* evita que el sticky tape al saltar */
+  scroll-padding-top:90px;
 }
 
-/* ====== Tabla ====== */
+/* ====== Tabla (COLLAPSE para evitar fila fantasma) ====== */
 #tablaStock{
-  table-layout:fixed;                    /* consistente con Productos */
+  table-layout:fixed;
   width:100%; min-width:1200px;
-  border-collapse:separate;              /* necesario para sticky + bordes finos */
-  border-spacing:0;
-  outline:1px solid #e3e6ea;             /* contorno sin ocupar espacio (evita "fila fantasma") */
-  outline-offset:-1px;
+  border-collapse:collapse;            /* << cambio clave */
+  border:1px solid #e3e6ea;            /* borde exterior */
   border-radius:.5rem;
   margin-bottom:0;
+  background:#fff;
 }
 
 /* ====== Celdas ====== */
@@ -36,53 +35,41 @@
   vertical-align:middle;
   padding:.5rem;
   font-size:.875rem;
-  background-clip:padding-box;  /* evita solapes con sticky */
-  border:1px solid #e3e6ea;     /* líneas internas */
+  background-clip:padding-box;
+  border:1px solid #e3e6ea;           /* rejilla interna */
 }
 
-/* Mismo color en todas las filas (sin rayado) */
+/* Mismo color en todas las filas */
 #tablaStock tbody tr{ background:#ffffff; }
 
 /* ====== Encabezado sticky (2 filas) ====== */
 #tablaStock thead.sticky-top{
-  position:sticky;
-  top:0;
-  z-index:10;
+  position:sticky; top:0; z-index:10;
   box-shadow:0 2px 4px rgba(0,0,0,.06);
 }
-
-/* Fila de títulos (1ª fila del thead) */
 #tablaStock thead.sticky-top tr:first-child th{
-  position:sticky;
-  top:0;
-  z-index:11;
-  background:#e8f5ec;               /* verde muy suave */
-  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
+  position:sticky; top:0; z-index:11;
+  background:#e8f5ec;
+  border-bottom:1px solid #d7dbdf;
 }
-
-/* Fila de filtros (2ª fila del thead) */
+/* El "top" de la fila de filtros se ajusta por JS */
 #tablaStock thead.sticky-top tr.filter-row th{
-  position:sticky;
-  top:42px;                          /* altura aprox de la fila de títulos */
-  z-index:10;
+  position:sticky; z-index:10;
   background:#f4fbf6;
   border-top:1px solid #d9f3e0;
-  border-bottom:1px solid #d7dbdf;   /* marca separación con el tbody */
+  border-bottom:1px solid #d7dbdf;
   box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
   padding:.35rem .5rem;
-  overflow:visible;                   /* para que no se corte "Todos" */
+  overflow:visible;
   min-width:80px;
 }
 
 /* Controles compactos del thead */
-thead .form-control-sm,
-thead .form-select-sm{
-  padding-top:.25rem;
-  padding-bottom:.25rem;
-  height:28px;
+thead .form-control-sm, thead .form-select-sm{
+  padding-top:.25rem; padding-bottom:.25rem; height:28px;
 }
 
-/* ===== Look unificado de filtros ===== */
+/* ===== Look de filtros ===== */
 .filter-control{
   display:block; width:100%; min-width:0; height:32px;
   padding:.25rem .5rem; box-sizing:border-box;
@@ -90,66 +77,49 @@ thead .form-select-sm{
   font-size:.85rem; text-align:center;
   transition:border-color .15s, box-shadow .15s, background-color .15s;
 }
-.filter-control::placeholder{ color:#94a3b8; } /* slate-400 */
+.filter-control::placeholder{ color:#94a3b8; }
 .filter-control:focus{
-  border-color:#62c07b; outline:0;
-  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
+  border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
   background:#fcfffd;
 }
-
-/* Selects: centrado visible y flecha consistente */
 select.filter-control{
   appearance:none; -webkit-appearance:none; -moz-appearance:none;
   background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
   background-repeat:no-repeat; background-position:right .5rem center; background-size:16px 12px;
-  padding-right:1.75rem;
-  -moz-text-align-last:center !important;
-  text-align-last:center !important;
+  padding-right:1.75rem; -moz-text-align-last:center !important; text-align-last:center !important;
 }
 
-/* Fuerza ancho de columnas con select estrecho */
-#tablaStock col:nth-child(8){ /* Estado */
-  width:120px !important;
-}
-
-/* ===== Utilidades de ancho (si prefieres estas, ya tienes col-... abajo) ===== */
-.wp-5{width:5%}.wp-6{width:6%}.wp-7{width:7%}.wp-8{width:8%}
-.wp-11{width:11%}.wp-12{width:12%}.wp-14{width:14%}.wp-16{width:16%}
-.wp-15{width:15%}.wp-22{width:22%}
+/* Fuerza ancho de “Estado” */
+#tablaStock col:nth-child(8){ width:120px !important; }
 
 /* Paginación: ocultar filas fuera de página */
 .hidden-by-pagination{ display:none !important; }
 
-/* ===== FIX bordes duplicados vs contorno (evita "celda fantasma") ===== */
-#tablaStock thead tr:first-child th{ border-top:0; }
-#tablaStock tbody tr:last-child td{ border-bottom:0; }
-#tablaStock tr>*:first-child{ border-left:0; }
-#tablaStock tr>*:last-child{  border-right:0; }
-
-/* Hover suave */
-#tablaStock tbody tr:hover{ background:#fafafa; }
-
-/* ===== Anchos por colgroup (mantengo tus clases existentes) ===== */
+/* Anchos por colgroup */
 .col-codigo{width:90px}.col-nombre{width:140px}.col-descripcion{width:180px}
 .col-presentacion{width:120px}.col-disponible{width:100px}.col-lote{width:110px}
 .col-caducidad{width:120px}.col-estado{width:120px}.col-compra{width:100px}.col-venta{width:100px}
 
-/* ===== Responsivo ===== */
+/* Responsivo */
 @media (max-width:1400px){
   #tablaStock th,#tablaStock td{ padding:.4rem; font-size:.8rem; }
   .filter-control{ font-size:.8rem; padding:.2rem .4rem; }
 }
 @media (max-width:1200px){
-  #tablaStock th:nth-child(3), #tablaStock td:nth-child(3){ max-width:150px; } /* Descripción */
+  #tablaStock th:nth-child(3), #tablaStock td:nth-child(3){ max-width:150px; }
 }
 @media (max-width:992px){
-  #tablaStock th:nth-child(2), #tablaStock td:nth-child(2){ max-width:120px; } /* Nombre */
-  #tablaStock th:nth-child(3), #tablaStock td:nth-child(3){ max-width:100px; } /* Descripción */
+  #tablaStock th:nth-child(2), #tablaStock td:nth-child(2){ max-width:120px; }
+  #tablaStock th:nth-child(3), #tablaStock td:nth-child(3){ max-width:100px; }
 }
 @media (max-width:768px){
   .table-container{ font-size:.8rem; }
   #tablaStock th,#tablaStock td{ padding:.3rem; }
 }
+</style>
+<!-- Overrides para evitar salto y unificar comportamiento -->
+<style>
+.table-container{ overflow-y: auto; }
 </style>
 
 <section class="p-3 p-md-4">
@@ -161,7 +131,6 @@ select.filter-control{
     </div>
 
     <div class="table-container">
-      <!-- OJO: sin table-borderless para que se vean las líneas internas -->
       <table class="table table-hover align-middle text-center" id="tablaStock" role="grid" aria-label="Tabla de stock">
         <colgroup>
           <col class="col-codigo">
@@ -189,15 +158,14 @@ select.filter-control{
             <th scope="col">P. Compra</th>
             <th scope="col">P. Venta</th>
           </tr>
-          <!-- FILA DE FILTROS (sin 'Disponible' y sin 'Caducidad') -->
           <tr class="filter-row">
             <th><input id="f-codigo" class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
             <th><input id="f-nombre" class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
             <th><input id="f-desc"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
             <th><input id="f-pres"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
-            <th></th> <!-- Disponible -->
+            <th></th>
             <th><input id="f-lote"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
-            <th></th> <!-- Caducidad -->
+            <th></th>
             <th>
               <select id="f-estado" class="form-select form-select-sm filter-control">
                 <option value="">Todos</option>
@@ -206,14 +174,18 @@ select.filter-control{
                 <option value="otros">Otros</option>
               </select>
             </th>
-            <th></th> <!-- P. Compra -->
-            <th></th> <!-- P. Venta -->
+            <th></th>
+            <th></th>
           </tr>
         </thead>
 
         <tbody>
           {% for lote in lotes %}
-          <tr data-id="{{ lote.id }}" tabindex="0" data-estado="{{ lote.id_estado_lote.nombre_estado }}">
+          <tr
+            data-id="{{ lote.id }}"
+            tabindex="0"
+            data-estado="{{ lote.id_estado_lote.nombre_estado|lower }}"
+          >
             <td class="text-truncate">{{ lote.id_producto.codigo_producto }}</td>
             <td class="text-truncate text-capitalize">{{ lote.id_producto.nombre }}</td>
             <td class="text-truncate text-muted small">{{ lote.id_producto.descripcion|default:"—" }}</td>
@@ -241,13 +213,12 @@ select.filter-control{
       </table>
     </div>
 
-    <div id="pagerStock" class="saif-pager d-flex justify-content-center align-items-center p-2"></div>
+    <div id="pagerStock" class="saif-pager d-flex justify-content-center align-items-center p-2" role="status" aria-live="polite"></div>
 
     <div class="px-3 py-3 text-center border-top bg-light">
-      <button id="btnConsultar" class="btn btn-primary rounded-pill px-4 me-2 shadow-sm" disabled>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-4 me-2 shadow-sm" disabled aria-disabled="true">
         <i class="bi bi-search"></i> Consultar
       </button>
-      <!-- Exportar PDF con filtros -->
       <a href="{% url 'inventario:stock:exportar_pdf' %}" id="btnExportPdf" class="btn btn-success rounded-pill px-4 shadow-sm">
         <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
       </a>
@@ -255,7 +226,6 @@ select.filter-control{
   </div>
 </section>
 
-<!-- Modal -->
 <div class="modal fade" id="modalStock" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-stock-content"></div>
@@ -269,6 +239,7 @@ select.filter-control{
 document.addEventListener("DOMContentLoaded", function () {
   const table        = document.getElementById("tablaStock");
   const tbody        = table.querySelector("tbody");
+  const thead        = table.tHead;
   const pagerEl      = document.getElementById("pagerStock");
   const modalEl      = document.getElementById("modalStock");
   const modalContent = document.getElementById("modal-stock-content");
@@ -277,15 +248,38 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedId = null;
   const norm = (s)=> (s ?? "").toString().trim().toLowerCase();
 
-  /* Titles auto cuando hay truncado */
+  /* ===== Sticky offsets dinámicos ===== */
+  function fixStickyOffsets(){
+    if(!thead) return;
+    const headerRow = thead.rows[0];
+    const filterRow = thead.querySelector('.filter-row');
+    if(!headerRow || !filterRow) return;
+    const h = headerRow.getBoundingClientRect().height;
+    Array.from(filterRow.cells).forEach(th => th.style.top = `${h}px`);
+  }
+
+  /* Titles sólo en celdas visibles */
   function refreshAutoTitles(){
-    table.querySelectorAll("td, th").forEach(el=>{
-      if (el.scrollWidth > el.clientWidth) el.setAttribute("title", el.textContent.trim());
+    const visibles = table.querySelectorAll('thead th, tbody tr:not(.hidden-by-pagination):not([style*="display: none"]) td');
+    visibles.forEach(el=>{
+      if (el.scrollWidth > el.clientWidth) el.title = el.textContent.trim();
       else el.removeAttribute("title");
     });
   }
 
-  /* Modal */
+  /* ===== Quitar filas totalmente vacías (definitivo) ===== */
+  function isEmptyRow(tr){
+    if(tr.hasAttribute('data-empty-row')) return false;
+    const tds = Array.from(tr.cells);
+    if(!tds.length) return true;
+    return !tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+  }
+  function purgeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(isEmptyRow(tr)) tr.remove();
+    });
+  }
+
   function abrirModal(url){
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
     modal.show();
@@ -295,13 +289,18 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(()=>{ modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el detalle.</div>'; });
   }
 
-  /* Selección de filas */
+  function setDisabled(id, v){
+    const b = document.getElementById(id);
+    if(!b) return;
+    b.disabled = v;
+    b.setAttribute('aria-disabled', String(v));
+  }
   function selectRow(row){
     if (!row) return;
     tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
     row.classList.add("table-active");
     selectedId = row.getAttribute("data-id");
-    document.getElementById("btnConsultar").disabled = !selectedId;
+    setDisabled("btnConsultar", !selectedId);
   }
 
   tbody.addEventListener("click",(ev)=>{
@@ -309,7 +308,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!row || row.hasAttribute("data-empty-row")) return;
     selectRow(row);
   });
-
   tbody.addEventListener("dblclick",(ev)=>{
     const row = ev.target.closest("tr");
     if (!row || row.hasAttribute("data-empty-row")) return;
@@ -317,29 +315,33 @@ document.addEventListener("DOMContentLoaded", function () {
     if (selectedId) abrirModal(`/inventario/stock/${selectedId}/consultar/`);
   });
 
+  function isEditable(el){
+    const tag = (el.tagName || '').toLowerCase();
+    return el.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select';
+  }
   table.addEventListener("keydown",(ev)=>{
+    if(isEditable(ev.target)) return;
     const current = tbody.querySelector("tr.table-active");
     const rows = Array.from(tbody.querySelectorAll("tr"))
-      .filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
+      .filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row") && r.style.display !== "none");
     if (!rows.length) return;
 
     const idx = rows.indexOf(current);
     if (ev.key === "ArrowDown"){
       const next = rows[Math.min(rows.length-1, idx+1 >= 0 ? idx+1 : 0)];
-      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
+      selectRow(next); next?.focus?.({preventScroll:true}); ev.preventDefault();
     }else if (ev.key === "ArrowUp"){
       const prev = rows[Math.max(0, idx-1 >= 0 ? idx-1 : 0)];
-      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
+      selectRow(prev); prev?.focus?.({preventScroll:true}); ev.preventDefault();
     }else if (ev.key === "Enter" && selectedId){
       abrirModal(`/inventario/stock/${selectedId}/consultar/`); ev.preventDefault();
     }
   });
 
-  document.getElementById("btnConsultar").addEventListener("click", ()=>{
+  document.getElementById("btnConsultar")?.addEventListener("click", ()=>{
     if (selectedId) abrirModal(`/inventario/stock/${selectedId}/consultar/`);
   });
 
-  /* ===== Preprocesar filas para filtros ===== */
   const COL = { codigo:0, nombre:1, desc:2, pres:3, dispo:4, lote:5, cadu:6, estado:7 };
 
   function preprocessRows(){
@@ -357,56 +359,83 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ===== Paginación ===== */
-  let currentPage = 1, pageSize = 20;
-  const rowHeight = 42;
 
-  function recomputarPageSize(){
-    const rect = tbody.getBoundingClientRect();
-    const espacio = window.innerHeight - rect.top - 160;
-    pageSize = Math.max(1, Math.floor(espacio / rowHeight));
+/* ====== Paginación ====== */
+let currentPage=1; let pageSize=15; const rowHeight=42;
+
+function recomputarPageSize(){
+  const rect=tbody.getBoundingClientRect();
+  const margenInf=160;
+  const espacio=window.innerHeight-rect.top-margenInf;
+  pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+}
+
+function getDataRows(){
+  return Array.from(tbody.querySelectorAll("tr"))
+    .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+}
+
+function renderPager(totalPages){
+  if(totalPages<=1){
+    pagerEl.innerHTML="";
+    pagerEl.style.display="none";
+    return;
   }
-  function getDataRows(){
-    return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display !== "none");
-  }
-  function applyPagination(){
-    const rows = getDataRows();
-    const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-    if (currentPage > totalPages) currentPage = totalPages;
 
-    const start = (currentPage - 1) * pageSize;
-    const end   = start + pageSize;
-    rows.forEach((tr, idx)=> tr.classList.toggle("hidden-by-pagination", !(idx >= start && idx < end)));
+  pagerEl.style.display="flex";
+  // Estilo elegante y centrado
+  pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+  pagerEl.innerHTML="";
 
-    renderPager(totalPages);
+  const prev=document.createElement("button");
+  prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+  prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+  prev.disabled=currentPage===1;
+  prev.onclick=()=>{ currentPage--; applyPagination(); };
 
-    if (selectedId){
-      const sel = rows.find(r=>r.getAttribute("data-id") === selectedId);
-      if (sel && sel.classList.contains("hidden-by-pagination")){
-        const firstVisible = rows.find(r=>!r.classList.contains("hidden-by-pagination"));
-        if (firstVisible) selectRow(firstVisible);
-      }
+  const info=document.createElement("span");
+  info.className="fw-semibold text-success small";
+  info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+  const next=document.createElement("button");
+  next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+  next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+  next.disabled=currentPage===totalPages;
+  next.onclick=()=>{ currentPage++; applyPagination(); };
+
+  pagerEl.append(prev,info,next);
+}
+
+function applyPagination(){
+  const rows=getDataRows();
+  const total=rows.length;
+  const totalPages=Math.max(1,Math.ceil(total/pageSize));
+  if(currentPage>totalPages) currentPage=totalPages;
+
+  const start=(currentPage-1)*pageSize;
+  const end=start+pageSize;
+
+  rows.forEach((tr,idx)=>{
+    tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+  });
+
+  renderPager(totalPages);
+
+  tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+  const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+  const last = visibles[visibles.length-1];
+  if(last) last.classList.add('last-visible');
+
+  if(selectedId){
+    const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+    if(sel && sel.classList.contains("hidden-by-pagination")){
+      const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+      if(firstVisible) selectRow(firstVisible);
     }
-    refreshAutoTitles();
   }
-  function renderPager(totalPages){
-    if (totalPages <= 1){ pagerEl.innerHTML = ""; pagerEl.style.display = "none"; return; }
-    pagerEl.style.display = "flex"; pagerEl.innerHTML = "";
 
-    const prev = document.createElement("button");
-    prev.className = "btn btn-outline-secondary me-2"; prev.innerHTML = "&laquo; Anterior";
-    prev.disabled = currentPage === 1; prev.onclick = ()=>{ currentPage--; applyPagination(); };
-
-    const info = document.createElement("span");
-    info.className = "align-self-center mx-3"; info.textContent = `Página ${currentPage} de ${totalPages}`;
-
-    const next = document.createElement("button");
-    next.className = "btn btn-outline-secondary ms-2"; next.innerHTML = "Siguiente &raquo;";
-    next.disabled = currentPage === totalPages; next.onclick = ()=>{ currentPage++; applyPagination(); };
-
-    pagerEl.append(prev, info, next);
-  }
+  refreshAutoTitles();
+}
 
   /* ===== Filtros ===== */
   function installFilters(){
@@ -420,31 +449,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputs = [fCodigo,fNombre,fDesc,fPres,fLote,fEstado].filter(Boolean);
 
     function applyFilters(){
-      const codeVal = norm(fCodigo.value);
-      const nameVal = norm(fNombre.value);
-      const descVal = norm(fDesc.value);
-      const presVal = norm(fPres.value);
-      const loteVal = norm(fLote.value);
-      const estVal  = fEstado.value; // "", "vigente", "vencido", "otros"
+      const codeVal = norm(fCodigo?.value);
+      const nameVal = norm(fNombre?.value);
+      const descVal = norm(fDesc?.value);
+      const presVal = norm(fPres?.value);
+      const loteVal = norm(fLote?.value);
+      const estVal  = (fEstado?.value || "").toLowerCase();
 
       const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
       rows.forEach(tr=>{
         const ok =
-          (!codeVal || tr.dataset.codigo.includes(codeVal)) &&
-          (!nameVal || tr.dataset.nombre.includes(nameVal)) &&
-          (!descVal || tr.dataset.desc.includes(descVal))   &&
-          (!presVal || tr.dataset.pres.includes(presVal))   &&
-          (!loteVal || tr.dataset.lote.includes(loteVal))   &&
-          (!estVal  || tr.dataset.estado === estVal);
-
+          (!codeVal || (tr.dataset.codigo||"").includes(codeVal)) &&
+          (!nameVal || (tr.dataset.nombre||"").includes(nameVal)) &&
+          (!descVal || (tr.dataset.desc||"").includes(descVal))   &&
+          (!presVal || (tr.dataset.pres||"").includes(presVal))   &&
+          (!loteVal || (tr.dataset.lote||"").includes(loteVal))   &&
+          (!estVal  || (tr.dataset.estado||"") === estVal);
         tr.style.display = ok ? "" : "none";
       });
 
       currentPage = 1;
+      recomputarPageSize();
       applyPagination();
     }
 
-    function debounce(fn, ms=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+    function debounce(fn, ms=180){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
     inputs.forEach(inp=>{
       const ev = (inp.tagName === "SELECT") ? "change" : "input";
       const handler = (inp.tagName === "SELECT") ? applyFilters : debounce(applyFilters, 180);
@@ -452,16 +481,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     /* Exportar PDF con filtros actuales */
-    document.getElementById("btnExportPdf").addEventListener("click", function(e){
+    document.getElementById("btnExportPdf")?.addEventListener("click", function(e){
       e.preventDefault();
       const base = this.getAttribute("href");
       const params = new URLSearchParams({
-        codigo: fCodigo.value || "",
-        nombre: fNombre.value || "",
-        desc:   fDesc.value   || "",
-        pres:   fPres.value   || "",
-        lote:   fLote.value   || "",
-        estado: fEstado.value || ""
+        codigo: fCodigo?.value || "",
+        nombre: fNombre?.value || "",
+        desc:   fDesc?.value   || "",
+        pres:   fPres?.value   || "",
+        lote:   fLote?.value   || "",
+        estado: fEstado?.value || ""
       });
       window.location.href = `${base}?${params.toString()}`;
     });
@@ -469,13 +498,24 @@ document.addEventListener("DOMContentLoaded", function () {
     applyFilters();
   }
 
-  /* Init */
-  recomputarPageSize();
+  /* ===== Init ===== */
+  purgeEmptyRows();          // por si viniera del template
   preprocessRows();
+  fixStickyOffsets();
+  recomputarPageSize();
   installFilters();
   applyPagination();
   refreshAutoTitles();
-  window.addEventListener("resize", ()=>{ recomputarPageSize(); applyPagination(); });
+
+  window.addEventListener("resize", ()=>{
+    fixStickyOffsets();
+    recomputarPageSize();
+    applyPagination();
+  });
+
+  // Si fuentes/estilos cambian alturas tras pintar
+  setTimeout(()=>{ fixStickyOffsets(); recomputarPageSize(); applyPagination(); }, 0);
 });
 </script>
 {% endblock %}
+

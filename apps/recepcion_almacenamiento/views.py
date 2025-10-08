@@ -66,6 +66,36 @@ def recepcion_detail(request, pk):
     )
 
 
+@login_required
+def recepcion_graficas(request):
+    """Vista simple de gráficas para Recepciones."""
+    qs = Recepciones_Envio.objects.all().values("estado_recepcion", "fecha_recepcion")
+
+    estados = {}
+    for r in qs:
+        key = r.get("estado_recepcion") or "Otros"
+        estados[key] = estados.get(key, 0) + 1
+
+    from datetime import timedelta
+    today = timezone.localdate()
+    labels = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    diarios = {d: 0 for d in labels}
+    for r in qs:
+        dt = r.get("fecha_recepcion")
+        if dt:
+            d = dt.date()
+            if d in diarios:
+                diarios[d] += 1
+
+    context = {
+        "labels_dias": [d.strftime("%d/%m") for d in labels],
+        "data_dias": [diarios[d] for d in labels],
+        "labels_estados": list(estados.keys()),
+        "data_estados": list(estados.values()),
+    }
+    return render(request, "recepcion/graficas.html", context)
+
+
 # -------------------------------
 # Búsquedas vía AJAX
 # -------------------------------
