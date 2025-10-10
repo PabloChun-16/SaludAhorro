@@ -1,0 +1,275 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Ventas · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-receipt-cutoff"></i>
+      <h3>Ventas registradas</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table table-saif align-middle text-center" id="tablaVentas">
+        <thead>
+          <tr>
+            <th>No. Factura</th>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in ventas %}
+          <tr data-ref="{{ v.referencia }}">
+            <td class="fw-semibold">{{ v.referencia }}</td>
+            <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
+            <td>{{ v.usuario }}</td>
+            <td>{{ v.estado }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="py-4 text-muted">Sin ventas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear" class="btn btn-warning me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#modalVenta"
+              data-url="{% url 'sd:salidas:create' %}">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+      <button id="btnConsultar" class="btn btn-primary" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal principal -->
+<div class="modal fade" id="modalVenta" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-venta-content"></div>
+  </div>
+</div>
+
+<!-- Reutilizamos el modal de productos de recepción -->
+{% include "recepcion/partials/producto_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const table = document.getElementById("tablaVentas");
+  const btnConsultar = document.getElementById("btnConsultar");
+  const btnCrear = document.getElementById("btnCrear");
+
+  const modalEl = document.getElementById("modalVenta");
+  const modalContent = document.getElementById("modal-venta-content");
+  const modalInstance = new bootstrap.Modal(modalEl);
+
+  let selectedRef = null;
+
+  // --- Selección de fila
+  table.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-ref]");
+    if (!tr) return;
+    table.querySelectorAll("tr.selected").forEach(r => r.classList.remove("selected"));
+    tr.classList.add("selected");
+    selectedRef = tr.getAttribute("data-ref");
+    btnConsultar.disabled = !selectedRef;
+  });
+
+  // --- Abrir modal CREAR
+  btnCrear.addEventListener("click", function () {
+    modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
+    modalInstance.show();
+    fetch(this.dataset.url, { headers: {"X-Requested-With":"XMLHttpRequest"} })
+      .then(r => r.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        inicializarFormularioVenta();    // eventos del form
+        cablearBuscadorProductos();      // buscador de productos
+      })
+      .catch(() => {
+        modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando formulario.</div>";
+      });
+  });
+
+  // --- Abrir modal CONSULTAR
+  btnConsultar.addEventListener("click", function (){
+    if (!selectedRef) return;
+    modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
+    modalInstance.show();
+    fetch("{% url 'sd:salidas:detail' 'REF' %}".replace("REF", encodeURIComponent(selectedRef)))
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando detalle.</div>"; });
+  });
+
+  // -----------------------
+  // Inicializador del FORM
+  // -----------------------
+  function inicializarFormularioVenta(){
+    const alertBox = document.getElementById("formAlert");
+    const detalles = []; // vive mientras esté abierto el modal
+
+    const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
+    const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
+
+    // API global para el buscador (modal reutilizado)
+    window.setProductoSeleccionado = function({id, texto}) {
+      const idEl  = document.querySelector("#modalVenta #productoIdInput");
+      const txtEl = document.querySelector("#modalVenta #productoInput");
+      if (idEl)  idEl.value  = id || "";
+      if (txtEl) txtEl.value = texto || "";
+    };
+
+    // Añadir detalle
+    const addBtn = document.querySelector("#modalVenta #btnAddDetalle");
+    if (addBtn){
+      addBtn.addEventListener("click", () => {
+        hideAlert();
+        const pid = document.querySelector("#modalVenta #productoIdInput")?.value || "";
+        const ptx = (document.querySelector("#modalVenta #productoInput")?.value || "").trim();
+        const qty = parseInt(document.querySelector("#modalVenta #cantidadInput")?.value || 0, 10);
+
+        if (!pid){ showAlert("Seleccione un producto."); return; }
+        if (!qty || qty <= 0){ showAlert("Cantidad inválida."); return; }
+
+        const item = { producto_id: parseInt(pid,10), cantidad: qty, producto: ptx };
+        detalles.push(item);
+
+        const tbody = document.querySelector("#modalVenta #detalleTable");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="text-start">${item.producto}</td>
+          <td>${item.cantidad}</td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>`;
+        tr.querySelector(".btn-del").addEventListener("click", () => {
+          tr.remove();
+          const idx = detalles.indexOf(item);
+          if (idx >= 0) detalles.splice(idx,1);
+        });
+        tbody.appendChild(tr);
+
+        // limpiar captura
+        document.querySelector("#modalVenta #productoIdInput").value = "";
+        document.querySelector("#modalVenta #productoInput").value  = "";
+        document.querySelector("#modalVenta #cantidadInput").value  = "";
+      });
+    }
+
+    // Envío del form
+    const form = document.querySelector("#modalVenta #form-venta");
+    if (form){
+      form.addEventListener("submit", async (e)=>{
+        e.preventDefault(); hideAlert();
+
+        const ref   = (document.querySelector("#modalVenta #facturaInput")?.value || "").trim();
+        const fecha = document.querySelector("#modalVenta #fechaInput")?.value || "";
+        const comentario = (document.querySelector("#modalVenta #comentarioInput")?.value || "").trim();
+
+        if (!ref){ showAlert("Ingrese No. de factura."); return; }
+        if (!detalles.length){ showAlert("Agregue al menos un producto."); return; }
+
+        const payload = {
+          form_data: { numero_factura: ref, fecha_venta: fecha, comentario: comentario },
+          detalles: detalles
+        };
+
+        try{
+          const resp = await fetch("{% url 'sd:salidas:create' %}", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With":"XMLHttpRequest",
+              "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(payload)
+          });
+          const data = await resp.json();
+          if (!resp.ok || !data.success){
+            showAlert((data && data.errors) ? data.errors : "Error al guardar.");
+            return;
+          }
+          window.location.reload();
+        }catch(err){
+          console.error(err);
+          showAlert("Error de red.");
+        }
+      });
+    }
+  }
+
+  // ----------------------------
+  // Buscador de productos (reuso)
+  // ----------------------------
+  const modalBuscar   = document.getElementById("modalBuscarProducto");
+  const searchInput   = document.getElementById("searchProducto");
+  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+
+  function cablearBuscadorProductos(){
+    modalBuscar.addEventListener("shown.bs.modal", onShownBuscador, { once:true });
+  }
+
+  function onShownBuscador(){
+    searchInput.value = "";
+    tbodyResultados.innerHTML = "";
+    searchInput.focus();
+
+    searchInput.oninput = function () {
+      const term = this.value;
+      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyResultados.innerHTML = "";
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo}</td>
+              <td>${p.nombre}</td>
+              <td>${p.descripcion ?? ""}</td>
+              <td>${p.presentacion ?? ""}</td>
+              <td>${p.unidad ?? ""}</td>
+              <td>${p.condicion ?? ""}</td>
+              <td>${p.receta ? "Sí" : "No"}</td>
+              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              if (window.setProductoSeleccionado) {
+                window.setProductoSeleccionado({
+                  id: p.id,
+                  texto: `${p.codigo} - ${p.nombre}`
+                });
+              }
+              bootstrap.Modal.getInstance(modalBuscar).hide();
+              bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            });
+            tbodyResultados.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+        });
+    };
+  }
+
+  // Si cierran el buscador con la X, volvemos a mostrar el principal
+  modalBuscar.addEventListener("hidden.bs.modal", () => {
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  });
+});
+</script>
+
+<style>
+#tablaVentas tr.selected { background-color: rgba(25, 135, 84, .12); }
+#tablaVentas tr { cursor: pointer; }
+</style>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% load static %}
+
+<style>
+  .saif-modal .modal-content{ border-radius:18px; overflow:hidden; box-shadow:0 12px 35px rgba(14,122,58,.25); }
+  .saif-modal .modal-header{ border-bottom:0; }
+  .saif-modal .modal-footer{ border-top:0; background:#f8fafc; }
+  .saif-modal .modal-body{ background:#f9fafb; }
+  .saif-modal thead th{ background:#e8f5ec !important; color:#0b3f2e; font-weight:700; }
+</style>
+
+<div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content saif-modal">
+
+      <div class="modal-header py-3 bg-success text-white">
+        <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-box-seam"></i> Buscar Lote (según factura)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-2 small text-muted">
+          Este listado muestra únicamente los lotes del <b>producto</b> que se vendieron en la <b>factura</b> indicada.
+        </div>
+
+        <input type="text" id="searchLote" class="form-control mb-3" placeholder="Buscar por número de lote... (opcional)">
+
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered text-center align-middle">
+            <thead>
+              <tr>
+                <th>Número Lote</th>
+                <th>Fecha Caducidad</th>
+                <th>Cant. vendida en la factura</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarLotes">
+              <!-- Se llena por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const modalLote = document.getElementById("modalBuscarLote");
+  const searchLoteInput = document.getElementById("searchLote");
+  const tablaLotes = document.getElementById("tablaBuscarLotes");
+
+  // Construye la URL correcta al endpoint (namespace sd:devoluciones, name 'lotes_por_factura')
+  function lotesUrl(ref, productoId, term){
+    const base = "{% url 'sd:devoluciones:lotes_por_factura' 'REF' 0 %}"
+                   .replace("REF", encodeURIComponent(ref))
+                   .replace("/0/", "/" + encodeURIComponent(productoId) + "/");
+    const q = term ? ("?term=" + encodeURIComponent(term)) : "";
+    return base + q;
+  }
+
+  function renderLotes(rows){
+    if (!rows || rows.length === 0){
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">No hay lotes asociados a esta factura para el producto seleccionado.</td></tr>`;
+      return;
+    }
+    tablaLotes.innerHTML = "";
+    rows.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.numero_lote}</td>
+        <td>${l.fecha_caducidad || ""}</td>
+        <td>${l.vendido}</td>
+        <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+      `;
+      tr.querySelector("button").addEventListener("click", () => {
+        // Rellena los campos del form de devoluciones:
+        document.getElementById("loteInput").value = l.numero_lote;
+        document.getElementById("caducidadInput").value = l.fecha_caducidad || "";
+        const loteIdHidden = document.getElementById("loteIdInput");
+        if (loteIdHidden) loteIdHidden.value = l.id;
+
+        // Cerrar este modal y volver al principal:
+        bootstrap.Modal.getInstance(modalLote).hide();
+        const modalPrincipal = document.getElementById("modalDevolucion");
+        bootstrap.Modal.getOrCreateInstance(modalPrincipal).show();
+
+        document.getElementById("cantidadInput")?.focus();
+      });
+      tablaLotes.appendChild(tr);
+    });
+  }
+
+  function loadLotes(term=""){
+    const ref = document.getElementById("facturaInput")?.value?.trim();
+    const productoId = document.getElementById("productoIdInput")?.value;
+
+    if (!ref || !productoId){
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Primero ingrese <b>No. de factura</b> y seleccione un <b>producto</b>.</td></tr>`;
+      return;
+    }
+
+    tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Cargando...</td></tr>`;
+    fetch(lotesUrl(ref, productoId, term))
+      .then(r => r.json())
+      .then(renderLotes)
+      .catch(() => {
+        tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
+      });
+  }
+
+  modalLote.addEventListener("shown.bs.modal", () => {
+    searchLoteInput.value = "";
+    loadLotes("");
+    searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
+  });
+})();
+</script>

@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Salidas y Devoluciones · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-box-seam"></i>
+      <h3>Salidas y Devoluciones</h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <a href="{% url 'sd:salidas:list' %}" class="no-underline">
+        <div class="p-6 rounded-xl shadow hover:shadow-lg border bg-white">
+          <div class="flex items-center gap-3 mb-2">
+            <i class="bi bi-receipt-cutoff text-2xl"></i>
+            <h4 class="m-0">Registrar Venta</h4>
+          </div>
+          <p class="text-slate-600">Descarga de inventario por factura (FIFO).</p>
+        </div>
+      </a>
+
+      <a href="{% url 'sd:devoluciones:list' %}" class="no-underline">
+        <div class="p-6 rounded-xl shadow hover:shadow-lg border bg-white">
+          <div class="flex items-center gap-3 mb-2">
+            <i class="bi bi-arrow-counterclockwise text-2xl"></i>
+            <h4 class="m-0">Registrar Devolución</h4>
+          </div>
+          <p class="text-slate-600">Retorno al inventario por lote/factura.</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

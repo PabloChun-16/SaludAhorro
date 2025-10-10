@@ -63,6 +63,10 @@ INSTALLED_APPS = [
     #Apps Gestion Inventario
     'apps.inventario.productos',
     'apps.inventario.stock',
+
+    #Apps Salidas y Devoluciones
+    "apps.salidas_devoluciones.salidas.apps.SalidasConfig",
+    "apps.salidas_devoluciones.devoluciones.apps.DevolucionesConfig",
 ]
 
 MIDDLEWARE = [

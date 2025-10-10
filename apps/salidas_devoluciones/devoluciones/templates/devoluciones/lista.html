@@ -1,0 +1,399 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Devoluciones · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <div class="saif-card mb-4">
+    <div class="saif-card-header">
+      <i class="bi bi-arrow-counterclockwise"></i>
+      <h3>Devoluciones registradas</h3>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table table-saif align-middle text-center" id="tablaDevoluciones">
+        <thead>
+          <tr>
+            <th>No. Factura</th>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in devoluciones %}
+          <tr data-ref="{{ d.referencia_transaccion }}">
+            <td class="fw-semibold">{{ d.referencia_transaccion }}</td>
+            <td>{{ d.fecha|date:"d/m/Y H:i" }}</td>
+            <td>{{ d.usuario }}</td>
+            <td>{{ d.estado }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="py-4 text-muted">Sin devoluciones.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-3 py-3 text-center">
+      <button id="btnCrear" class="btn btn-warning me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#modalDevolucion"
+              data-url="{% url 'sd:devoluciones:create' %}">
+        <i class="bi bi-plus-circle"></i> CREAR
+      </button>
+      <button id="btnConsultar" class="btn btn-primary" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal principal -->
+<div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-devolucion-content"></div>
+  </div>
+</div>
+
+<!-- Reutilizamos modal de productos -->
+{% include "recepcion/partials/producto_modal.html" %}
+<!-- Solo el modal de lotes de DEVOLUCIONES -->
+{% include "devoluciones/partials/lote_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const table = document.getElementById("tablaDevoluciones");
+  const tbody = table.querySelector("tbody");
+  const btnConsultar = document.getElementById("btnConsultar");
+  const btnCrear = document.getElementById("btnCrear");
+
+  const modalEl = document.getElementById("modalDevolucion");
+  const modalContent = document.getElementById("modal-devolucion-content");
+  const modalInstance = new bootstrap.Modal(modalEl);
+
+  let selectedRef = null;
+
+  // ---- Orden: más antigua → más reciente (si vienen descendentes, invertimos)
+  (function ordenarAsc(){
+    const filas = Array.from(tbody.querySelectorAll("tr[data-ref]"));
+    if (filas.length > 1) filas.reverse().forEach(tr => tbody.appendChild(tr));
+  })();
+
+  // ---- Selección de fila
+  table.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-ref]");
+    if (!tr) return;
+    table.querySelectorAll("tr.selected").forEach(r => r.classList.remove("selected"));
+    tr.classList.add("selected");
+    selectedRef = tr.getAttribute("data-ref");
+    btnConsultar.disabled = !selectedRef;
+  });
+
+  // ---- Abrir modal CREAR
+  btnCrear.addEventListener("click", function () {
+    modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
+    modalInstance.show();
+    fetch(this.dataset.url, { headers: {"X-Requested-With":"XMLHttpRequest"} })
+      .then(r => r.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        // Inicializamos el form (definido aquí, no en el parcial)
+        inicializarFormularioDevolucion();
+        // Conectamos buscadores
+        cablearBuscadorProductos();
+        cablearBuscadorLotes();
+      })
+      .catch(() => {
+        modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando formulario.</div>";
+      });
+  });
+
+  // ---- Abrir modal CONSULTAR
+  btnConsultar.addEventListener("click", function (){
+    if (!selectedRef) return;
+    modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
+    modalInstance.show();
+    fetch("{% url 'sd:devoluciones:detail' 'REF' %}".replace("REF", encodeURIComponent(selectedRef)))
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; })
+      .catch(() => { modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando detalle.</div>"; });
+  });
+
+  // ---- Re-mostrar principal cuando cierren los auxiliares
+  document.getElementById("modalBuscarProducto").addEventListener("hidden.bs.modal", () => {
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  });
+  document.getElementById("modalBuscarLote").addEventListener("hidden.bs.modal", () => {
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  });
+
+  /* ==========================================================
+     LÓGICA DEL FORM DE DEVOLUCIÓN (igual patrón que en SALIDAS)
+     ========================================================== */
+  function inicializarFormularioDevolucion(){
+    const root = document.getElementById("modalDevolucion");
+    const alertBox = root.querySelector("#formAlert");
+    const detalles = [];
+
+    const $ = (sel) => root.querySelector(sel);
+    const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
+    const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
+
+    // ---- Bridge GLOBAL para el modal de productos
+    window.setProductoSeleccionado = function({ id, texto, codigo, nombre }){
+      $("#productoIdInput").value = id || "";
+      // guarda solo el nombre en el input visual
+      const soloNombre = nombre || (texto?.split(" - ").slice(1).join(" - ").trim()) || texto || "";
+      $("#productoInput").value  = soloNombre;
+      // y guarda el código en el hidden
+      $("#codigoInput").value    = codigo || (texto ? String(texto).split(" - ")[0].trim() : "");
+
+      // limpiar lote al cambiar de producto
+      $("#loteIdInput").value = "";
+      $("#loteInput").value = "";
+      $("#caducidadInput").value = "";
+
+      bootstrap.Modal.getOrCreateInstance(root).show();
+    };
+
+    // ---- Bridge para modal de lotes
+    window.setLoteSeleccionado = function({id, numero_lote, fecha_caducidad}){
+      $("#loteIdInput").value = id || "";
+      $("#loteInput").value   = numero_lote || "";
+      $("#caducidadInput").value = fecha_caducidad || "";
+      bootstrap.Modal.getOrCreateInstance(root).show();
+      $("#cantidadInput")?.focus();
+    };
+
+    // ---- Guard para abrir el modal de Lotes
+    $("#btnOpenLoteModal").addEventListener("click", (ev) => {
+      const ref = $("#facturaInput")?.value?.trim();
+      const pid = $("#productoIdInput")?.value;
+      if (!ref || !pid){
+        ev.preventDefault();
+        ev.stopPropagation();
+        showAlert("Primero ingrese el No. de factura y seleccione un producto.");
+      }else{
+        hideAlert();
+      }
+    });
+
+    // ---- Añadir renglón
+    $("#btnAddDetalle").addEventListener("click", () => {
+      hideAlert();
+      const codigo     = ($("#codigoInput")?.value || "").trim();
+      const productoTx = ($("#productoInput")?.value || "").trim();
+      const productoId = parseInt($("#productoIdInput")?.value || 0, 10);
+      const loteId     = parseInt($("#loteIdInput")?.value || 0, 10);
+      const loteTx     = ($("#loteInput")?.value || "").trim();
+      const qty        = parseInt($("#cantidadInput")?.value || 0, 10);
+
+      if (!productoId){ showAlert("Seleccione un producto."); return; }
+      if (!loteId){ showAlert("Seleccione un lote (según la factura)."); return; }
+      if (!qty || qty <= 0){ showAlert("Cantidad inválida."); return; }
+
+      const item = { producto_id: productoId, codigo, producto: productoTx, lote_id: loteId, numero_lote: loteTx, cantidad: qty };
+      detalles.push(item);
+
+      const tbody = $("#detalleTable");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.codigo}</td>
+        <td class="text-start">${item.producto}</td>
+        <td>${item.numero_lote}</td>
+        <td>${item.cantidad}</td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>
+      `;
+      tr.querySelector(".btn-del").addEventListener("click", () => {
+        tr.remove();
+        const idx = detalles.indexOf(item);
+        if (idx >= 0) detalles.splice(idx, 1);
+      });
+      tbody.appendChild(tr);
+
+      ["productoInput","productoIdInput","codigoInput","loteInput","loteIdInput","caducidadInput","cantidadInput"]
+        .forEach(id => { const el = $("#"+id); if (el) el.value = ""; });
+    });
+
+    // ---- Envío
+    $("#form-devolucion").addEventListener("submit", async (e) => {
+      e.preventDefault(); hideAlert();
+
+      const ref   = ($("#facturaInput")?.value || "").trim();
+      const fecha = $("#fechaInput")?.value || "";
+      const motivo= ($("#motivoInput")?.value || "").trim();
+
+      if (!ref){ showAlert("Ingrese el No. de factura."); return; }
+      if (!detalles.length){ showAlert("Agregue al menos un producto a devolver."); return; }
+
+      const payload = {
+        form_data: { numero_factura: ref, fecha_devolucion: fecha, motivo: motivo },
+        detalles: detalles.map(d => ({ producto_id: d.producto_id, lote_id: d.lote_id, cantidad: d.cantidad }))
+      };
+
+      try{
+        const resp = await fetch("{% url 'sd:devoluciones:create' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json",
+            "X-Requested-With":"XMLHttpRequest",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.success){ showAlert(data?.errors || "Error al guardar la devolución."); return; }
+        window.location.reload();
+      }catch(err){
+        console.error(err);
+        showAlert("Error de red.");
+      }
+    });
+  }
+
+  /* ===============================
+     Buscador de PRODUCTOS (reuso)
+     =============================== */
+  function cablearBuscadorProductos(){
+    const modal = document.getElementById("modalBuscarProducto");
+    const input = document.getElementById("searchProducto");
+    const tbody = document.getElementById("tablaBuscarProductos");
+    if (!modal || !input || !tbody) return;
+
+    modal.addEventListener("shown.bs.modal", function onShown(){
+      modal.removeEventListener("shown.bs.modal", onShown); // once
+      input.value = "";
+      tbody.innerHTML = `<tr><td colspan="9" class="text-muted">Escribe para buscar…</td></tr>`;
+      input.focus();
+
+      let t = null;
+      input.oninput = function(){
+        clearTimeout(t);
+        const term = this.value.trim();
+        if (!term){
+          tbody.innerHTML = `<tr><td colspan="9" class="text-muted">Escribe para buscar…</td></tr>`;
+          return;
+        }
+        t = setTimeout(() => {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-muted">Buscando…</td></tr>`;
+          fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(rows => {
+              if (!rows?.length){
+                tbody.innerHTML = `<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>`;
+                return;
+              }
+              tbody.innerHTML = "";
+              rows.forEach(p => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${p.codigo ?? ""}</td>
+                  <td>${p.nombre ?? ""}</td>
+                  <td>${p.descripcion ?? ""}</td>
+                  <td>${p.presentacion ?? ""}</td>
+                  <td>${p.unidad ?? ""}</td>
+                  <td>${p.condicion ?? ""}</td>
+                  <td>${p.receta ? "Sí" : "No"}</td>
+                  <td>${p.controlado ? "Sí" : "No"}</td>
+                  <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+                `;
+                tr.querySelector("button").addEventListener("click", () => {
+                  window.setProductoSeleccionado?.({
+                    id: p.id,
+                    texto: `${p.codigo ?? ""} - ${p.nombre ?? ""}`.trim(),
+                    codigo: p.codigo ?? "",
+                    nombre: p.nombre ?? ""
+                  });
+                  bootstrap.Modal.getInstance(modal)?.hide();
+                  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                });
+                tbody.appendChild(tr);
+              });
+            })
+            .catch(() => {
+              tbody.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+            });
+        }, 180);
+      };
+    }, { once:true });
+  }
+
+  /* ==========================
+     Buscador de LOTES (nuevo)
+     ========================== */
+  function cablearBuscadorLotes(){
+    const modalLote  = document.getElementById("modalBuscarLote");
+    const tablaLotes = document.getElementById("tablaBuscarLotes");
+    const searchLote = document.getElementById("searchLote");
+
+    if (!modalLote || !tablaLotes) return;
+
+    modalLote.addEventListener("shown.bs.modal", function onShown(){
+      modalLote.removeEventListener("shown.bs.modal", onShown); // once
+      const ref = document.querySelector("#modalDevolucion #facturaInput")?.value.trim();
+      const pid = document.querySelector("#modalDevolucion #productoIdInput")?.value.trim();
+
+      if (!ref || !pid){
+        tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Ingrese factura y seleccione producto.</td></tr>`;
+        return;
+      }
+
+      // carga inicial
+      cargarLotes(ref, pid, "");
+
+      // filtro por número de lote
+      if (searchLote){
+        searchLote.value = "";
+        searchLote.oninput = () => cargarLotes(ref, pid, searchLote.value);
+      }
+    }, { once:true });
+
+    function cargarLotes(ref, pid, term){
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Cargando…</td></tr>`;
+      const url = "{% url 'sd:devoluciones:lotes_por_factura' 'REF' 0 %}"
+        .replace("REF", encodeURIComponent(ref))
+        .replace("/0/", "/" + encodeURIComponent(pid) + "/");
+
+      fetch(term ? (url + "?term=" + encodeURIComponent(term)) : url)
+        .then(r => r.json())
+        .then(rows => {
+          if (!rows?.length){
+            tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para esa factura.</td></tr>`;
+            return;
+          }
+          tablaLotes.innerHTML = "";
+          rows.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${l.numero_lote}</td>
+              <td>${l.fecha_caducidad || ""}</td>
+              <td>${l.vendido}</td>
+              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              window.setLoteSeleccionado?.({ id:l.id, numero_lote:l.numero_lote, fecha_caducidad:l.fecha_caducidad || "" });
+              bootstrap.Modal.getInstance(modalLote)?.hide();
+              bootstrap.Modal.getOrCreateInstance(modalEl).show();
+              document.querySelector("#modalDevolucion #cantidadInput")?.focus();
+            });
+            tablaLotes.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
+        });
+    }
+  }
+});
+</script>
+
+<style>
+#tablaDevoluciones tr.selected { background-color: rgba(25, 135, 84, .12); }
+#tablaDevoluciones tr { cursor: pointer; }
+</style>
+{% endblock %}

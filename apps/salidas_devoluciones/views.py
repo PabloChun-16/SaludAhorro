@@ -1,5 +1,6 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.http import HttpResponse
 
-def index(request):
-    return HttpResponse("Bienvenido al módulo de salidas y devoluciones")
+@login_required
+def dashboard(request):
+    return render(request, "salidas_devoluciones/index.html")

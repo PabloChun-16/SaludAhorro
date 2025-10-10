@@ -1,0 +1,71 @@
+<div class="saif-modal">
+  <div class="modal-header py-3 bg-primary text-white">
+    <h5 class="modal-title mb-0 fw-bold">
+      <i class="bi bi-file-earmark-text"></i> Detalle de Venta
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+
+  <div class="modal-body">
+    <div class="container-fluid">
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <span class="text-muted d-block">No. Factura</span>
+          <span class="fw-semibold">{{ referencia }}</span>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted d-block">Fecha</span>
+          <span class="fw-semibold">
+            {% if fecha %}{{ fecha|date:"d/m/Y H:i" }}{% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted d-block">Usuario</span>
+          <span class="fw-semibold">{{ usuario }}</span>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted d-block">Estado</span>
+          <span class="fw-semibold">{{ estado }}</span>
+        </div>
+        <div class="col-12 mt-2">
+          <span class="text-muted d-block">Comentario</span>
+          <span class="fw-semibold">
+            {% if comentario and comentario|length %}{{ comentario }}{% else %}—{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <h6 class="fw-bold">Productos</h6>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Lote</th>
+              <th>Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in movimientos %}
+            <tr>
+              <td>{{ m.id_lote.id_producto.codigo_producto}}</td>
+              <td class="text-start">{{ m.id_lote.id_producto.nombre }}</td>
+              <td>{{ m.id_lote.numero_lote }}</td>
+              <td>{{ m.cantidad }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-muted">Sin movimientos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer bg-light">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg"></i> Cerrar
+    </button>
+  </div>
+</div>

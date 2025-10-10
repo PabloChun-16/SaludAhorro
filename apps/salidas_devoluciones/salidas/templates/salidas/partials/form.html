@@ -1,0 +1,78 @@
+{% load static %}
+
+<div class="saif-modal">
+  <div class="modal-header py-3 bg-success text-white">
+    <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-receipt-cutoff"></i> Crear Venta</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+
+  <form id="form-venta" autocomplete="off">
+    {% csrf_token %}
+    <div class="modal-body">
+      <div class="container-fluid">
+        <div id="formAlert" class="alert alert-danger d-none"></div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">No. Factura</label>
+            <input type="text" id="facturaInput" class="form-control" placeholder="Ej. F-0001">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha de Venta</label>
+            <input type="datetime-local" id="fechaInput" class="form-control" value="{{ now|default:'' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea id="comentarioInput" class="form-control" rows="2" placeholder="Opcional"></textarea>
+          </div>
+        </div>
+
+        <hr>
+
+        <h6 class="fw-bold mb-2"><i class="bi bi-box"></i> Detalle de Productos</h6>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Producto</label>
+            <div class="input-group">
+              <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre...">
+              <input type="hidden" id="productoIdInput">
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBuscarProducto">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cantidad</label>
+            <input type="number" id="cantidadInput" class="form-control" min="1" step="1">
+          </div>
+          <div class="col-md-3 text-end">
+            <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+              <i class="bi bi-plus-circle"></i> Añadir
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-bordered align-middle text-center">
+            <thead class="table-light">
+              <tr><th>Producto</th><th>Cantidad</th><th>Acción</th></tr>
+            </thead>
+            <tbody id="detalleTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer bg-light">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check2-circle"></i> Guardar Venta
+      </button>
+    </div>
+  </form>
+</div>
