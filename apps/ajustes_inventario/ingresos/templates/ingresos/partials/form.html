@@ -1,0 +1,112 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
+
+<!-- Modal principal -->
+<div class="modal-header py-3 bg-success text-white">
+  <h5 class="modal-title fw-bold">
+    <i class="bi bi-plus-circle me-2"></i> Ingreso por Ajuste
+  </h5>
+  <span class="badge bg-light text-success px-2 py-1 ms-2">SAIF</span>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="formAjusteIngreso" method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="modal-body">
+
+    <!-- ENCABEZADO -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Usuario que realiza el ajuste</label>
+        <input type="text" class="form-control"
+               value="{{ request.user.nombre }} {{ request.user.apellido }}"
+               readonly>
+      </div>
+
+      <div class="col-md-6">
+        <label for="id_fecha_ajuste" class="form-label fw-semibold">Fecha del Ajuste</label>
+        <input type="date" id="id_fecha_ajuste" class="form-control"
+               name="fecha_ajuste"
+               required
+               value="{{ today|date:'Y-m-d' }}">
+      </div>
+    </div>
+
+    <!-- DETALLE DE PRODUCTOS -->
+    <div class="border rounded p-3">
+      <h6 class="text-success fw-semibold mb-3">Detalle de Productos</h6>
+
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-md-5">
+          <label class="form-label small mb-1">Producto</label>
+          <div class="input-group">
+            <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre..." readonly>
+            <input type="hidden" id="productoIdInput">
+            <button type="button" id="btnBuscarProducto" class="btn btn-outline-success">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Lote</label>
+          <div class="input-group">
+            <input type="text" id="loteInput" class="form-control" placeholder="N.º de lote..." readonly>
+            <input type="hidden" id="loteIdInput">
+            <button type="button" id="btnBuscarLote" class="btn btn-outline-success">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label small mb-1">Cantidad a Ingresar</label>
+          <input type="number" id="cantidadInput" class="form-control" min="1" value="0">
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+            <i class="bi bi-plus-circle"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de detalles -->
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle text-center">
+          <thead class="table-success">
+            <tr>
+              <th>Producto</th>
+              <th>Lote</th>
+              <th>Cantidad</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="detalleTable">
+            <tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>
+          </tbody>
+        </table>
+
+
+
+        <input type="hidden" name="detalles_json" id="detallesJson">
+
+      </div>
+    </div>
+
+  </div> <!-- modal-body -->
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg"></i> Cancelar
+    </button>
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check-circle"></i> Guardar Ajuste
+    </button>
+  </div>
+</form>
+
+<!-- Modales auxiliares -->
+{% include "ingresos/partials/producto_modal_ingresos.html" %}
+{% include "ingresos/partials/lote_modal_ingresos.html" %}

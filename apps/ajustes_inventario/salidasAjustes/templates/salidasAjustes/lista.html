@@ -1,0 +1,403 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Salidas por Ajuste · SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- HEADER -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-danger text-white px-3 py-2">
+      <h3 class="mb-0 fs-6">
+        <i class="bi bi-box-arrow-up me-2"></i> Salidas por Ajuste
+      </h3>
+      <span class="badge bg-light text-danger px-2 py-1 fs-7">SAIF</span>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaAjustes">
+        <thead class="table-danger text-dark shadow-sm sticky-top">
+          <tr>
+            <th>Correlativo</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Usuario</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="f-id" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-estado" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for a in ajustes %}
+          <tr data-id="{{ a.id }}">
+            <td>{{ a.id }}</td>
+            <td>
+              {% if a.estado == "Completado" %}
+                <span class="badge bg-danger">Completado</span>
+              {% elif a.estado == "Pendiente" %}
+                <span class="badge bg-warning text-dark">Pendiente</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ a.estado }}</span>
+              {% endif %}
+            </td>
+            <td>{{ a.fecha_conteo|date:"d/m/Y" }}</td>
+            <td>{{ a.id_usuario }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay salidas por ajuste registradas.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINADOR -->
+    <div id="pagerAjustes" class="saif-pager"></div>
+
+    <!-- BOTONES -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnCrearAjuste"
+              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#modalAjusteSalida"
+              data-url="{% url 'ajustes_inventario:salidas:ajuste_salida_create' %}">
+        <i class="bi bi-plus-circle"></i> Crear
+      </button>
+
+      <button id="btnConsultarAjuste"
+              class="btn btn-primary rounded-pill px-3 shadow-sm"
+              disabled>
+        <i class="bi bi-search"></i> Consultar
+      </button>
+
+      <button id="btnAnularAjuste"
+              class="btn btn-danger rounded-pill px-3 shadow-sm"
+              disabled>
+        <i class="bi bi-x-circle"></i> Anular
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL CREAR -->
+<div class="modal fade" id="modalAjusteSalida" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-ajuste-content"></div>
+  </div>
+</div>
+
+<!-- MODAL CONSULTAR -->
+<div class="modal fade" id="modalConsultarAjuste" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" id="modal-consultar-content"></div>
+  </div>
+</div>
+
+<!-- MODALES AUXILIARES -->
+{% include "recepcion/partials/producto_modal.html" %}
+{% include "recepcion/partials/lote_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modalEl = document.getElementById("modalAjusteSalida");
+  const modalContent = document.getElementById("modal-ajuste-content");
+  const btnCrear = document.getElementById("btnCrearAjuste");
+  const modalInstance = new bootstrap.Modal(modalEl);
+  let detalles = [];
+
+  // === ABRIR FORMULARIO ===
+  btnCrear?.addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
+    modalContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalInstance.show();
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        inicializarFormulario();
+      })
+      .catch(() => {
+        modalContent.innerHTML = '<div class="p-4 text-danger text-center">Error cargando el formulario.</div>';
+      });
+  });
+
+  // === INICIALIZAR FORMULARIO ===
+  function inicializarFormulario() {
+    const btnAdd = document.getElementById("btnAddDetalle");
+    const tableBody = document.getElementById("detalleTable");
+    const modalProducto = document.getElementById("modalBuscarProducto");
+    const modalLote = document.getElementById("modalBuscarLote");
+
+    const productoInput = document.getElementById("productoInput");
+    const productoIdInput = document.getElementById("productoIdInput");
+    const loteInput = document.getElementById("loteInput");
+    const loteIdInput = document.getElementById("loteIdInput");
+    const cantidadInput = document.getElementById("cantidadInput");
+
+    // === AÑADIR DETALLE ===
+    btnAdd?.addEventListener("click", () => {
+      const productoId = productoIdInput.value.trim();
+      const producto = productoInput.value.trim();
+      const loteId = loteIdInput.value.trim();
+      const lote = loteInput.value.trim();
+      const cantidad = parseInt(cantidadInput.value) || 0;
+
+      if (!productoId) return alert("Seleccione un producto antes de añadir.");
+      if (!lote && !loteId) return alert("Seleccione o ingrese un lote.");
+      if (cantidad <= 0) return alert("Ingrese una cantidad válida.");
+
+      const item = {
+        producto_id: productoId,
+        producto,
+        lote_id: loteId,
+        numero_lote: lote,
+        cantidad_ajustada: cantidad
+      };
+      detalles.push(item);
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${producto}</td>
+        <td>${lote}</td>
+        <td>${cantidad}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-outline-danger btnRemove">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      `;
+      row.querySelector(".btnRemove").addEventListener("click", () => {
+        row.remove();
+        detalles = detalles.filter(d => d !== item);
+        if (detalles.length === 0)
+          tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+      });
+
+      if (detalles.length === 1) tableBody.innerHTML = "";
+      tableBody.appendChild(row);
+
+      productoInput.value = "";
+      productoIdInput.value = "";
+      loteInput.value = "";
+      loteIdInput.value = "";
+      cantidadInput.value = "0";
+    });
+
+    // === GUARDAR SALIDA ===
+    const form = document.getElementById("formAjusteSalida");
+
+    form?.addEventListener("submit", function (e) {
+      e.preventDefault();
+      document.activeElement?.blur();
+
+      if (detalles.length === 0) {
+        alert("Debe agregar al menos un producto antes de guardar.");
+        return;
+      }
+
+      const fecha_ajuste = document.querySelector("#id_fecha_ajuste")?.value;
+      const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+      const payload = {
+        form_data: { fecha_ajuste },
+        detalles: detalles
+      };
+
+      fetch("{% url 'ajustes_inventario:salidas:ajuste_salida_create' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify(payload)
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            alert("Salida registrada correctamente.");
+            modalInstance.hide();
+            window.location.reload();
+          } else {
+            alert("Error al guardar: " + (data.errors || "Desconocido."));
+          }
+        })
+        .catch(() => alert("Error de red o servidor al guardar la salida."));
+    });
+
+    // === MODALES ===
+    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+    });
+    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(modalLote).show();
+      cargarLotes();
+    });
+
+    // === BUSCAR PRODUCTOS ===
+    modalProducto?.addEventListener("shown.bs.modal", () => {
+      const searchInput = document.getElementById("searchProducto");
+      const tbodyResultados = document.getElementById("tablaBuscarProductos");
+      if (!searchInput || !tbodyResultados) return;
+
+      searchInput.value = "";
+      tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
+
+      searchInput.oninput = function () {
+        const term = this.value.trim();
+        fetch("{% url 'ajustes_inventario:salidas:search_productos' %}?term=" + encodeURIComponent(term))
+          .then(r => r.json())
+          .then(data => {
+            tbodyResultados.innerHTML = "";
+            if (data.length === 0) {
+              tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
+              return;
+            }
+            data.forEach(p => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${p.codigo}</td>
+                <td>${p.nombre}</td>
+                <td>${p.descripcion || "-"}</td>
+                <td>${p.presentacion || "-"}</td>
+                <td>${p.unidad || "-"}</td>
+                <td>${p.condicion || "-"}</td>
+                <td>${p.receta ? "Sí" : "No"}</td>
+                <td>${p.controlado ? "Sí" : "No"}</td>
+                <td><button class="btn btn-sm btn-danger"><i class="bi bi-check2"></i></button></td>
+              `;
+              tr.querySelector("button").addEventListener("click", () => {
+                productoInput.value = `${p.codigo} - ${p.nombre}`;
+                productoIdInput.value = p.id;
+                bootstrap.Modal.getInstance(modalProducto).hide();
+              });
+              tbodyResultados.appendChild(tr);
+            });
+          });
+      };
+    });
+
+    // === BUSCAR LOTES ===
+    function cargarLotes() {
+      const productoId = productoIdInput.value;
+      const searchLoteInput = document.getElementById("searchLote");
+      const tablaLotes = document.getElementById("tablaBuscarLotes");
+
+      if (!productoId) {
+        tablaLotes.innerHTML = '<tr><td colspan="4" class="text-danger">Seleccione un producto primero.</td></tr>';
+        return;
+      }
+
+      const base = "{% url 'ajustes_inventario:salidas:search_lotes' 0 %}".replace("0/", productoId + "/");
+      const term = searchLoteInput?.value || "";
+      const url = base + (term ? "?term=" + encodeURIComponent(term) : "");
+
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          tablaLotes.innerHTML = "";
+          if (data.length === 0) {
+            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes registrados.</td></tr>';
+            return;
+          }
+          data.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${l.numero_lote}</td>
+              <td>${l.fecha_caducidad || "-"}</td>
+              <td>${l.cantidad || 0}</td>
+              <td><button class="btn btn-sm btn-danger"><i class="bi bi-check2"></i></button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              loteInput.value = l.numero_lote;
+              loteIdInput.value = l.id;
+              bootstrap.Modal.getInstance(modalLote).hide();
+            });
+            tablaLotes.appendChild(tr);
+          });
+        });
+    }
+
+    document.getElementById("searchLote")?.addEventListener("input", cargarLotes);
+  }
+
+  // === CONSULTAR Y ANULAR ===
+  const btnConsultar = document.getElementById("btnConsultarAjuste");
+  const btnAnular = document.getElementById("btnAnularAjuste");
+  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"));
+  const modalConsultarContent = document.getElementById("modal-consultar-content");
+
+  function activarSeleccionFilas() {
+    const filas = document.querySelectorAll("#tablaAjustes tbody tr[data-id]");
+    filas.forEach(row => {
+      row.addEventListener("click", () => {
+        const id = row.dataset.id;
+        filas.forEach(r => r.classList.remove("table-danger"));
+        row.classList.add("table-danger");
+        btnConsultar.removeAttribute("disabled");
+        btnAnular.removeAttribute("disabled");
+        btnConsultar.dataset.id = id;
+        btnAnular.dataset.id = id;
+      });
+    });
+  }
+
+  btnAnular?.addEventListener("click", () => {
+    const id = btnConsultar?.dataset.id;
+    if (!id) return alert("Seleccione una salida para anular.");
+    if (!confirm("¿Seguro que desea anular esta salida? Esto devolverá el stock retirado.")) return;
+
+    fetch(`/ajustes_inventario/salidas/anular/${id}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("Salida anulada correctamente. El stock fue restaurado.");
+          window.location.reload();
+        } else {
+          alert("Error: " + (data.error || "No se pudo anular la salida."));
+        }
+      })
+      .catch(() => alert("Error de red o servidor."));
+  });
+
+  btnConsultar?.addEventListener("click", () => {
+    const id = btnConsultar.dataset.id;
+    if (!id) return;
+    modalConsultarContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalConsultar.show();
+
+    fetch(`/ajustes_inventario/salidas/consultar/${id}/`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+      .then(r => r.text())
+      .then(html => (modalConsultarContent.innerHTML = html))
+      .catch(() => {
+        modalConsultarContent.innerHTML =
+          '<div class="p-4 text-danger text-center">Error al cargar el detalle.</div>';
+      });
+  });
+
+  activarSeleccionFilas();
+});
+</script>
+{% endblock %}

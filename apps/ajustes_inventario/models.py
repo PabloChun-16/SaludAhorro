@@ -7,6 +7,16 @@ class Inventario_Fisico(models.Model):
     fecha_conteo = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=50)
 
+    TIPO_AJUSTE_CHOICES = [
+    ('Ingreso', 'Ingreso'),
+    ('Salida', 'Salida'),
+]
+    tipo_ajuste = models.CharField(
+    max_length=20,
+    choices=TIPO_AJUSTE_CHOICES,
+    default='Ingreso',
+)
+    
     # Relación de llave foránea
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     
