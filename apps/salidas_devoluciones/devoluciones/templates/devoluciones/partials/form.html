@@ -1,93 +1,196 @@
 {% load static %}
 
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
+
+<style>
+:root{
+  --saif-h: 42px;
+  --saif-radius: 12px;
+  --saif-border: #e5e7eb;
+  --saif-bg: #ffffff;
+  --saif-muted: #6b7280;
+}
+
+.saif-modal .modal-body{ overflow-x:hidden; }
+
+/* Contenedores */
+.saif-form .section-card{
+  background:#f8fafc; border:1px solid var(--saif-border);
+  border-radius:var(--saif-radius); padding:14px;
+}
+.saif-form .section-title{
+  font-weight:700; color:#111827; display:flex; align-items:center; gap:.5rem;
+}
+.saif-form .fieldset-box{
+  border:1px solid var(--saif-border); border-radius:var(--saif-radius);
+  padding:16px; background:var(--saif-bg);
+}
+
+.saif-form .input-group-text,
+.saif-form .form-control,
+.saif-form .btn{ height:var(--saif-h); }
+.saif-form .input-group-text{ min-width:40px; justify-content:center; }
+.saif-form .form-label{ margin-bottom:.35rem; }
+.saif-form .form-text{ color:var(--saif-muted); margin-top:.35rem; }
+.saif-form .input-group > .btn{ border:1px solid var(--saif-border); border-left:0; }
+
+/* Tabla */
+.table-bordered{ border:1px solid var(--saif-border)!important; border-radius:10px; overflow:hidden; }
+.table-bordered>:not(caption)>*>*{ border-color:var(--saif-border)!important; color:#1f2937; } /* texto oscuro */
+.table thead.table-light th{ background:#eef6f1; color:#0f172a; }
+
+/* Aviso */
+#formAlert{ margin-bottom:12px; }
+
+/* Layout “Producto arriba / resto abajo” */
+.detalle-grid{ display:grid; gap:12px; }
+.detalle-grid__top{ display:block; }
+.detalle-grid__bottom{
+  display:grid; gap:12px;
+  grid-template-columns: 1fr 160px 150px; /* Lote group | Cantidad | Añadir */
+  align-items:end;
+}
+
+/* Subgrid para el grupo de Lote (incluye caducidad y botón) */
+.lote-group .input-group{ display:flex; gap:0; }
+.lote-group .input-group > .form-control[readonly]{ background:#f9fafb; }
+.lote-group .caducidad{ max-width:160px; }
+
+/* Responsive */
+@media (max-width: 1199.98px){
+  .detalle-grid__bottom{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 991.98px){
+  .detalle-grid__bottom{ grid-template-columns: 1fr; }
+  #btnAddDetalle{ width:100%; }
+}
+
+/* Footer pegado visualmente */
+.saif-modal .modal-footer{ border-top:1px solid var(--saif-border); }
+</style>
+
 <div class="saif-modal" id="modalDevolucion">
+  <!-- HEADER -->
   <div class="modal-header py-3 bg-success text-white">
-    <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-arrow-counterclockwise"></i> Crear Devolución</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+      <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-arrow-counterclockwise"></i> Crear Devolución</h5>
+      <span class="saif-badge ms-2"><i class="bi bi-receipt-cutoff"></i> SAIF</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
+  <!-- FORM -->
   <form id="form-devolucion" autocomplete="off">
     {% csrf_token %}
     <div class="modal-body">
-      <div class="container-fluid">
-        <div id="formAlert" class="alert alert-danger d-none"></div>
+      <div class="container-fluid saif-form">
 
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">No. Factura</label>
-            <input type="text" id="facturaInput" class="form-control" placeholder="Ej. F-0001">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha de Devolución</label>
-            <input type="datetime-local" id="fechaInput" class="form-control" value="{{ now|default:'' }}">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Motivo</label>
-            <textarea id="motivoInput" class="form-control" rows="2" placeholder="Opcional"></textarea>
+        <div id="formAlert" class="alert alert-danger d-none" role="alert"></div>
+
+        <!-- ===== Datos generales ===== -->
+        <div class="fieldset-box mb-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">No. Factura</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                <input type="text" id="facturaInput" class="form-control" placeholder="Ej. F-0001">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Fecha de Devolución</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                <input type="datetime-local" id="fechaInput" class="form-control" value="{{ now|default:'' }}">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Motivo <span class="form-text">(opcional)</span></label>
+              <textarea id="motivoInput" class="form-control" rows="2" placeholder="Breve motivo..."></textarea>
+            </div>
           </div>
         </div>
 
-        <hr>
+        <!-- ===== Detalle de productos (producto arriba, lote + cantidad abajo) ===== -->
+        <div class="section-card">
+          <div class="section-title mb-2"><i class="bi bi-box"></i> Detalle de Productos a Devolver</div>
 
-        <h6 class="fw-bold mb-2"><i class="bi bi-box"></i> Detalle de Productos a Devolver</h6>
+          <div class="detalle-grid">
+            <!-- Producto (100%) -->
+            <div class="detalle-grid__top">
+              <label class="form-label">Producto</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-capsule-pill"></i></span>
+                <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre...">
+                <input type="hidden" id="productoIdInput">
+                <input type="hidden" id="codigoInput">
+                <button type="button" class="btn btn-outline-secondary"
+                        data-bs-toggle="modal" data-bs-target="#modalBuscarProducto" title="Buscar producto">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <div class="form-text">Usa el buscador para seleccionar exactamente el producto vendido.</div>
+            </div>
 
-        <div class="row g-3 align-items-end">
-          <!-- PRODUCTO -->
-          <div class="col-md-6">
-            <label class="form-label">Producto</label>
-            <div class="input-group">
-              <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre...">
-              <input type="hidden" id="productoIdInput">
-              <input type="hidden" id="codigoInput">
-              <button type="button" class="btn btn-outline-secondary"
-                      data-bs-toggle="modal" data-bs-target="#modalBuscarProducto" title="Buscar producto">
-                <i class="bi bi-search"></i>
-              </button>
+            <!-- Abajo: Lote (según factura) | Cantidad | Añadir -->
+            <div class="detalle-grid__bottom">
+              <!-- Lote group (con caducidad y botón) -->
+              <div class="lote-group">
+                <label class="form-label">Lote (según factura)</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-upc"></i></span>
+                  <input type="text" id="loteInput" class="form-control" placeholder="Seleccione" readonly>
+                  <input type="hidden" id="loteIdInput">
+                  <input type="text" id="caducidadInput" class="form-control caducidad" placeholder="Caducidad" readonly>
+                  <button type="button" id="btnOpenLoteModal" class="btn btn-outline-secondary"
+                          data-bs-toggle="modal" data-bs-target="#modalBuscarLote" title="Lotes vendidos en la factura">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cantidad -->
+              <div>
+                <label class="form-label">Cantidad a devolver</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                  <input type="number" id="cantidadInput" class="form-control" min="1" step="1" placeholder="0">
+                </div>
+              </div>
+
+              <!-- Botón Añadir -->
+              <div>
+                <label class="form-label d-none d-xl-block">&nbsp;</label>
+                <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+                  <i class="bi bi-plus-circle"></i> Añadir
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- LOTE SEGÚN FACTURA -->
-          <div class="col-md-6">
-            <label class="form-label">Lote (según factura)</label>
-            <div class="input-group">
-              <input type="text" id="loteInput" class="form-control" placeholder="Seleccione" readonly>
-              <input type="hidden" id="loteIdInput">
-              <input type="text" id="caducidadInput" class="form-control" style="max-width:160px" placeholder="Caducidad" readonly>
-              <button type="button" id="btnOpenLoteModal" class="btn btn-outline-secondary"
-                      data-bs-toggle="modal" data-bs-target="#modalBuscarLote" title="Lotes vendidos en la factura">
-                <i class="bi bi-search"></i>
-              </button>
-            </div>
+          <!-- Tabla de detalle -->
+          <div class="table-responsive mt-3">
+            <table class="table table-bordered align-middle text-center">
+              <thead class="table-light">
+                <tr>
+                  <th>Código</th>
+                  <th class="text-start">Producto</th>
+                  <th>Lote</th>
+                  <th>Cantidad</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="detalleTable"></tbody>
+            </table>
           </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Cantidad a devolver</label>
-            <input type="number" id="cantidadInput" class="form-control" min="1" step="1">
-          </div>
-          <div class="col-md-3 text-end">
-            <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
-              <i class="bi bi-plus-circle"></i> Añadir
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive mt-3">
-          <table class="table table-bordered align-middle text-center">
-            <thead class="table-light">
-              <tr>
-                <th>Código</th>
-                <th>Producto</th>
-                <th>Lote</th>
-                <th>Cantidad</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="detalleTable"></tbody>
-          </table>
         </div>
       </div>
     </div>
 
+    <!-- FOOTER -->
     <div class="modal-footer bg-light">
       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar

@@ -1,43 +1,100 @@
 {% load static %}
 
 <style>
+  :root{
+    --saif-h: 42px;
+    --saif-radius: 12px;
+    --saif-border: #e5e7eb;
+    --saif-bg: #ffffff;
+    --saif-muted: #6b7280;
+  }
+
+  /* Contenedor y cromática SAIF */
   .saif-modal .modal-content{ border-radius:18px; overflow:hidden; box-shadow:0 12px 35px rgba(14,122,58,.25); }
   .saif-modal .modal-header{ border-bottom:0; }
   .saif-modal .modal-footer{ border-top:0; background:#f8fafc; }
   .saif-modal .modal-body{ background:#f9fafb; }
-  .saif-modal thead th{ background:#e8f5ec !important; color:#0b3f2e; font-weight:700; }
+
+  /* Textos y campos */
+  .saif-form .form-label{ margin-bottom:.35rem; font-weight:600; color:#0f172a; }
+  .saif-form .input-group-text,
+  .saif-form .form-control,
+  .saif-form .btn{ height:var(--saif-h); }
+  .saif-form .input-group-text{ min-width:40px; justify-content:center; }
+  .saif-form .form-text{ color:var(--saif-muted); margin-top:.35rem; }
+
+  /* Caja informativa superior */
+  .saif-hint{
+    background:#f8fafc; border:1px solid var(--saif-border);
+    border-radius:var(--saif-radius); padding:10px 12px; color:#0f172a;
+  }
+
+  /* Tabla */
+  .saif-table{ border:1px solid var(--saif-border); border-radius:12px; overflow:hidden; background:var(--saif-bg); }
+  .saif-table table{ margin-bottom:0; }
+  .saif-table thead th{ background:#e8f5ec !important; color:#0b3f2e; font-weight:700; }
+  .saif-table :where(th, td){ color:#1f2937; border-color:var(--saif-border)!important; }
+
+  /* Buscador */
+  #searchLote{ border:1px solid var(--saif-border); }
+
+  /* Badge SAIF */
+  .saif-badge{
+    display:inline-flex; align-items:center; gap:.35rem;
+    background:#e7f7ee; color:#0b3f2e; border:1px solid #b8e6cc;
+    font-size:.75rem; padding:.25rem .5rem; border-radius:999px;
+  }
 </style>
 
 <div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
 
+      <!-- HEADER con logo + badge -->
       <div class="modal-header py-3 bg-success text-white">
-        <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-box-seam"></i> Buscar Lote (según factura)</h5>
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
+          <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-box-seam"></i> Buscar Lote (según factura)</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-boxes"></i> SAIF</span>
+        </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body">
-        <div class="mb-2 small text-muted">
-          Este listado muestra únicamente los lotes del <b>producto</b> que se vendieron en la <b>factura</b> indicada.
-        </div>
+        <div class="container-fluid saif-form">
 
-        <input type="text" id="searchLote" class="form-control mb-3" placeholder="Buscar por número de lote... (opcional)">
+          <!-- Hint -->
+          <div class="saif-hint mb-3 small">
+            Este listado muestra únicamente los lotes del <b>producto</b> que se vendieron en la <b>factura</b> indicada.
+          </div>
 
-        <div class="table-responsive">
-          <table class="table table-hover table-bordered text-center align-middle">
-            <thead>
-              <tr>
-                <th>Número Lote</th>
-                <th>Fecha Caducidad</th>
-                <th>Cant. vendida en la factura</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="tablaBuscarLotes">
-              <!-- Se llena por JS -->
-            </tbody>
-          </table>
+          <!-- Buscador -->
+          <div class="mb-3">
+            <label for="searchLote" class="form-label">Buscar lote</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="searchLote" class="form-control" placeholder="Buscar por número de lote... (opcional)">
+            </div>
+            <div class="form-text">Puedes filtrar por coincidencias parciales.</div>
+          </div>
+
+          <!-- Tabla -->
+          <div class="saif-table table-responsive">
+            <table class="table table-hover table-bordered text-center align-middle">
+              <thead>
+                <tr>
+                  <th>Número Lote</th>
+                  <th>Fecha Caducidad</th>
+                  <th>Cant. vendida en la factura</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBuscarLotes">
+                <!-- Se llena por JS -->
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
 
@@ -75,10 +132,12 @@
     rows.forEach(l => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${l.numero_lote}</td>
+        <td class="text-start">${l.numero_lote}</td>
         <td>${l.fecha_caducidad || ""}</td>
         <td>${l.vendido}</td>
-        <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+        <td>
+          <button type="button" class="btn btn-sm btn-success" title="Seleccionar este lote">✔</button>
+        </td>
       `;
       tr.querySelector("button").addEventListener("click", () => {
         // Rellena los campos del form de devoluciones:

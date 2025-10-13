@@ -1,66 +1,163 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'consult/consult.css' %}?v=15">
+
+<style>
+  .saif-modal .modal-content{ border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+  .saif-modal .modal-header{ background:#0E7A3A;color:#fff;border-bottom:0;padding:.65rem .9rem; }
+  .saif-modal .modal-footer{ border-top:0;background:#fff; }
+  .saif-modal .modal-body{ background:#f7fbf9;padding:1rem 1.1rem;max-height:72vh; overflow:auto; }
+
+  /* 👉 Auto-ajuste; nada se corta */
+  .stats{
+    display:grid; gap:.9rem;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
+  .stat{
+    display:flex; gap:.75rem; align-items:flex-start;
+    background:#fff;border:1px solid #e5e7eb;border-radius:14px;
+    padding:.85rem .95rem; box-shadow:0 6px 16px rgba(15,23,42,.06);
+    min-width:0;
+  }
+  .stat .ico{
+    flex:0 0 36px;height:36px;width:36px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:#ecfdf5;color:#0E7A3A;border:1px solid #a7f3d0;font-size:1.05rem;
+  }
+  .stat .lbl{
+    font-weight:800;color:#0b1220;margin-top:.1rem;
+    white-space:normal;
+  }
+  .stat .val{
+    color:#111827;margin-top:.1rem;line-height:1.35;
+    white-space:normal; overflow:visible; text-overflow:unset;
+    word-break:break-word; hyphens:auto;
+  }
+
+  .chip-est{
+    display:inline-flex;align-items:center;gap:.35rem;
+    padding:.24rem .55rem;border-radius:999px;font-weight:700;font-size:.82rem;
+    border:1px solid transparent; white-space:normal;
+  }
+  .chip--ok{background:#ecfdf5;color:#065f46;border-color:#a7f3d0;}
+  .chip--warn{background:#fff7ed;color:#92400e;border-color:#fed7aa;}
+  .chip--bad{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
+  .chip--neutral{background:#f3f4f6;color:#374151;border-color:#e5e7eb;}
+
+  .block{ background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 18px rgba(15,23,42,.06); }
+  .block-header{ padding:.75rem .95rem;border-bottom:1px solid #eef2f7;font-weight:800;color:#0b1220;display:flex;align-items:center;gap:.5rem; }
+  .block-body{ padding:.8rem .9rem; }
+
+  .table thead th{ background:#e8f5ec !important;color:#0b3f2e;border-bottom:1px solid #d7dbdf !important; }
+</style>
+
 <div class="saif-modal">
-  <div class="modal-header py-3 bg-primary text-white">
-    <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-arrow-counterclockwise"></i> Detalle de Devolución</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <div class="modal-header">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-1" style="width:28px;height:28px;">
+      <h5 class="modal-title mb-0 fw-bold"><i class="bi bi-arrow-counterclockwise"></i> Detalle de Devolución</h5>
+      <span class="ms-2" style="background:rgba(255,255,255,.15);border-radius:999px;padding:.12rem .5rem;font-weight:600;font-size:.8rem;">
+        <i class="bi bi-receipt-cutoff"></i> SAIF
+      </span>
+    </div>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
   <div class="modal-body">
-    <div class="container-fluid">
-      <div class="row g-3 mb-2">
-        <div class="col-md-6">
-          <div class="small text-muted">No. Factura</div>
-          <div class="fs-6 fw-semibold">{{ referencia }}</div>
-        </div>
-        <div class="col-md-6">
-          <div class="small text-muted">Fecha</div>
-          <div class="fs-6 fw-semibold">{% if header %}{{ header.fecha_hora|date:"d/m/Y H:i" }}{% endif %}</div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="small text-muted">Usuario</div>
-          <div class="fs-6 fw-semibold">{% if header %}{{ header.id_usuario }}{% endif %}</div>
-        </div>
-        <div class="col-md-6">
-          <div class="small text-muted">Estado</div>
-          <div class="fs-6 fw-semibold">{% if header %}{{ header.estado_movimiento_inventario }}{% endif %}</div>
-        </div>
-
-        <div class="col-12">
-          <div class="small text-muted">Motivo / Comentario</div>
-          <div class="fs-6 fw-semibold">{% if header %}{{ header.comentario|default:"—" }}{% endif %}</div>
+    <div class="stats mb-3">
+      <!-- Estado -->
+      <div class="stat">
+        <div class="ico"><i class="bi bi-flag"></i></div>
+        <div class="min-w-0">
+          <div class="lbl">Estado</div>
+          <div class="val">
+            {% if header %}
+              {% with est=header.estado_movimiento_inventario|stringformat:"s"|lower %}
+                {% if est == "completado" or est == "completa" or est == "finalizado" %}
+                  <span class="chip-est chip--ok"><i class="bi bi-check2-circle"></i> {{ header.estado_movimiento_inventario }}</span>
+                {% elif est == "pendiente" or est == "en proceso" %}
+                  <span class="chip-est chip--warn"><i class="bi bi-hourglass-split"></i> {{ header.estado_movimiento_inventario }}</span>
+                {% elif est == "anulado" or est == "anulada" or est == "cancelado" %}
+                  <span class="chip-est chip--bad"><i class="bi bi-x-circle"></i> {{ header.estado_movimiento_inventario }}</span>
+                {% else %}
+                  <span class="chip-est chip--neutral"><i class="bi bi-question-circle"></i> {{ header.estado_movimiento_inventario }}</span>
+                {% endif %}
+              {% endwith %}
+            {% else %}
+              <span class="chip-est chip--neutral"><i class="bi bi-question-circle"></i> —</span>
+            {% endif %}
+          </div>
         </div>
       </div>
 
-      <h6 class="fw-bold">Productos</h6>
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead class="table-light">
-            <tr>
-              <th>Código</th>
-              <th>Producto</th>
-              <th>Lote</th>
-              <th>Cantidad</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for m in movimientos %}
-            <tr>
-              <td>{{ m.id_lote.id_producto.codigo_producto }}</td>
-              <td>{{ m.id_lote.id_producto.nombre }}</td>
-              <td>{{ m.id_lote.numero_lote }}</td>
-              <td>{{ m.cantidad }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4" class="text-muted">Sin movimientos</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <!-- Usuario -->
+      <div class="stat">
+        <div class="ico"><i class="bi bi-person-circle"></i></div>
+        <div class="min-w-0">
+          <div class="lbl">Usuario</div>
+          <div class="val">{% if header %}{{ header.id_usuario|default:"—" }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+
+      <!-- Fecha -->
+      <div class="stat">
+        <div class="ico"><i class="bi bi-calendar-event"></i></div>
+        <div class="min-w-0">
+          <div class="lbl">Fecha</div>
+          <div class="val">{% if header and header.fecha_hora %}{{ header.fecha_hora|date:"d/m/Y H:i" }}{% else %}—{% endif %}</div>
+        </div>
+      </div>
+
+      <!-- No. Factura -->
+      <div class="stat">
+        <div class="ico"><i class="bi bi-upc-scan"></i></div>
+        <div class="min-w-0">
+          <div class="lbl">No. Factura</div>
+          <div class="val">{{ referencia|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% if header and header.comentario %}
+    <div class="block mb-3">
+      <div class="block-header"><i class="bi bi-chat-dots"></i> Motivo / Comentario</div>
+      <div class="block-body">{{ header.comentario }}</div>
+    </div>
+    {% endif %}
+
+    <div class="block">
+      <div class="block-header"><i class="bi bi-box"></i> Productos Devueltos</div>
+      <div class="block-body">
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle text-center">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th>Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in movimientos %}
+              <tr>
+                <td>{{ m.id_lote.id_producto.codigo_producto }}</td>
+                <td class="text-start">{{ m.id_lote.id_producto.nombre }}</td>
+                <td>{{ m.id_lote.numero_lote }}</td>
+                <td>{{ m.cantidad }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted">Sin movimientos</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="modal-footer bg-light">
-    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+  <div class="modal-footer py-2">
+    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>
   </div>

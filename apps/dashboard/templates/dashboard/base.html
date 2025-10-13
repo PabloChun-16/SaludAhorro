@@ -152,9 +152,13 @@
               <span>Gestión de Productos</span>
             </a>
 
-            <a href="/inventario/stock/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-              <i class="bi bi-boxes"></i>
-              <span>Stock</span>
+             <a href="/inventario/stock/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+               <i class="bi bi-boxes"></i>
+               <span>Stock</span>
+             </a>
+            <a href="/inventario/lotes/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-upc-scan"></i>
+              <span>Lotes</span>
             </a>
           </div>
         </div>
@@ -163,9 +167,34 @@
         <a href="/recepcion_almacenamiento/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-truck"></i><span>Recepción y Almacenamiento</span>
         </a>
-        <a href="/salidas_devoluciones/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
-          <i class="bi bi-box-arrow-right"></i><span>Salidas y Devoluciones</span>
-        </a>
+        <!-- ==== Salidas y Devoluciones (slide) ==== -->
+        <div id="sd-group" class="space-y-1">
+          <button type="button"
+                  id="sd-toggle"
+                  class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+                  aria-expanded="false"
+                  aria-controls="sd-submenu">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="flex-1">Salidas y Devoluciones</span>
+            <i id="sd-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+          </button>
+
+          <div id="sd-submenu" class="saif-collapse mt-1 ms-8" data-index-url="/salidas_devoluciones/">
+            <a href="/salidas_devoluciones/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-grid"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="/salidas_devoluciones/salidas/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-receipt-cutoff"></i>
+              <span>Registrar Venta</span>
+            </a>
+            <a href="/salidas_devoluciones/devoluciones/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              <span>Registrar Devolución</span>
+            </a>
+          </div>
+        </div>
+        <!-- ==== /Salidas y Devoluciones ==== -->
         <a href="/alertas_vencimientos/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
           <i class="bi bi-exclamation-triangle"></i><span>Alertas y Vencimientos</span>
         </a>
@@ -354,6 +383,13 @@
       submenuId: 'recetas-submenu',
       caretId:  'recetas-caret',
       openIfStartsWith: '/recetas/'
+    });
+
+    const gSD = setupGroup({
+      toggleId: 'sd-toggle',
+      submenuId: 'sd-submenu',
+      caretId:  'sd-caret',
+      openIfStartsWith: '/salidas_devoluciones/'
     });
 
     // ====== Auto-apertura por ruta en modo acordeón (solo uno abierto) ======

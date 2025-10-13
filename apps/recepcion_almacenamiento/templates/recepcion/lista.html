@@ -1,7 +1,7 @@
-{% extends "dashboard/base.html" %}
+﻿{% extends "dashboard/base.html" %}
 {% load static %}
 
-{% block title %}Recepciones · SAIF{% endblock %}
+{% block title %}Recepciones Â· SAIF{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
@@ -36,13 +36,13 @@
   padding:.5rem;
   font-size:.875rem;
   background-clip:padding-box; /* evita solapes con sticky */
-  border:1px solid #e3e6ea;    /* líneas internas */
+  border:1px solid #e3e6ea;    /* lÃ­neas internas */
 }
 
 /* Mismo color en todas las filas */
 #tablaRecepciones tbody tr{ background:#ffffff; }
 
-/* ====== Encabezado pegajoso (2 filas: títulos + filtros) ====== */
+/* ====== Encabezado pegajoso (2 filas: tÃ­tulos + filtros) ====== */
 #tablaRecepciones thead.sticky-top{
   position:sticky;
   top:0;
@@ -50,19 +50,19 @@
   box-shadow:0 2px 4px rgba(0,0,0,.06);
 }
 
-/* Fila de títulos */
+/* Fila de tÃ­tulos */
 #tablaRecepciones thead.sticky-top tr:first-child th{
   position:sticky;
   top:0;
   z-index:11;
   background:#e8f5ec;               /* verde muy suave */
-  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
+  border-bottom:1px solid #d7dbdf;   /* divisiÃ³n header/filtros */
 }
 
 /* Fila de filtros */
 #tablaRecepciones thead.sticky-top tr.filter-row th{
   position:sticky;
-  top:42px;                          /* altura aproximada de la fila de títulos */
+  top:42px;                          /* altura aproximada de la fila de tÃ­tulos */
   z-index:10;
   background:#f4fbf6;
   border-top:1px solid #d9f3e0;
@@ -116,7 +116,7 @@ select.filter-control{
   text-align:center !important;
 }
 
-/* Mínimos para inputs angostos */
+/* MÃ­nimos para inputs angostos */
 #tablaRecepciones thead .filter-row th{ min-width:100px; }
 #tablaRecepciones thead .filter-row th:nth-child(1){ min-width:110px; } /* ID */
 #tablaRecepciones thead .filter-row th:nth-child(3){ min-width:140px; } /* Fecha */
@@ -125,7 +125,7 @@ select.filter-control{
 /* ====== Utilidades de ancho ====== */
 .wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
 
-/* ====== Paginación: ocultar filas fuera de página ====== */
+/* ====== PaginaciÃ³n: ocultar filas fuera de pÃ¡gina ====== */
 .hidden-by-pagination{ display:none !important; }
 
 /* ====== FIX bordes duplicados vs contorno ====== */
@@ -159,7 +159,7 @@ select.filter-control{
       <table class="table table-hover align-middle text-center" id="tablaRecepciones">
         <colgroup>
           <col class="wp-12"><!-- ID -->
-          <col class="wp-20"><!-- Número Envío -->
+          <col class="wp-20"><!-- NÃºmero EnvÃ­o -->
           <col class="wp-16"><!-- Fecha -->
           <col class="wp-20"><!-- Usuario -->
           <col class="wp-14"><!-- Estado -->
@@ -168,8 +168,8 @@ select.filter-control{
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">Número Envío</th>
-            <th scope="col">Fecha Recepción</th>
+            <th scope="col">NÃºmero EnvÃ­o</th>
+            <th scope="col">Fecha RecepciÃ³n</th>
             <th scope="col">Usuario</th>
             <th scope="col">Estado</th>
           </tr>
@@ -241,29 +241,29 @@ select.filter-control{
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> Consultar
       </button>
-      <!-- GRÁFICAS -->
+      <!-- GRÃFICAS -->
       <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
-        <i class="bi bi-graph-up"></i> Gráficas
+        <i class="bi bi-graph-up"></i> GrÃ¡ficas
       </a>
     </div>
   </div>
 </section>
 
-<!-- Modal CREAR: contenedor donde se inyectará el form -->
+<!-- Modal CREAR: contenedor donde se inyectarÃ¡ el form -->
 <div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-recepcion-content"></div>
   </div>
 </div>
 
-<!-- Modal CONSULTAR: contenedor donde se inyectará el parcial _consultar.html -->
+<!-- Modal CONSULTAR: contenedor donde se inyectarÃ¡ el parcial _consultar.html -->
 <div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
 </div>
 
-<!-- Modales auxiliares (se incluyen una sola vez en la página) -->
+<!-- Modales auxiliares (se incluyen una sola vez en la pÃ¡gina) -->
 {% include "recepcion/partials/producto_modal.html" %}
 {% include "recepcion/partials/lote_modal.html" %}
 
@@ -278,11 +278,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCrear = document.getElementById("btnCrear");
   const modalInstance = new bootstrap.Modal(modalEl);
 
-  // Se vacía/llena cada vez que se abre el form
+  // Se vacÃ­a/llena cada vez que se abre el form
   let detalles = [];
 
   function inicializarFormulario() {
-    // ----- Añadir línea al detalle -----
+    // ----- AÃ±adir lÃ­nea al detalle -----
     const addBtn = document.getElementById("btnAddDetalle");
     if (addBtn) {
       addBtn.addEventListener("click", function () {
@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const costoEl       = document.getElementById("costoInput");
         const tableBody     = document.getElementById("detalleTable");
 
-        if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
+        if (!tableBody) { console.warn("No se encontrÃ³ #detalleTable"); return; }
 
         const productoId = (productoIdEl?.value || "").trim();
         const productoTx = (productoTextEl?.value || "").trim();
@@ -306,9 +306,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const costo      = costoEl?.value;
 
         if (!productoId) { alert("Seleccione un producto."); return; }
-        if (!loteId && !numeroLote) { alert("Ingrese o seleccione el número de lote."); return; }
+        if (!loteId && !numeroLote) { alert("Ingrese o seleccione el nÃºmero de lote."); return; }
         if (!loteId && !caducidad) { alert("Para un lote nuevo, ingrese fecha de caducidad."); return; }
-        if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad inválida."); return; }
+        if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad invÃ¡lida."); return; }
 
         const item = {
           producto_id: parseInt(productoId, 10),
@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         tableBody.appendChild(row);
 
-        // limpiar campos de la línea
+        // limpiar campos de la lÃ­nea
         loteIdEl.value = "";
         loteTextEl.value = "";
         caducidadEl.value = "";
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // ----- Envío del formulario -----
+    // ----- EnvÃ­o del formulario -----
     const formRecepcion = document.getElementById("form-recepcion");
     if (formRecepcion) {
       const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) {
             return response.json().then(errorData => {
               console.error("Error del servidor:", errorData);
-              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
+              alert("Error: " + (errorData.errors || "OcurriÃ³ un error inesperado."));
             });
           }
           return response.json();
@@ -382,21 +382,21 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           if (!data) return;
           if (data.success) {
-            alert("Recepción creada exitosamente.");
+            alert("RecepciÃ³n creada exitosamente.");
             modalInstance.hide();
             window.location.reload();
           } else {
-            alert(data.error || "Ocurrió un error al crear la recepción.");
+            alert(data.error || "OcurriÃ³ un error al crear la recepciÃ³n.");
           }
         })
         .catch(err => {
           console.error(err);
-          alert("Ocurrió un error de red al crear la recepción.");
+          alert("OcurriÃ³ un error de red al crear la recepciÃ³n.");
         });
       });
     }
 
-    // Botón seleccionar producto/lote abre modales correspondientes ya incluidos por partials
+    // BotÃ³n seleccionar producto/lote abre modales correspondientes ya incluidos por partials
     document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
       bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto")).show();
     });
@@ -405,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   } // fin inicializarFormulario
 
-  // Abrir modal CREAR y cargar form vía AJAX
+  // Abrir modal CREAR y cargar form vÃ­a AJAX
   btnCrear?.addEventListener("click", (ev) => {
     const url = ev.currentTarget.getAttribute("data-url");
     modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
@@ -455,16 +455,11 @@ document.addEventListener("DOMContentLoaded", function () {
               <td>${p.presentacion ?? ""}</td>
               <td>${p.unidad ?? ""}</td>
               <td>${p.condicion ?? ""}</td>
-              <td>${p.receta ? "Sí" : "No"}</td>
-              <td>${p.controlado ? "Sí" : "No"}</td>
-              <td><button type="button" class="btn btn-sm btn-success">✓</button></td>
+              <td>${p.receta ? "SÃ­" : "No"}</td>
+              <td>${p.controlado ? "SÃ­" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success">âœ“</button></td>
             `;
-            tr.querySelector("button").addEventListener("click", () => {
-              if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`;
-              if (productoIdInput) productoIdInput.value = p.id;
-              bootstrap.Modal.getInstance(modalBuscar).hide();
-              bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            });
+            tr.querySelector("button").addEventListener("click", () => { if (typeof window.setProductoSeleccionado === "function") { window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` }); } else { if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`; if (productoIdInput) productoIdInput.value = p.id; } bootstrap.Modal.getInstance(modalBuscar)?.hide(); bootstrap.Modal.getOrCreateInstance(modalEl).show(); });
             tbodyResultados.appendChild(tr);
           });
         })
@@ -499,17 +494,9 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>${l.numero_lote}</td>
         <td>${l.fecha_caducidad || ""}</td>
         <td>${l.cantidad}</td>
-        <td><button type="button" class="btn btn-sm btn-success">✓</button></td>
+        <td><button type="button" class="btn btn-sm btn-success">âœ“</button></td>
       `;
-      tr.querySelector("button").addEventListener("click", () => {
-        document.getElementById("loteInput").value = l.numero_lote;
-        document.getElementById("caducidadInput").value = l.fecha_caducidad || "";
-        const loteIdHidden = document.getElementById("loteIdInput");
-        if (loteIdHidden) loteIdHidden.value = l.id;
-        bootstrap.Modal.getInstance(modalLote).hide();
-        bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
-        document.getElementById("cantidadInput")?.focus();
-      });
+      tr.querySelector("button").addEventListener("click", () => { if (typeof window.setProductoSeleccionado === "function") { window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` }); } else { if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`; if (productoIdInput) productoIdInput.value = p.id; } bootstrap.Modal.getInstance(modalBuscar)?.hide(); bootstrap.Modal.getOrCreateInstance(modalEl).show(); });
       tablaLotes.appendChild(tr);
     });
   }
@@ -535,7 +522,7 @@ document.addEventListener("DOMContentLoaded", function () {
     searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
   });
 
-  // Crear lote rápido
+  // Crear lote rÃ¡pido
   const modalCrearLote = document.getElementById("modalCrearLote");
   const btnGuardarLote = document.getElementById("btnGuardarLote");
   if (btnGuardarLote) {
@@ -590,7 +577,7 @@ document.addEventListener("DOMContentLoaded", function () {
     bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
   });
 
-  /* ==================== TABLA: selección, filtros, Paginación ==================== */
+  /* ==================== TABLA: selecciÃ³n, filtros, PaginaciÃ³n ==================== */
   const table = document.getElementById("tablaRecepciones");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerRecepciones");
@@ -605,7 +592,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Elimina posibles filas vacías (fila fantasma)
+  // Elimina posibles filas vacÃ­as (fila fantasma)
   function removeEmptyRows(){
     Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
       if(tr.hasAttribute('data-empty-row')) return;
@@ -614,7 +601,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* Selección de fila */
+  /* SelecciÃ³n de fila */
   function selectRow(row){
     if(!row) return;
     tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
@@ -662,7 +649,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* Botón Consultar (reutiliza la misma apertura de modal) */
+  /* BotÃ³n Consultar (reutiliza la misma apertura de modal) */
   document.getElementById("btnConsultar").addEventListener("click", () => {
     if (!selectedId) return;
     const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
@@ -682,12 +669,12 @@ document.addEventListener("DOMContentLoaded", function () {
         modalConsultar.show();
       })
       .catch(() => {
-        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>';
+        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepciÃ³n.</div>';
         modalConsultar.show();
       });
   }
 
-  /* ====== Paginación ====== */
+  /* ====== PaginaciÃ³n ====== */
   let currentPage=1; let pageSize=15; const rowHeight=42;
 
   function recomputarPageSize(){
@@ -706,7 +693,7 @@ document.addEventListener("DOMContentLoaded", function () {
     prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
     prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
     const info=document.createElement("span");
-    info.className="align-self-center mx-2"; info.textContent=`Página ${currentPage} de ${totalPages}`;
+    info.className="align-self-center mx-2"; info.textContent=`PÃ¡gina ${currentPage} de ${totalPages}`;
     const next=document.createElement("button");
     next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
     next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
@@ -719,14 +706,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const start=(currentPage-1)*pageSize; const end=start+pageSize;
     rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
     renderPager(totalPages);
-    // Marcar última visible para quitar borde inferior
+    // Marcar Ãºltima visible para quitar borde inferior
     tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
     const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
     const last = visibles[visibles.length-1];
     if(last) last.classList.add('last-visible');
-    // Normaliza label del pager (evita caracteres raros en "Página")
+    // Normaliza label del pager (evita caracteres raros en "PÃ¡gina")
     const info=pagerEl.querySelector('span');
-    if(info){ info.textContent=`Página ${currentPage} de ${totalPages}`; }
+    if(info){ info.textContent=`PÃ¡gina ${currentPage} de ${totalPages}`; }
     if(selectedId){
       const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
       if(sel && sel.classList.contains("hidden-by-pagination")){
@@ -791,4 +778,5 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+
 

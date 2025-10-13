@@ -4,21 +4,75 @@
 {% block title %}Gestión de Lotes · SAIF{% endblock %}
 
 {% block content %}
-<section class="p-3 p-md-4">
-  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
-    <!-- ENCABEZADO -->
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 px-md-4 py-2 py-md-3">
-      <h3 class="mb-0 fs-5 fs-md-4">
-        <i class="bi bi-boxes me-2"></i> Gestión de Lotes
-      </h3>
-      <span class="badge bg-light text-success px-2 px-md-3 py-1 py-md-2 fs-6 fs-md-5">SAIF</span>
+<style>
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+/* ====== Tabla ====== */
+#tablaLotes{
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaLotes th,#tablaLotes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+#tablaLotes tbody tr{ background:#ffffff; }
+
+/* Encabezado pegajoso (títulos + filtros) */
+#tablaLotes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaLotes thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaLotes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+/* Controles filtro */
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{
+  width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem;
+  transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+/* Anchos mínimos */
+#tablaLotes thead .filter-row th{ min-width:110px; }
+#tablaLotes thead .filter-row th:nth-child(2){ min-width:220px; }
+#tablaLotes thead .filter-row th:nth-child(6){ min-width:180px; }
+
+/* Paginación & bordes */
+.hidden-by-pagination{ display:none !important; }
+#tablaLotes thead tr:first-child th{ border-top:0; }
+#tablaLotes tbody tr:last-child td{ border-bottom:0; }
+#tablaLotes tr>*:first-child{ border-left:0; }
+#tablaLotes tr>*:last-child{  border-right:0; }
+#tablaLotes tbody tr.last-visible td{ border-bottom:0 !important; }
+
+/* Hover */
+#tablaLotes tbody tr:hover{ background:#fafafa; }
+</style>
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- ENCABEZADO (igual a Productos) -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-boxes me-2"></i> Gestión de Lotes</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
     <!-- TABLA -->
-    <div class="table-responsive">
+    <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaLotes">
-        <thead class="table-success text-dark">
+        <colgroup>
+          <col style="width:10%"><col style="width:22%"><col style="width:12%"><col style="width:12%">
+          <col style="width:10%"><col style="width:18%"><col style="width:16%">
+        </colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th>Código</th>
             <th>Producto</th>
@@ -28,21 +82,30 @@
             <th>Ubicación</th>
             <th>Estado</th>
           </tr>
+          <tr class="filter-row">
+            <th><input id="f-codigo"     class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-producto"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-nlote"      class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-cad"        class="form-control form-control-sm filter-control text-center" placeholder="AAAA-MM-DD"></th>
+            <th><input id="f-disp"       class="form-control form-control-sm filter-control text-center" placeholder="≥ / = / ≤"></th>
+            <th><input id="f-ubic"       class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-estado"     class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+          </tr>
         </thead>
         <tbody>
           {% for lote in lotes %}
-          <tr data-id="{{ lote.id }}">
-            <td>{{ lote.id_producto.codigo_producto }}</td>
-            <td>{{ lote.id_producto.nombre }}</td>
-            <td>{{ lote.numero_lote }}</td>
-            <td>{{ lote.fecha_caducidad }}</td>
-            <td>{{ lote.cantidad_disponible }}</td>
-            <td>{{ lote.ubicacion_almacen }}</td>
-            <td>{{ lote.id_estado_lote.nombre_estado }}</td>
+          <tr data-id="{{ lote.id }}" tabindex="0">
+            <td class="text-truncate">{{ lote.id_producto.codigo_producto }}</td>
+            <td class="text-truncate">{{ lote.id_producto.nombre }}</td>
+            <td class="text-truncate">{{ lote.numero_lote }}</td>
+            <td class="text-truncate">{{ lote.fecha_caducidad }}</td>
+            <td class="text-truncate">{{ lote.cantidad_disponible }}</td>
+            <td class="text-truncate">{{ lote.ubicacion_almacen }}</td>
+            <td class="text-truncate">{{ lote.id_estado_lote.nombre_estado }}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="py-5 text-muted">
+            <td colspan="7" class="py-5 text-muted" data-empty-row>
               <i class="bi bi-inbox fs-3 d-block mb-2"></i>
               No hay lotes registrados.
             </td>
@@ -52,17 +115,28 @@
       </table>
     </div>
 
-    <!-- BOTONES ABAJO -->
+    <!-- Paginador (idéntico estilo que Productos) -->
+    <div id="pagerLotes" class="saif-pager"></div>
+
+    <!-- BOTONES ABAJO (mismo look) -->
     <div class="px-3 py-3 text-center border-top bg-light">
-      <button id="btnConsultar" class="btn btn-primary rounded-pill px-4 me-2 shadow-sm" disabled>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-search"></i> Consultar
       </button>
-      <button id="btnEditar" class="btn btn-warning rounded-pill px-4 me-2 shadow-sm" disabled>
+      <button id="btnEditar" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-pencil"></i> Editar
       </button>
-      <button id="btnEliminar" class="btn btn-danger rounded-pill px-4 shadow-sm" disabled>
+      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-trash"></i> Eliminar
       </button>
+
+      <!-- patrones de URL (con id=0) para reemplazar en JS -->
+      <span id="urlPatterns"
+            data-consultar="{% url 'inventario:lotes:consultar' 0 %}"
+            data-editar="{% url 'inventario:lotes:editar' 0 %}"
+            data-eliminar="{% url 'inventario:lotes:eliminar' 0 %}"
+            data-puede-eliminar="{% url 'inventario:lotes:puede_eliminar' 0 %}"
+            hidden></span>
     </div>
   </div>
 </section>
@@ -74,7 +148,7 @@
   </div>
 </div>
 
-<!-- Modal de confirmación (pequeño) -->
+<!-- Modal de confirmación -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
@@ -93,92 +167,163 @@
     </div>
   </div>
 </div>
-
-
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const tabla = document.getElementById("tablaLotes");
-  const tbody = tabla.querySelector("tbody");
-  const modal = new bootstrap.Modal(document.getElementById("modalLotes"));
+  const table        = document.getElementById("tablaLotes");
+  const tbody        = table.querySelector("tbody");
+  const pagerEl      = document.getElementById("pagerLotes");
+  const modal        = new bootstrap.Modal(document.getElementById("modalLotes"));
   const modalContent = document.getElementById("modalLotesContent");
 
-  // Confirm modal
-  const confirmModal = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
-  const confirmText = document.getElementById("confirmLoteText");
-  const btnConfirmDelete = document.getElementById("btnConfirmDelete");
+  const confirmModal   = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
+  const confirmText    = document.getElementById("confirmLoteText");
+  const btnConfirmDel  = document.getElementById("btnConfirmDelete");
 
   const btnConsultar = document.getElementById("btnConsultar");
   const btnEditar    = document.getElementById("btnEditar");
   const btnEliminar  = document.getElementById("btnEliminar");
 
-  let selectedId   = null;
-  let selectedRow  = null;
+  const patternsEl = document.getElementById('urlPatterns');
+  const withId = (pat, id) => pat.replace('/0/', `/${id}/`);
+
+  let selectedId  = null;
+  let selectedRow = null;
   let puedeEliminarCache = { allow:false, reason:"" };
 
-  // -------------------------------
-  // 🔐 Obtener CSRF Token
-  // -------------------------------
+  /* ====== Helpers ====== */
   function getCookie(name){
     let cookieValue=null;
     if(document.cookie && document.cookie!==''){
       const cookies=document.cookie.split(';');
       for(let c of cookies){
         c=c.trim();
-        if(c.substring(0, name.length+1)===(name+'=')){
+        if(c.substring(0,name.length+1)===(name+'=')){
           cookieValue=decodeURIComponent(c.substring(name.length+1)); break;
         }
       }
     }
     return cookieValue;
   }
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
+    });
+  }
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
 
-  // -------------------------------
-  // 🎛️ Habilitar / deshabilitar botones
-  // -------------------------------
+  /* ====== Filtros ====== */
+  (function installFilters(){
+    const fCodigo  = document.getElementById("f-codigo");
+    const fProd    = document.getElementById("f-producto");
+    const fLote    = document.getElementById("f-nlote");
+    const fCad     = document.getElementById("f-cad");
+    const fDisp    = document.getElementById("f-disp");
+    const fUbic    = document.getElementById("f-ubic");
+    const fEstado  = document.getElementById("f-estado");
+
+    const norm = (s)=> (s||"").toString().trim().toLowerCase();
+
+    function parseDispFilter(val){
+      // Soporta: "≥10", "> 5", "=12", "<=20", "15"
+      if(!val) return null;
+      const m = val.replace(/\s+/g,"").match(/^(<=|>=|=|<|>)?(-?\d+(?:[.,]\d+)?)$/);
+      if(!m) return null;
+      const op = m[1] || ">=";
+      const num = parseFloat(m[2].replace(",","."));
+      if(isNaN(num)) return null;
+      return {op, num};
+    }
+    function cmpNum(op, cellValue, target){
+      const v = parseFloat(cellValue);
+      if(isNaN(v)) return false;
+      switch(op){
+        case "=":  return v === target;
+        case "<":  return v <  target;
+        case "<=": return v <= target;
+        case ">":  return v >  target;
+        case ">=": return v >= target;
+        default:   return v >= target;
+      }
+    }
+    function applyFilters(){
+      const vCodigo = norm(fCodigo.value);
+      const vProd   = norm(fProd.value);
+      const vLote   = norm(fLote.value);
+      const vCad    = norm(fCad.value);
+      const vUbic   = norm(fUbic.value);
+      const vEstado = norm(fEstado.value);
+      const dispF   = parseDispFilter(fDisp.value.trim());
+
+      const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const t = i => norm(tr.cells[i]?.textContent);
+        let ok  = true;
+        if(vCodigo && !t(0).includes(vCodigo)) ok = false;
+        if(ok && vProd   && !t(1).includes(vProd)) ok = false;
+        if(ok && vLote   && !t(2).includes(vLote)) ok = false;
+        if(ok && vCad    && !t(3).includes(vCad))  ok = false;
+        if(ok && dispF)  ok = cmpNum(dispF.op, tr.cells[4]?.textContent, dispF.num);
+        if(ok && vUbic   && !t(5).includes(vUbic)) ok = false;
+        if(ok && vEstado && !t(6).includes(vEstado)) ok = false;
+        tr.style.display = ok ? "" : "none";
+      });
+      currentPage = 1;
+      applyPagination();
+    }
+    [fCodigo,fProd,fLote,fCad,fDisp,fUbic,fEstado].forEach(inp=>{
+      inp.addEventListener("input", applyFilters);
+    });
+  })();
+
+  /* ====== Selección de fila + Doble clic para consultar ====== */
+  async function fetchPuedeEliminar(id){
+    const url = withId(patternsEl.dataset.puedeEliminar, id);
+    const r = await fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    puedeEliminarCache = await r.json(); // {allow, reason}
+    setButtonsEnabled(true);
+  }
   function setButtonsEnabled(enabled){
     btnConsultar.disabled = !enabled;
     btnEditar.disabled    = !enabled;
     btnEliminar.disabled  = !enabled || !puedeEliminarCache.allow;
     btnEliminar.title     = puedeEliminarCache.allow ? "" : (puedeEliminarCache.reason || "Este lote no puede eliminarse.");
   }
-
-  // -------------------------------
-  // 🔎 Verificar si se puede eliminar
-  // -------------------------------
-  async function fetchPuedeEliminar(id){
-    const url = "{% url 'inventario:lotes:puede_eliminar' 0 %}".replace("/0/", `/${id}/`);
-    const r = await fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}});
-    puedeEliminarCache = await r.json(); // {allow, reason}
-    setButtonsEnabled(true);
+  async function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedRow = row;
+    selectedId  = row.dataset.id;
+    await fetchPuedeEliminar(selectedId);
   }
 
-  // -------------------------------
-  // 🖱️ Seleccionar fila
-  // -------------------------------
+  // click = seleccionar
   tbody.addEventListener("click", async (ev) => {
     const row = ev.target.closest("tr[data-id]");
     if (!row) return;
-
-    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
-    row.classList.add("table-active");
-
-    selectedRow = row;
-    selectedId  = row.dataset.id;
-
-    btnConsultar.disabled = false;
-    btnEditar.disabled    = false;
-
-    await fetchPuedeEliminar(selectedId);
+    await selectRow(row);
   });
 
-  // -------------------------------
-  // 📂 Abrir modal (consultar / editar)
-  // -------------------------------
+  // **doble clic = seleccionar + abrir CONSULTAR** (igual que Productos)
+  tbody.addEventListener("dblclick", async (ev) => {
+    const row = ev.target.closest("tr[data-id]");
+    if (!row) return;
+    await selectRow(row);
+    if (selectedId) abrirModal(withId(patternsEl.dataset.consultar, selectedId));
+  });
+
+  /* ====== Modal genérico ====== */
   function abrirModal(url){
     modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
     modal.show();
@@ -188,48 +333,50 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(() => modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando contenido.</div>');
   }
 
-  // -------------------------------
-  // 🔍 Consultar
-  // -------------------------------
+  /* ====== Accesos rápidos (igual que Productos) ====== */
+  document.addEventListener('keydown', (ev)=>{
+    if(ev.key==='Enter' && selectedId){
+      abrirModal(withId(patternsEl.dataset.consultar, selectedId)); ev.preventDefault();
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='e' && selectedId){
+      abrirModal(withId(patternsEl.dataset.editar, selectedId)); ev.preventDefault();
+    }
+    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='d' && selectedId){
+      btnEliminar.click(); ev.preventDefault();
+    }
+  });
+
+  /* ====== Botones ====== */
   btnConsultar.addEventListener("click", () => {
-    if (selectedId) abrirModal(`{% url 'inventario:lotes:consultar' 0 %}`.replace("/0/", `/${selectedId}/`));
+    if (selectedId) abrirModal(withId(patternsEl.dataset.consultar, selectedId));
   });
-
-  // -------------------------------
-  // ✏️ Editar
-  // -------------------------------
   btnEditar.addEventListener("click", () => {
-    if (selectedId) abrirModal(`{% url 'inventario:lotes:editar' 0 %}`.replace("/0/", `/${selectedId}/`));
+    if (selectedId) abrirModal(withId(patternsEl.dataset.editar, selectedId));
   });
-
-  // -------------------------------
-  // 🗑️ Eliminar (con verificación)
-  // -------------------------------
   btnEliminar.addEventListener("click", async () => {
     if (!selectedId) return;
-
-    if (!puedeEliminarCache.allow) {
+    if (!puedeEliminarCache.allow){
       alert(puedeEliminarCache.reason || "Este lote no puede eliminarse.");
       return;
     }
-
     const numLote = selectedRow?.children[2]?.textContent?.trim() || "";
     const prod    = selectedRow?.children[1]?.textContent?.trim() || "";
     confirmText.textContent = `${numLote} · ${prod}`;
 
-    btnConfirmDelete.onclick = async () => {
-      btnConfirmDelete.disabled = true;
+    btnConfirmDel.onclick = async () => {
+      btnConfirmDel.disabled = true;
 
-      const again = await fetch("{% url 'inventario:lotes:puede_eliminar' 0 %}".replace("/0/", `/${selectedId}/`));
+      // doble verificación
+      const again = await fetch(withId(patternsEl.dataset.puedeEliminar, selectedId));
       const againInfo = await again.json();
       if (!againInfo.allow) {
-        btnConfirmDelete.disabled = false;
+        btnConfirmDel.disabled = false;
         confirmModal.hide();
         alert(againInfo.reason || "Este lote ya no puede eliminarse.");
         return;
       }
 
-      const delUrl = "{% url 'inventario:lotes:eliminar' 0 %}".replace("/0/", `/${selectedId}/`);
+      const delUrl = withId(patternsEl.dataset.eliminar, selectedId);
       const res = await fetch(delUrl, {
         method: "POST",
         headers: {
@@ -240,7 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       confirmModal.hide();
       const data = await res.json();
-      btnConfirmDelete.disabled = false;
+      btnConfirmDel.disabled = false;
 
       if (data.success) {
         window.location.reload();
@@ -252,9 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
     confirmModal.show();
   });
 
-  // -------------------------------
-  // ✅ SUBMIT UNIVERSAL DENTRO DEL MODAL
-  // -------------------------------
+  /* ====== Submit universal dentro del modal ====== */
   modalContent.addEventListener("submit", function (e) {
     const form = e.target.closest("form");
     if (!form) return;
@@ -268,26 +413,90 @@ document.addEventListener("DOMContentLoaded", function () {
         "X-CSRFToken": getCookie("csrftoken")
       }
     })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          modal.hide();
-          window.location.reload(); // 🔁 vuelve a lista.html
-        } else if (data.html) {
-          modalContent.innerHTML = data.html; // vuelve a mostrar form con errores
-        } else {
-          alert("Error al guardar los cambios.");
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Error al procesar la solicitud.");
-      });
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        modal.hide();
+        window.location.reload();
+      } else if (data.html) {
+        modalContent.innerHTML = data.html;
+      } else {
+        alert("Error al guardar los cambios.");
+      }
+    })
+    .catch(() => alert("Error al procesar la solicitud."));
   });
 
+  /* ====== Paginación dinámica (mismo look de Productos) ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160; // espacio para pager + botones
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML="";
+      pagerEl.style.display="none";
+      return;
+    }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    refreshAutoTitles();
+  }
+
+  /* ====== Init ====== */
+  removeEmptyRows();
+  recomputarPageSize();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
-
-
 {% endblock %}
-

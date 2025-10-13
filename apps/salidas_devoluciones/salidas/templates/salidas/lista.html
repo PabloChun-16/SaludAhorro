@@ -4,46 +4,133 @@
 {% block title %}Ventas · SAIF{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<style>
+/* ====== Contenedor y tabla con el mismo look & feel que Productos ====== */
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+/* Reutilizamos misma gramática visual */
+#tablaVentas{
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+
+#tablaVentas th,#tablaVentas td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+
+#tablaVentas tbody tr{ background:#ffffff; }
+#tablaVentas tbody tr:hover{ background:#fafafa; }
+
+#tablaVentas thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaVentas thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaVentas thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; }
+#tablaVentas thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+#tablaVentas thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
+#tablaVentas thead.sticky-top tr.filter-row th select.form-select.filter-control{ -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important; }
+
+/* Mínimos */
+#tablaVentas thead .filter-row th{ min-width:100px; }
+#tablaVentas thead .filter-row th:nth-child(1){ min-width:130px; } /* No. Factura */
+#tablaVentas thead .filter-row th:nth-child(2){ min-width:150px; } /* Fecha */
+#tablaVentas thead .filter-row th:nth-child(4){ min-width:120px; } /* Estado */
+
+.wp-10{width:10%}.wp-18{width:18%}.wp-22{width:22%}.wp-30{width:30%}
+.hidden-by-pagination{ display:none !important; }
+
+#tablaVentas thead tr:first-child th{ border-top:0; }
+#tablaVentas tbody tr:last-child td{ border-bottom:0; }
+#tablaVentas tr>*:first-child{ border-left:0; }
+#tablaVentas tr>*:last-child{  border-right:0; }
+#tablaVentas tbody tr.last-visible td{ border-bottom:0 !important; }
+
+/* Selección */
+#tablaVentas tr.selected, #tablaVentas tr.table-active { background-color: rgba(25,135,84,.12); }
+#tablaVentas tr { cursor: pointer; }
+</style>
+
 <section class="p-6 md:p-8">
-  <div class="saif-card mb-4">
-    <div class="saif-card-header">
-      <i class="bi bi-receipt-cutoff"></i>
-      <h3>Ventas registradas</h3>
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-receipt-cutoff me-2"></i> Ventas registradas</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <div class="table-wrap">
-      <table class="table table-saif align-middle text-center" id="tablaVentas">
-        <thead>
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaVentas">
+        <colgroup>
+          <col class="wp-18"><!-- No. Factura -->
+          <col class="wp-22"><!-- Fecha -->
+          <col class="wp-30"><!-- Usuario -->
+          <col class="wp-10"><!-- Estado -->
+        </colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th>No. Factura</th>
             <th>Fecha</th>
             <th>Usuario</th>
             <th>Estado</th>
           </tr>
+          <tr class="filter-row">
+            <th><input id="f-ref" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="anulado">Anulado</option>
+                </select>
+              </div>
+            </th>
+          </tr>
         </thead>
         <tbody>
           {% for v in ventas %}
-          <tr data-ref="{{ v.referencia }}">
-            <td class="fw-semibold">{{ v.referencia }}</td>
-            <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
-            <td>{{ v.usuario }}</td>
-            <td>{{ v.estado }}</td>
+          <tr data-ref="{{ v.referencia }}" data-estado="{{ v.estado }}">
+            <td class="fw-semibold text-truncate">{{ v.referencia }}</td>
+            <td class="text-truncate">{{ v.fecha|date:"d/m/Y H:i" }}</td>
+            <td class="text-truncate">{{ v.usuario }}</td>
+            <td class="text-truncate">{{ v.estado }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="py-4 text-muted">Sin ventas.</td></tr>
+          <tr>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              Sin ventas.
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <div class="px-3 py-3 text-center">
-      <button id="btnCrear" class="btn btn-warning me-2"
+    <div id="pagerVentas" class="saif-pager"></div>
+
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
               data-bs-toggle="modal"
               data-bs-target="#modalVenta"
               data-url="{% url 'sd:salidas:create' %}">
         <i class="bi bi-plus-circle"></i> CREAR
       </button>
-      <button id="btnConsultar" class="btn btn-primary" disabled>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
     </div>
@@ -65,7 +152,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  /* ====== Variables originales (SIN CAMBIAR LÓGICA) ====== */
   const table = document.getElementById("tablaVentas");
+  const tbody = table.querySelector("tbody");
   const btnConsultar = document.getElementById("btnConsultar");
   const btnCrear = document.getElementById("btnCrear");
 
@@ -75,17 +164,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let selectedRef = null;
 
-  // --- Selección de fila
+  /* ====== Selección de fila (igual que tu lógica original) ====== */
   table.addEventListener("click", (e) => {
     const tr = e.target.closest("tr[data-ref]");
     if (!tr) return;
-    table.querySelectorAll("tr.selected").forEach(r => r.classList.remove("selected"));
-    tr.classList.add("selected");
+    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+    tr.classList.add("selected","table-active");
     selectedRef = tr.getAttribute("data-ref");
     btnConsultar.disabled = !selectedRef;
   });
 
-  // --- Abrir modal CREAR
+  /* ====== Abrir modal CREAR (misma ruta y comportamiento) ====== */
   btnCrear.addEventListener("click", function () {
     modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
     modalInstance.show();
@@ -101,7 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-  // --- Abrir modal CONSULTAR
+  /* ====== Abrir modal CONSULTAR (misma ruta y comportamiento) ====== */
   btnConsultar.addEventListener("click", function (){
     if (!selectedRef) return;
     modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
@@ -112,9 +201,31 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(() => { modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando detalle.</div>"; });
   });
 
-  // -----------------------
-  // Inicializador del FORM
-  // -----------------------
+  /* ====== Doble click y Enter para consultar (UX como Productos) ====== */
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr[data-ref]");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+    row.classList.add("selected","table-active");
+    selectedRef = row.getAttribute("data-ref");
+    btnConsultar.disabled = !selectedRef;
+    if(selectedRef){
+      modalContent.innerHTML = "<div class='p-4'>Cargando...</div>";
+      modalInstance.show();
+      fetch("{% url 'sd:salidas:detail' 'REF' %}".replace("REF", encodeURIComponent(selectedRef)))
+        .then(r => r.text()).then(html => { modalContent.innerHTML = html; })
+        .catch(()=>{ modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando detalle.</div>"; });
+    }
+  });
+
+  document.addEventListener('keydown', (ev)=>{
+    if(ev.key==='Enter' && selectedRef){
+      ev.preventDefault();
+      btnConsultar.click();
+    }
+  });
+
+  /* ====== Inicializador del FORM (TAL CUAL TU LÓGICA) ====== */
   function inicializarFormularioVenta(){
     const alertBox = document.getElementById("formAlert");
     const detalles = []; // vive mientras esté abierto el modal
@@ -145,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const item = { producto_id: parseInt(pid,10), cantidad: qty, producto: ptx };
         detalles.push(item);
 
-        const tbody = document.querySelector("#modalVenta #detalleTable");
+        const tbodyDet = document.querySelector("#modalVenta #detalleTable");
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="text-start">${item.producto}</td>
@@ -156,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const idx = detalles.indexOf(item);
           if (idx >= 0) detalles.splice(idx,1);
         });
-        tbody.appendChild(tr);
+        tbodyDet.appendChild(tr);
 
         // limpiar captura
         document.querySelector("#modalVenta #productoIdInput").value = "";
@@ -207,14 +318,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ----------------------------
-  // Buscador de productos (reuso)
-  // ----------------------------
+  /* ====== Buscador de productos (reuso) (TAL CUAL) ====== */
   const modalBuscar   = document.getElementById("modalBuscarProducto");
   const searchInput   = document.getElementById("searchProducto");
   const tbodyResultados = document.getElementById("tablaBuscarProductos");
 
   function cablearBuscadorProductos(){
+    if(!modalBuscar) return;
     modalBuscar.addEventListener("shown.bs.modal", onShownBuscador, { once:true });
   }
 
@@ -261,15 +371,157 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 
-  // Si cierran el buscador con la X, volvemos a mostrar el principal
-  modalBuscar.addEventListener("hidden.bs.modal", () => {
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
-  });
+  if(modalBuscar){
+    modalBuscar.addEventListener("hidden.bs.modal", () => {
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+  }
+
+  /* ====== Utilidades visuales como en Productos ====== */
+  const pagerEl = document.getElementById("pagerVentas");
+
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
+    });
+  }
+
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  /* ====== Paginación (idéntica experiencia) ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML="";
+      pagerEl.style.display="none";
+      return;
+    }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    // Si la seleccionada quedó fuera, seleccionamos la primera visible
+    if(selectedRef){
+      const sel=rows.find(r=>r.getAttribute("data-ref")===selectedRef);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible){
+          table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+          firstVisible.classList.add("selected","table-active");
+          selectedRef = firstVisible.getAttribute("data-ref");
+          btnConsultar.disabled = !selectedRef;
+        }
+      }
+    }
+
+    refreshAutoTitles();
+  }
+
+  /* ====== Filtros (adaptados a columnas de Ventas) ====== */
+  function installFilters(){
+    const fRef=document.getElementById("f-ref");
+    const fFecha=document.getElementById("f-fecha");
+    const fUsuario=document.getElementById("f-usuario");
+    const fEstado=document.getElementById("f-estado");
+    const inputs=[fRef,fFecha,fUsuario,fEstado].filter(Boolean);
+
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    const normEstado=(s)=>norm(s).replace(/[íi]/g,"i");
+
+    function applyFilters(){
+      const refVal=norm(fRef?.value);
+      const fechaVal=norm(fFecha?.value);
+      const usuVal=norm(fUsuario?.value);
+      const estVal=normEstado(fEstado?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
+        const estadoAttr = normEstado(tr.getAttribute("data-estado") || txt(3));
+        const ok =
+          (!refVal   || txt(0).includes(refVal))   &&
+          (!fechaVal || txt(1).includes(fechaVal)) &&
+          (!usuVal   || txt(2).includes(usuVal))   &&
+          (!estVal   || estadoAttr===estVal || estadoAttr.includes(estVal));
+        tr.style.display = ok ? "" : "none";
+      });
+      currentPage=1; applyPagination();
+    }
+
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+  }
+
+  /* ====== Inicialización ====== */
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
-
-<style>
-#tablaVentas tr.selected { background-color: rgba(25, 135, 84, .12); }
-#tablaVentas tr { cursor: pointer; }
-</style>
 {% endblock %}
