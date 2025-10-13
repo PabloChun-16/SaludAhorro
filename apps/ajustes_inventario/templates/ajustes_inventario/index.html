@@ -11,28 +11,36 @@
 
   <div class="grid gap-10 md:grid-cols-2 max-w-6xl mx-auto">
 
+    <!-- ===== Ajustes de Ingresos ===== -->
     <a href="{% url 'ajustes_inventario:ingresos:ajuste_ingreso_list' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white hover:border-emerald-600/40">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
-        <i class="bi bi-box-seam text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+        <i class="bi bi-arrow-down-square text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
         Ajustes de Ingresos
       </div>
+      <p class="mt-2 text-sm text-slate-500">
+        Control de entradas de productos al inventario.
+      </p>
     </a>
 
-
+    <!-- ===== Ajustes de Salidas ===== -->
     <a href="{% url 'ajustes_inventario:salidasAjustes:ajuste_salida_list' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white hover:border-emerald-600/40">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
-        <i class="bi bi-boxes text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+        <i class="bi bi-arrow-up-square text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-       Ajustes de Salidas
+        Ajustes de Salidas
       </div>
+      <p class="mt-2 text-sm text-slate-500">
+        Control de retiros o bajas de productos del inventario.
+      </p>
     </a>
+
   </div>
 </section>
 

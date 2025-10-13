@@ -1,7 +1,7 @@
 ﻿{% extends "dashboard/base.html" %}
 {% load static %}
 
-{% block title %}Recepciones Â· SAIF{% endblock %}
+{% block title %}Recepciones &middot; SAIF{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
@@ -168,8 +168,8 @@ select.filter-control{
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">NÃºmero EnvÃ­o</th>
-            <th scope="col">Fecha RecepciÃ³n</th>
+            <th scope="col">N&uacute;mero Env&iacute;o</th>
+            <th scope="col">Fecha Recepci&oacute;n</th>
             <th scope="col">Usuario</th>
             <th scope="col">Estado</th>
           </tr>
@@ -243,7 +243,7 @@ select.filter-control{
       </button>
       <!-- GRÃFICAS -->
       <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
-        <i class="bi bi-graph-up"></i> GrÃ¡ficas
+        <i class="bi bi-graph-up"></i> Gr&aacute;ficas
       </a>
     </div>
   </div>
@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           if (!data) return;
           if (data.success) {
-            alert("RecepciÃ³n creada exitosamente.");
+            alert("Recepci\u00F3n creada exitosamente.");
             modalInstance.hide();
             window.location.reload();
           } else {
@@ -669,7 +669,7 @@ document.addEventListener("DOMContentLoaded", function () {
         modalConsultar.show();
       })
       .catch(() => {
-        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepciÃ³n.</div>';
+        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepci&oacute;n.</div>';
         modalConsultar.show();
       });
   }
@@ -693,7 +693,7 @@ document.addEventListener("DOMContentLoaded", function () {
     prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
     prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
     const info=document.createElement("span");
-    info.className="align-self-center mx-2"; info.textContent=`PÃ¡gina ${currentPage} de ${totalPages}`;
+    info.className="align-self-center mx-2"; info.textContent=`P\u00E1gina ${currentPage} de ${totalPages}`;
     const next=document.createElement("button");
     next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
     next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
@@ -713,7 +713,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if(last) last.classList.add('last-visible');
     // Normaliza label del pager (evita caracteres raros en "PÃ¡gina")
     const info=pagerEl.querySelector('span');
-    if(info){ info.textContent=`PÃ¡gina ${currentPage} de ${totalPages}`; }
+    if(info){ info.textContent=`P\u00E1gina ${currentPage} de ${totalPages}`; }
     if(selectedId){
       const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
       if(sel && sel.classList.contains("hidden-by-pagination")){

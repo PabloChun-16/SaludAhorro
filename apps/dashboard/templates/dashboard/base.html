@@ -205,6 +205,37 @@
           <i class="bi bi-inboxes"></i><span>Solicitudes a Bodega Central</span>
         </a>
 
+            <!-- ==== Conteo Físico y Ajustes (slide) ==== -->
+        <div id="ajustes-group" class="space-y-1">
+          <button type="button"
+                  id="ajustes-toggle"
+                  class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+                  aria-expanded="false"
+                  aria-controls="ajustes-submenu">
+            <i class="bi bi-clipboard-check"></i>
+            <span class="flex-1">Conteo Físico y Ajustes</span>
+            <i id="ajustes-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+          </button>
+
+          <div id="ajustes-submenu" class="saif-collapse mt-1 ms-8" data-index-url="/ajustes_inventario/">
+            <a href="/ajustes_inventario/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-grid"></i>
+              <span>Dashboard</span>
+            </a>
+        <a href="/ajustes_inventario/ingresos/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+  <i class="bi bi-arrow-down-square"></i>
+  <span>Ajustes de Ingresos</span>
+</a>
+<a href="/ajustes_inventario/salidas/" class="saif-item flex items-center gap-2 px-3 py-1.5">
+  <i class="bi bi-arrow-up-square"></i>
+  <span>Ajustes de Salidas</span>
+</a>
+
+          </div>
+        </div>
+        
+        <!-- ==== /Conteo Físico y Ajustes ==== -->
+
         <!-- ==== Gestión de Recetas ==== -->
         <div id="recetas-group" class="space-y-1">
           <!-- Botón toggle -->
@@ -213,7 +244,7 @@
                   class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
                   aria-expanded="false"
                   aria-controls="recetas-submenu">
-            <i class="bi bi-bookmark"></i>
+            <i class="bi bi-journal-medical"></i>
             <span class="flex-1">Gestión Recetas</span>
             <i id="recetas-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
           </button>
@@ -239,7 +270,7 @@
             </a>
 
             <a href="/recetas/registrar_envio/" class="saif-item flex items-center gap-2 px-3 py-1.5">
-              <i class="bi bi-send-plus"></i>
+              <i class="bi bi-truck"></i>
               <span>Registrar Envío</span>
             </a>
 
@@ -261,7 +292,7 @@
                   class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
                   aria-expanded="false"
                   aria-controls="mantenimiento-submenu">
-            <i class="bi bi-gear-wide-connected"></i>
+            <i class="bi bi-tools"></i>
             <span class="flex-1">Mantenimiento</span>
             <i id="mantenimiento-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
           </button>
@@ -390,6 +421,13 @@
       submenuId: 'sd-submenu',
       caretId:  'sd-caret',
       openIfStartsWith: '/salidas_devoluciones/'
+    });
+
+    const gAj = setupGroup({
+      toggleId: 'ajustes-toggle',
+      submenuId: 'ajustes-submenu',
+      caretId:  'ajustes-caret',
+      openIfStartsWith: '/ajustes_inventario/'
     });
 
     // ====== Auto-apertura por ruta en modo acordeón (solo uno abierto) ======
