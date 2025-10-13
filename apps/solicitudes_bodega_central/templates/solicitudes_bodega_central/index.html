@@ -1,0 +1,47 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Solicitudes a Bodega Central · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-10">
+    Módulos de Solicitudes
+  </h1>
+
+  <div class="grid gap-10 md:grid-cols-2 max-w-6xl mx-auto">
+    <!-- Crear Solicitud -->
+    <a href="{% url 'solicitudes_bodega_central:registrar_solicitud' %}"
+       class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
+              focus:text-slate-800 focus-visible:outline-none">
+      <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+        <i class="bi bi-file-earmark-plus text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
+        Registrar Solicitud
+      </div>
+    </a>
+
+    <!-- Listado de Solicitudes -->
+    <a href="{% url 'solicitudes_bodega_central:listar_solicitudes' %}"
+       class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
+              focus:text-slate-800 focus-visible:outline-none">
+      <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+        <i class="bi bi-clipboard-data text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
+        Listado de Solicitudes
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- Fix hover en dispositivos táctiles -->
+<style>
+@media (hover: none) and (pointer: coarse) {
+  .group:hover .group-hover\:text-emerald-700 {
+    color: inherit !important;
+  }
+}
+</style>
+{% endblock %}

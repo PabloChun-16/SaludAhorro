@@ -201,9 +201,44 @@
 
         <h6 class="uppercase text-xs text-emerald-200 font-semibold mt-4">Operaciones</h6>
         <hr>
-        <a href="/solicitudes_bodega_central/" class="saif-item flex items-center gap-2 px-3 py-2 rounded transition">
-          <i class="bi bi-inboxes"></i><span>Solicitudes a Bodega Central</span>
-        </a>
+
+        <!-- ==== Gestión de Solicitudes ==== -->
+        <div id="solicitudes-group" class="space-y-1">
+          <!-- Botón toggle -->
+          <button type="button"
+                  id="solicitudes-toggle"
+                  class="saif-item w-full text-left flex items-center gap-2 px-3 py-2 rounded transition"
+                  aria-expanded="false"
+                  aria-controls="solicitudes-submenu">
+            <i class="bi bi-inboxes"></i>
+            <span class="flex-1">Gestión Solicitudes</span>
+            <i id="solicitudes-caret" class="saif-caret bi bi-caret-down ms-auto text-emerald-200"></i>
+          </button>
+
+          <!-- Submenú -->
+          <div id="solicitudes-submenu"
+              class="saif-collapse mt-1 ms-8"
+              data-index-url="/solicitudes_bodega_central/">
+
+            <a href="/solicitudes_bodega_central/"
+              class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-grid"></i>
+              <span>Dashboard</span>
+            </a>
+
+            <a href="/solicitudes_bodega_central/crear/"
+              class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-file-earmark-plus"></i>
+              <span>Crear Solicitud</span>
+            </a>
+
+            <a href="/solicitudes_bodega_central/listar/"
+              class="saif-item flex items-center gap-2 px-3 py-1.5">
+              <i class="bi bi-clipboard-data"></i>
+              <span>Ver Solicitudes</span>
+            </a>
+          </div>
+        </div>
 
             <!-- ==== Conteo Físico y Ajustes (slide) ==== -->
         <div id="ajustes-group" class="space-y-1">
@@ -233,8 +268,6 @@
 
           </div>
         </div>
-        
-        <!-- ==== /Conteo Físico y Ajustes ==== -->
 
         <!-- ==== Gestión de Recetas ==== -->
         <div id="recetas-group" class="space-y-1">
@@ -335,9 +368,50 @@
 
     <!-- CONTENT -->
     <main class="bg-white">
+
+       <!-- Bloque de mensajes con estilo SAIF -->
+      {% if messages %}
+        <div class="max-w-3xl mx-auto mt-4 space-y-3 px-4">
+          {% for message in messages %}
+            <div class="flex items-center justify-between p-4 rounded-lg shadow-sm border
+              {% if message.tags == 'success' %}
+                bg-emerald-50 border-emerald-200 text-emerald-800
+              {% elif message.tags == 'error' %}
+                bg-red-50 border-red-200 text-red-800
+              {% elif message.tags == 'warning' %}
+                bg-yellow-50 border-yellow-200 text-yellow-800
+              {% elif message.tags == 'info' %}
+                bg-blue-50 border-blue-200 text-blue-800
+              {% else %}
+                bg-gray-50 border-gray-200 text-gray-800
+              {% endif %}
+            ">
+              <div class="flex items-center gap-2">
+                {% if message.tags == 'success' %}
+                  <i class="bi bi-check-circle-fill text-emerald-600"></i>
+                {% elif message.tags == 'error' %}
+                  <i class="bi bi-x-circle-fill text-red-600"></i>
+                {% elif message.tags == 'warning' %}
+                  <i class="bi bi-exclamation-triangle-fill text-yellow-600"></i>
+                {% elif message.tags == 'info' %}
+                  <i class="bi bi-info-circle-fill text-blue-600"></i>
+                {% else %}
+                  <i class="bi bi-dot"></i>
+                {% endif %}
+                <span class="font-medium">{{ message }}</span>
+              </div>
+
+              <button type="button"
+                      class="btn-close ms-3"
+                      data-bs-dismiss="alert"
+                      aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
       {% block content %}{% endblock %}
     </main>
-  </div>
 
   <footer class="border-t text-xs text-slate-600 px-4 py-3">
     <div class="flex items-center justify-between">
@@ -430,6 +504,13 @@
       openIfStartsWith: '/ajustes_inventario/'
     });
 
+    const gSol = setupGroup({
+      toggleId: 'solicitudes-toggle',
+      submenuId: 'solicitudes-submenu',
+      caretId:  'solicitudes-caret',
+      openIfStartsWith: '/solicitudes_bodega_central/'
+    });
+
     // ====== Auto-apertura por ruta en modo acordeón (solo uno abierto) ======
     const firstMatch = groups.find(g => g.openIfStartsWith && path.startsWith(g.openIfStartsWith));
     if (firstMatch) {
@@ -442,7 +523,7 @@
       }
     }
   });
-  </script>
+</script>
   <script>
   // Normaliza padding-right inyectado por Bootstrap al abrir cualquier modal
   (function(){

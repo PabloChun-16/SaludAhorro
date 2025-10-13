@@ -1,0 +1,348 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Solicitudes · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+
+  <!-- ================== TABLA ================== -->
+  <div class="border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
+      <i class="bi bi-list-ul"></i> Lista de Solicitudes
+    </div>
+
+    <table class="w-full text-sm text-left text-slate-700" id="tablaSolicitudes">
+      <thead class="bg-emerald-50 text-emerald-900">
+        <tr>
+          <th class="px-4 py-2">Documento</th>
+          <th class="px-4 py-2">Producto</th>
+          <th class="px-4 py-2">Cantidad</th>
+          <th class="px-4 py-2">Urgente</th>
+          <th class="px-4 py-2">Observaciones</th>
+          <th class="px-4 py-2">Estado</th>
+          <th class="px-4 py-2">Fecha</th>
+        </tr>
+        <tr>
+          {% for i in "1234567" %}
+          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for solicitud in solicitudes %}
+        <tr class="fila-solicitud"
+            data-id="{{ solicitud.id }}"
+            data-documento="{{ solicitud.nombre_documento }}"
+            data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
+            data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
+            data-urgente="{{ solicitud.detalles.first.es_urgente }}"
+            data-observaciones="{{ solicitud.detalles.first.observaciones }}"
+            data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
+            data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d' }}">
+          <td class="px-4 py-2">{{ solicitud.nombre_documento }}</td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.id_producto.nombre }}</td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
+          <td class="px-4 py-2">
+            {% if solicitud.detalles.first.es_urgente %}
+              <span class="badge bg-red-500 text-white">Sí</span>
+            {% else %}
+              <span class="badge bg-gray-400 text-white">No</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
+          <td class="px-4 py-2">{{ solicitud.id_estado_solicitud.nombre_estado }}</td>
+          <td class="px-4 py-2">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4 text-slate-500">No hay solicitudes registradas</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================== BOTONES ================== -->
+<div class="d-flex justify-content-center gap-3 mt-3">
+  <button id="btnConsultar" class="btn btn-primary rounded-pill px-4">
+    <i class="bi bi-file-earmark-text"></i> Consultar
+  </button>
+  <a href="{% url 'solicitudes_bodega_central:exportar_solicitudes_pdf' %}" 
+   class="btn btn-success rounded-pill px-4">
+  <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+</a>
+  <button class="btn btn-info rounded-pill px-4 text-white"
+          data-bs-toggle="modal" data-bs-target="#dashboardModal"
+          style="background-color:#8b5cf6; border:none;">
+    <i class="bi bi-bar-chart"></i> Dashboard
+  </button>
+</div>
+
+<!-- ================== MODAL CONSULTAR ================== -->
+<div class="modal fade" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content saif-modal">
+
+      <div class="modal-header bg-emerald-700 text-white">
+        <div class="d-flex align-items-center gap-2">
+          <img src="{% static 'home/img/logo_empresa.png' %}" 
+               alt="Logo" class="rounded-circle bg-white p-2 shadow-sm"
+               style="width: 38px; height: 38px;"> 
+          <h5 class="modal-title mb-0 fw-bold">Detalle de Solicitud</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-inboxes"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body py-3">
+        <div class="kv-grid">
+          <div class="kv"><div class="kv__key">Documento</div><div class="kv__val" id="detalleDocumento">—</div></div>
+          <div class="kv"><div class="kv__key">Producto</div><div class="kv__val" id="detalleProducto">—</div></div>
+          <div class="kv"><div class="kv__key">Cantidad</div><div class="kv__val" id="detalleCantidad">—</div></div>
+          <div class="kv"><div class="kv__key">Urgente</div><div class="kv__val" id="detalleUrgente">—</div></div>
+          <div class="kv"><div class="kv__key">Observaciones</div><div class="kv__val" id="detalleObservaciones">—</div></div>
+          <div class="kv"><div class="kv__key">Estado</div><div class="kv__val" id="detalleEstado">—</div></div>
+          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
+        </div>
+      </div>
+
+      <div class="modal-footer py-2 bg-white">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================== ESTILOS ================== -->
+<style>
+  .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+  .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+  .saif-modal .saif-badge { background:rgba(255,255,255,.15); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+  .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+  .kv__key { font-weight:700; color:#0b1220 }
+  .kv__val { color:#0f172a }
+  @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+</style>
+
+<!-- ================== MODAL DASHBOARD ================== -->
+<div class="modal fade" id="dashboardModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-purple-700 text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart"></i> Dashboard de Recetas</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body bg-slate-50">
+        <!-- Filtros -->
+        <div class="grid md:grid-cols-4 gap-4 mb-4">  
+          <div>
+            <label for="filtroProducto" class="form-label fw-bold">Producto</label>
+            <select id="filtroProducto" class="form-select">
+              <option value="">Todos</option>
+              {% for producto in productos %}
+              <option value="{{ producto.nombre }}">{{ producto.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="filtroUsuario" class="form-label fw-bold">Usuario</label>
+            <select id="filtroUsuario" class="form-select">
+              <option value="">Todos</option>
+              {% for usuario in usuarios %}
+              <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="filtroFechaInicio" class="form-label fw-bold">Fecha Inicio</label>
+            <input type="date" id="filtroFechaInicio" class="form-control">
+          </div>
+          <div>
+            <label for="filtroFechaFin" class="form-label fw-bold">Fecha Fin</label>
+            <input type="date" id="filtroFechaFin" class="form-control">
+          </div>
+        </div>  
+
+        <!-- Gráficas -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white p-3 rounded shadow">
+            <h6 class="fw-bold mb-2">Recetas por Producto</h6>
+            <canvas id="chartProductos"></canvas>
+          </div>
+          <div class="bg-white p-3 rounded shadow">
+            <h6 class="fw-bold mb-2">Recetas por Usuario</h6>
+            <canvas id="chartUsuarios"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-3 rounded shadow mt-4">
+          <h6 class="fw-bold mb-2">Recetas por Fecha</h6>
+          <canvas id="chartFechas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================== LIBRERÍAS ================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ================== DATOS DESDE DJANGO ================== -->
+<script>
+  let solicitudesData = [];
+  try {
+    solicitudesData = JSON.parse('{{ solicitudes_json|escapejs }}');
+    console.log("✅ Datos cargados desde Django:", solicitudesData);
+  } catch (error) {
+    console.error("❌ Error al parsear solicitudes_json:", error);
+  }
+</script>
+
+<!-- ================== DASHBOARD Y FUNCIONALIDAD ================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // ================== SELECCIÓN DE FILAS ==================
+  let selectedRow = null;
+  document.querySelectorAll(".fila-solicitud").forEach(row => {
+    row.addEventListener("click", () => {
+      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
+      selectedRow = row;
+      row.classList.add("bg-emerald-100");
+    });
+  });
+
+  // ================== CONSULTAR MODAL ==================
+  const btnConsultar = document.getElementById("btnConsultar");
+  if (btnConsultar) {
+    btnConsultar.addEventListener("click", () => {
+      if (!selectedRow) {
+        alert("Selecciona una solicitud primero.");
+        return;
+      }
+
+      document.getElementById("detalleDocumento").innerText = selectedRow.dataset.documento;
+      document.getElementById("detalleProducto").innerText = selectedRow.dataset.producto;
+      document.getElementById("detalleCantidad").innerText = selectedRow.dataset.cantidad;
+      document.getElementById("detalleUrgente").innerText = selectedRow.dataset.urgente === "True" ? "Sí" : "No";
+      document.getElementById("detalleObservaciones").innerText = selectedRow.dataset.observaciones;
+      document.getElementById("detalleEstado").innerText = selectedRow.dataset.estado;
+      document.getElementById("detalleFecha").innerText = selectedRow.dataset.fecha;
+
+      new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
+    });
+  }
+
+  // ================== EXPORTAR PDF ==================
+  const btnPDF = document.getElementById("btnExportarPDF");
+  if (btnPDF) {
+    btnPDF.addEventListener("click", () => {
+      const tabla = document.getElementById("tablaSolicitudes").outerHTML;
+      const ventana = window.open("", "_blank");
+      ventana.document.write(`
+        <html><head><title>Reporte de Solicitudes · SAIF</title>
+        <style>
+          body { font-family: Arial; margin: 40px; color: #111; }
+          h2 { text-align: center; color: #0E7A3A; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+          th { background: #0E7A3A; color: #fff; }
+          tr:nth-child(even) { background: #f5f9f6; }
+        </style></head><body>
+        <h2>Reporte de Solicitudes · SAIF</h2>${tabla}</body></html>
+      `);
+      ventana.document.close();
+      ventana.print();
+    });
+  }
+
+  // ================== FILTROS DE BÚSQUEDA ==================
+  document.querySelectorAll(".filtro").forEach((input, index) => {
+    input.addEventListener("keyup", () => {
+      const value = input.value.toLowerCase();
+      document.querySelectorAll("#tablaSolicitudes tbody tr").forEach(row => {
+        const cell = row.cells[index]?.textContent.toLowerCase();
+        row.style.display = cell.includes(value) ? "" : "none";
+      });
+    });
+  });
+
+  // ================== DASHBOARD ==================
+  const dashboardModal = document.getElementById("dashboardModal");
+  const filtroProducto = document.getElementById("filtroProducto");
+  const filtroUsuario = document.getElementById("filtroUsuario");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
+  const filtroFechaFin = document.getElementById("filtroFechaFin");
+
+  let chartProductos, chartUsuarios, chartFechas;
+
+  function obtenerDatos() {
+    return solicitudesData.map(d => ({
+      producto: d.producto,
+      usuario: d.usuario,
+      fecha: d.fecha
+    }));
+  }
+
+  function filtrarDatos() {
+    let data = obtenerDatos();
+
+    if (filtroProducto && filtroProducto.value)
+      data = data.filter(d => d.producto === filtroProducto.value);
+    if (filtroUsuario && filtroUsuario.value)
+      data = data.filter(d => d.usuario === filtroUsuario.value);
+    if (filtroFechaInicio && filtroFechaInicio.value)
+      data = data.filter(d => d.fecha >= filtroFechaInicio.value);
+    if (filtroFechaFin && filtroFechaFin.value)
+      data = data.filter(d => d.fecha <= filtroFechaFin.value);
+
+    return data;
+  }
+
+  function renderCharts() {
+    const data = filtrarDatos();
+
+    const productos = [...new Set(data.map(d => d.producto))];
+    const usuarios = [...new Set(data.map(d => d.usuario))];
+    const fechas = [...new Set(data.map(d => d.fecha))].sort();
+
+    const conteoProductos = productos.map(p => data.filter(d => d.producto === p).length);
+    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
+    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
+
+    if (chartProductos) chartProductos.destroy();
+    if (chartUsuarios) chartUsuarios.destroy();
+    if (chartFechas) chartFechas.destroy();
+
+    // === Barras ===
+    chartProductos = new Chart(document.getElementById("chartProductos"), {
+      type: "bar",
+      data: { labels: productos, datasets: [{ label: "Solicitudes por Producto", data: conteoProductos, backgroundColor: "#10b981" }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // === Pastel ===
+    chartUsuarios = new Chart(document.getElementById("chartUsuarios"), {
+      type: "pie",
+      data: { labels: usuarios, datasets: [{ label: "Solicitudes por Usuario", data: conteoUsuarios, backgroundColor: ["#0E7A3A","#f59e0b","#ef4444","#6366f1"] }] },
+      options: { plugins: { legend: { position: "bottom" } } }
+    });
+
+    // === Línea ===
+    chartFechas = new Chart(document.getElementById("chartFechas"), {
+      type: "line",
+      data: { labels: fechas, datasets: [{ label: "Solicitudes por Fecha", data: conteoFechas, borderColor: "#8b5cf6", backgroundColor: "rgba(139,92,246,0.2)", fill: true, tension: 0.3 }] },
+      options: { plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  if (dashboardModal) dashboardModal.addEventListener("shown.bs.modal", renderCharts);
+  if (filtroProducto) filtroProducto.addEventListener("change", renderCharts);
+  if (filtroUsuario) filtroUsuario.addEventListener("change", renderCharts);
+  if (filtroFechaInicio) filtroFechaInicio.addEventListener("change", renderCharts);
+  if (filtroFechaFin) filtroFechaFin.addEventListener("change", renderCharts);
+});
+</script>
+{% endblock %}

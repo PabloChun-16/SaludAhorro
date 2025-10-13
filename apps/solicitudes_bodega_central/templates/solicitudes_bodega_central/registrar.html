@@ -1,0 +1,401 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% load tz %}
+
+{% block title %}Registro de Solicitudes · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <style>
+  .saif-modal .modal-content {
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  .saif-modal .modal-header {
+    background: #0E7A3A;
+    color: #fff;
+    border-bottom: 0;
+  }
+
+  .saif-badge {
+    background: rgba(255, 255, 255, .15);
+    backdrop-filter: blur(4px);
+    border-radius: 999px;
+    padding: .12rem .5rem;
+    font-weight: 600;
+    font-size: .8rem;
+  }
+
+  .kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .85rem 1rem;
+  }
+
+  .kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    align-items: start;
+    gap: .35rem .5rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: .65rem .75rem;
+    box-shadow: 0 4px 12px rgba(15,23,42,.04);
+  }
+
+  .kv--block {
+    grid-column: 1 / -1;
+    grid-template-columns: 160px 1fr;
+  }
+
+  .kv__key { color: #0b1220; font-weight: 700; }
+  .kv__val { color: #0f172a; word-break: break-word; }
+</style>
+
+  <!-- ============================= TABLA ============================= -->
+  <div class="border rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
+      <i class="bi bi-inboxes"></i> Registro de Solicitudes
+    </div>
+
+    <table class="w-full text-sm text-left text-slate-700" id="tablaSolicitudes">
+      <thead class="bg-emerald-50 text-emerald-900">
+        <tr>
+          <th class="px-4 py-2">Documento</th>
+          <th class="px-4 py-2">Producto</th>
+          <th class="px-4 py-2">Cantidad</th>
+          <th class="px-4 py-2">Urgente</th>
+          <th class="px-4 py-2">Observaciones</th>
+          <th class="px-4 py-2">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for solicitud in solicitudes %}
+        <tr data-id="{{ solicitud.id }}"
+            data-documento="{{ solicitud.nombre_documento }}"
+            data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
+            data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
+            data-urgente="{{ solicitud.detalles.first.es_urgente }}"
+            data-observaciones="{{ solicitud.detalles.first.observaciones }}"
+            data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
+            data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d H:i' }}"
+            class="cursor-pointer hover:bg-emerald-50">
+          <td class="px-4 py-2">{{ solicitud.nombre_documento }}</td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.id_producto.nombre }}</td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
+          <td class="px-4 py-2">
+            {% if solicitud.detalles.first.es_urgente %}
+              <span class="badge bg-red-500 text-white">Sí</span>
+            {% else %}
+              <span class="badge bg-gray-400 text-white">No</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
+          <td class="px-4 py-2">{{ solicitud.id_estado_solicitud.nombre_estado }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-4 text-slate-500">
+            No hay solicitudes registradas
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================= BOTONES ============================= -->
+  <div class="flex justify-center gap-3 mt-4">
+    <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2 rounded-full"
+            data-bs-toggle="modal" data-bs-target="#crearSolicitudModal">
+      <i class="bi bi-plus-circle"></i> Crear
+    </button>
+    <button id="btnConsultar" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-eye"></i> Consultar
+    </button>
+    <button id="btnEditar" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-pencil"></i> Editar
+    </button>
+    <button id="btnEliminar" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-full">
+      <i class="bi bi-trash"></i> Eliminar
+    </button>
+  </div>
+</section>
+
+<!-- ============================= MODAL CREAR ============================= -->
+<div class="modal fade saif-modal" id="crearSolicitudModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'solicitudes_bodega_central:crear_solicitud' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-emerald-700 text-white py-3">
+          <div class="d-flex align-items-center gap-3">
+            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm"
+                 style="width: 38px; height: 38px;">
+            <h5 class="modal-title mb-0 fw-bold">Nueva Solicitud</h5>
+            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body bg-slate-50 py-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <input type="text" name="nombre_documento" class="form-control rounded-lg"
+                   placeholder="Nombre del documento" required>
+
+            <select name="id_producto[]" class="form-control rounded-lg" required>
+              <option value="">Seleccione un producto</option>
+              {% for producto in productos %}
+              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+              {% endfor %}
+            </select>
+
+            <input type="number" name="cantidad_solicitada[]" class="form-control rounded-lg"
+                   placeholder="Cantidad solicitada" min="1" required>
+
+            <div class="flex items-center gap-2">
+              <input type="checkbox" name="es_urgente[]" class="form-check-input" checked value="on">
+              <label>Marcar como urgente (Sí)</label>
+            </div>
+
+            <input type="text" name="observaciones[]" class="form-control rounded-lg"
+                   placeholder="Observaciones (opcional)">
+          </div>
+        </div>
+
+        <div class="modal-footer bg-white">
+          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button class="btn btn-success rounded-pill px-4">
+            <i class="bi bi-check2-circle"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= MODAL CONSULTAR ============================= -->
+<div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Encabezado -->
+      <div class="modal-header bg-emerald-700 text-white py-3">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{% static 'home/img/logo_empresa.png' %}" 
+               alt="Logo" 
+               class="rounded-circle bg-white p-2 shadow-sm"
+               style="width: 38px; height: 38px;">
+          <h5 class="modal-title mb-0 fw-bold">Detalle de Solicitud</h5>
+          <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Cuerpo -->
+      <div class="modal-body py-3 bg-slate-50">
+        <div class="kv-grid">
+          <div class="kv">
+            <div class="kv__key fw-bold">Documento</div>
+            <div class="kv__val" id="detalleDocumento"></div>
+          </div>
+          <div class="kv">
+            <div class="kv__key fw-bold">Producto</div>
+            <div class="kv__val" id="detalleProducto"></div>
+          </div>
+          <div class="kv">
+            <div class="kv__key fw-bold">Cantidad</div>
+            <div class="kv__val" id="detalleCantidad"></div>
+          </div>
+          <div class="kv">
+            <div class="kv__key fw-bold">Urgente</div>
+            <div class="kv__val" id="detalleUrgente"></div>
+          </div>
+          <div class="kv kv--block">
+            <div class="kv__key fw-bold">Observaciones</div>
+            <div class="kv__val" id="detalleObservaciones"></div>
+          </div>
+          <div class="kv">
+            <div class="kv__key fw-bold">Estado</div>
+            <div class="kv__val" id="detalleEstado"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie -->
+      <div class="modal-footer bg-white">
+        <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================= MODAL EDITAR ============================= -->
+<div class="modal fade saif-modal" id="editarSolicitudModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="editarSolicitudForm">
+        {% csrf_token %}
+        <div class="modal-header bg-green-600 text-white">
+          <div class="d-flex align-items-center gap-3">
+            <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;">
+            <h5 class="modal-title fw-bold mb-0">Editar Solicitud</h5>
+            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
+          <input type="text" name="nombre_documento" id="editDocumento" class="form-control rounded-lg" placeholder="Documento">
+          <input type="number" name="cantidad_solicitada" id="editCantidad" class="form-control rounded-lg" placeholder="Cantidad">
+          
+          <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
+            <option value="">Seleccione un producto</option>
+            {% for producto in productos %}
+              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+            {% endfor %}
+          </select>
+
+          <input type="text" name="observaciones" id="editObservaciones" class="form-control rounded-lg" placeholder="Observaciones">
+
+          <select name="id_estado_solicitud" id="editEstado" class="form-control rounded-lg" required>
+          <option value="">Seleccione estado</option>
+          {% for e in estados %}
+            <option value="{{ e.id }}">{{ e.nombre_estado }}</option>
+          {% endfor %}
+        </select>
+
+        </select>
+
+        </div>
+
+        <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="submit" class="btn btn-success rounded-pill px-4">
+            <i class="bi bi-check2-circle"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================= MODAL ELIMINAR ============================= -->
+<div class="modal fade saif-modal" id="eliminarSolicitudModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="eliminarSolicitudForm">
+        {% csrf_token %}
+        <div class="modal-header bg-red-700 text-white py-3">
+          <div class="d-flex align-items-center gap-3">
+            <img src="{% static 'home/img/logo_empresa.png' %}" 
+                 alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm" 
+                 style="width: 38px; height: 38px;">
+            <h5 class="modal-title mb-0 fw-bold">Eliminar Solicitud</h5>
+            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body text-center py-4 bg-slate-50">
+          <p class="fw-semibold text-slate-700">
+            ¿Seguro que deseas eliminar la solicitud <strong id="eliminarDocumento" class="text-red-600"></strong>?
+          </p>
+        </div>
+
+        <div class="modal-footer justify-center bg-white">
+          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button class="btn btn-danger rounded-pill px-4">
+            <i class="bi bi-trash-fill"></i> Eliminar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SCRIPT ============================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  let selectedRow = null;
+
+  document.querySelectorAll("#tablaSolicitudes tbody tr").forEach(row => {
+    row.addEventListener("click", function () {
+      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
+      selectedRow = this;
+      this.classList.add("bg-emerald-100");
+    });
+  });
+
+  // CONSULTAR
+  document.getElementById("btnConsultar").addEventListener("click", function () {
+    if (!selectedRow) { alert("Selecciona una solicitud primero."); return; }
+    document.getElementById("detalleDocumento").textContent = selectedRow.dataset.documento;
+    document.getElementById("detalleProducto").textContent = selectedRow.dataset.producto;
+    document.getElementById("detalleCantidad").textContent = selectedRow.dataset.cantidad;
+    document.getElementById("detalleUrgente").textContent = selectedRow.dataset.urgente === "True" ? "Sí" : "No";
+    document.getElementById("detalleObservaciones").textContent = selectedRow.dataset.observaciones;
+    document.getElementById("detalleEstado").textContent = selectedRow.dataset.estado;
+    new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
+  });
+
+ // ================== EDITAR ==================
+document.getElementById("btnEditar").addEventListener("click", function () {
+  if (!selectedRow) { 
+    alert("Selecciona una solicitud primero."); 
+    return; 
+  }
+
+  const id = selectedRow.dataset.id;
+
+  document.getElementById("editDocumento").value = selectedRow.dataset.documento;
+  document.getElementById("editCantidad").value = selectedRow.dataset.cantidad;
+  document.getElementById("editProducto").value = selectedRow.dataset.productoId;
+  document.getElementById("editObservaciones").value = selectedRow.dataset.observaciones;
+
+  // 🟢 Nuevo: cargar el estado actual
+  const estadoNombre = selectedRow.dataset.estado;
+  const estadoSelect = document.getElementById("editEstado");
+  if (estadoSelect) {
+    for (const option of estadoSelect.options) {
+      option.selected = (option.text === estadoNombre);
+    }
+  }
+
+  document.getElementById("editarSolicitudForm").action = `/solicitudes_bodega_central/${id}/editar/`;
+  new bootstrap.Modal(document.getElementById("editarSolicitudModal")).show();
+});
+
+  // ELIMINAR
+  document.getElementById("btnEliminar").addEventListener("click", function () {
+    if (!selectedRow) { alert("Selecciona una solicitud primero."); return; }
+    const id = selectedRow.dataset.id;
+    document.getElementById("eliminarDocumento").textContent = selectedRow.dataset.documento;
+    document.getElementById("eliminarSolicitudForm").action = `/solicitudes_bodega_central/${id}/eliminar/`;
+    new bootstrap.Modal(document.getElementById("eliminarSolicitudModal")).show();
+  });
+});
+</script>
+
+{% endblock %}
