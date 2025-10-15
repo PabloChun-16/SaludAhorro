@@ -5,114 +5,82 @@
 {% block title %}Registrar de Envíos · SAIF{% endblock %}
 
 {% block content %}
-<section class="p-6 md:p-8">
-
-  <!-- ============================= ESTILOS ============================= -->
-  <style>
-    .saif-modal .modal-content {
-      border: 0;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    .saif-modal .modal-header {
-      background: #0E7A3A;
-      color: #fff;
-      border-bottom: 0;
-      padding: .6rem .9rem;
-    }
-    .saif-modal .modal-header .saif-badge {
-      background: rgba(255, 255, 255, .15);
-      backdrop-filter: blur(4px);
-      border-radius: 999px;
-      padding: .12rem .5rem;
-      font-weight: 600;
-      font-size: .8rem;
-    }
-    .saif-modal .modal-body {
-      background: #f7fbf9;
-      padding: 1rem 1.1rem;
-    }
-    .saif-modal .modal-footer {
-      border-top: 0;
-      background: #fff;
-    }
-    .kv-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .85rem 1rem;
-    }
-    .kv {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      align-items: start;
-      gap: .35rem .5rem;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: .65rem .75rem;
-      box-shadow: 0 4px 12px rgba(15,23,42,.04);
-    }
-    .kv__key { font-weight: 700; color: #0b1220; }
-    .kv__val { color: #0f172a; }
-  </style>
-
-  <!-- ============================= TABLA ============================= -->
-  <div class="border rounded-xl shadow-sm overflow-hidden">
-    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
-      <i class="bi bi-truck"></i> Registro de Envíos
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- ============ HEADER ============ -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-truck me-2"></i> Registro de Envíos</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <table class="w-full text-sm text-left text-slate-700" id="tablaEnvios">
-      <thead class="bg-emerald-50 text-emerald-900">
-        <tr>
-          <th class="px-4 py-2">Reporte</th>
-          <th class="px-4 py-2">Usuario</th>
-          <th class="px-4 py-2">Estado</th>
-          <th class="px-4 py-2">Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for envio in envios %}
-      <tr class="fila-envio"
-          data-id="{{ envio.id }}"
-          data-reporte="{{ envio.nombre_reporte }}"
-          data-usuario="{{ envio.id_usuario.nombre }}"
-          data-estado="{{ envio.id_estado_envio.nombre_estado }}"
-          data-fecha="{{ envio.fecha_envio|date:'d/m/Y H:i' }}">
-          
-        <td class="px-4 py-2">{{ envio.nombre_reporte }}</td>
-        <td class="px-4 py-2">{{ envio.id_usuario.nombre }}</td>
-        <td class="px-4 py-2">{{ envio.id_estado_envio.nombre_estado }}</td>
-        <td class="px-4 py-2">{{ envio.fecha_envio|date:"d/m/Y H:i" }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="text-center py-4 text-slate-500">
-          No hay envíos registrados
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-    </table>
-  </div>
+    <!-- ============ TABLA ============ -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaEnvios">
+        <colgroup>
+          <col style="width:30%"><col style="width:25%"><col style="width:20%"><col style="width:25%">
+        </colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th scope="col">Reporte</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Fecha</th>
+          </tr>
+          <!-- Fila de filtros -->
+          <tr class="filter-row">
+            <th><input id="f-reporte" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-estado"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha"   class="form-control form-control-sm filter-control text-center" placeholder="YYYY-MM-DD"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for envio in envios %}
+          <tr class="fila-envio"
+              data-id="{{ envio.id }}"
+              data-reporte="{{ envio.nombre_reporte }}"
+              data-usuario="{{ envio.id_usuario.nombre }}"
+              data-usuario-id="{{ envio.id_usuario.id }}"
+              data-estado="{{ envio.id_estado_envio.nombre_estado }}"
+              data-estado-id="{{ envio.id_estado_envio.id }}"
+              data-fecha="{{ envio.fecha_envio|date:'Y-m-d' }}"
+              data-fecha-iso="{{ envio.fecha_envio|date:'Y-m-d\\TH:i' }}">
+            <td class="text-truncate">{{ envio.nombre_reporte }}</td>
+            <td class="text-truncate">{{ envio.id_usuario.nombre }}</td>
+            <td class="text-truncate">{{ envio.id_estado_envio.nombre_estado }}</td>
+            <td class="text-truncate">{{ envio.fecha_envio|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay envíos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- ============================= BOTONES ============================= -->
-  <div class="flex justify-center gap-3 mt-4">
-    <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2 rounded-full"
-            data-bs-toggle="modal" data-bs-target="#crearEnvioModal">
-      <i class="bi bi-plus-circle"></i> Crear
-    </button>
-    <button id="btnConsultar" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-eye"></i> Consultar
-    </button>
-    <button id="btnEditar" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-pencil"></i> Editar
-    </button>
-    <button id="btnEliminar" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-trash"></i> Eliminar
-    </button>
+    <!-- ============ PAGER ============ -->
+    <div id="pagerEnvios" class="saif-pager"></div>
+
+    <!-- ============ BOTONES (footer) ============ -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#crearEnvioModal">
+        <i class="bi bi-plus-circle"></i> Crear
+      </button>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-eye"></i> Consultar
+      </button>
+      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-pencil"></i> Editar
+      </button>
+      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-trash"></i> Eliminar
+      </button>
+    </div>
   </div>
 </section>
 
@@ -122,25 +90,20 @@
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_envio' %}">
         {% csrf_token %}
-
-        <!-- Header -->
         <div class="modal-header bg-emerald-700 text-white py-3">
           <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" 
-                 alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" 
-                 style="width: 38px; height: 38px;">
+            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
             <h5 class="modal-title mb-0 fw-bold">Nuevo Envío</h5>
             <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <!-- Body -->
         <div class="modal-body bg-slate-50 py-4">
-          <!-- Campos cabecera -->
           <div class="grid md:grid-cols-2 gap-4 mb-3">
             <input type="text" name="nombre_reporte" class="form-control rounded-lg" placeholder="Nombre del reporte" required>
-            
+
             <select name="id_estado_envio" class="form-control rounded-lg" required>
               <option value="">Seleccione un estado</option>
               {% for estado in estados %}
@@ -156,11 +119,10 @@
             </select>
           </div>
 
-          <!-- Checkbox de recetas -->
           <h6 class="fw-bold text-emerald-700 mb-2">
             <i class="bi bi-journal-medical"></i> Seleccionar recetas
           </h6>
-          <div class="border rounded p-3 bg-white" style="max-height: 250px; overflow-y: auto;">
+          <div class="border rounded p-3 bg-white" style="max-height:250px;overflow-y:auto;">
             {% for receta in recetas %}
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="recetas[]" value="{{ receta.id }}" id="receta{{ receta.id }}">
@@ -169,12 +131,11 @@
                 </label>
               </div>
             {% empty %}
-              <p class="text-slate-500">No hay recetas disponibles.</p>
+              <p class="text-slate-500 mb-0">No hay recetas disponibles.</p>
             {% endfor %}
           </div>
         </div>
 
-        <!-- Footer -->
         <div class="modal-footer bg-white">
           <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
@@ -195,7 +156,7 @@
       <div class="modal-header bg-emerald-700 text-white py-3">
         <div class="d-flex align-items-center gap-3">
           <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-               class="rounded-circle bg-white p-2 shadow-sm" style="width: 38px; height: 38px;">
+               class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
           <h5 class="modal-title mb-0 fw-bold">Detalle de Envío</h5>
           <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
         </div>
@@ -204,10 +165,10 @@
 
       <div class="modal-body py-3 bg-slate-50">
         <div class="kv-grid">
-          <div class="kv"><div class="kv__key">Reporte</div><div class="kv__val" id="detalleReporte"></div></div>
-          <div class="kv"><div class="kv__key">Usuario</div><div class="kv__val" id="detalleUsuario"></div></div>
-          <div class="kv"><div class="kv__key">Estado</div><div class="kv__val" id="detalleEstado"></div></div>
-          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha"></div></div>
+          <div class="kv"><div class="kv__key">Reporte</div><div class="kv__val" id="detalleReporte">—</div></div>
+          <div class="kv"><div class="kv__key">Usuario</div><div class="kv__val" id="detalleUsuario">—</div></div>
+          <div class="kv"><div class="kv__key">Estado</div><div class="kv__val" id="detalleEstado">—</div></div>
+          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
         </div>
       </div>
 
@@ -229,7 +190,7 @@
         <div class="modal-header bg-green-600 text-white py-3">
           <div class="d-flex align-items-center gap-3">
             <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-                 class="rounded-circle bg-white p-2 shadow-sm" style="width: 38px; height: 38px;">
+                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
             <h5 class="modal-title mb-0 fw-bold">Editar Envío</h5>
             <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
           </div>
@@ -237,24 +198,19 @@
         </div>
 
         <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
-          <input type="text" name="nombre_reporte" id="editReporte" class="form-control rounded-lg">
+          <input type="text" name="nombre_reporte" id="editReporte" class="form-control rounded-lg" placeholder="Nombre del reporte">
           <select name="id_estado_envio" id="editEstado" class="form-control rounded-lg" required>
-          <option value="">Seleccione estado</option>
-          {% for estado in estados %}
-            <option value="{{ estado.id }}" {% if envio.id_estado_envio.id == estado.id %}selected{% endif %}>
-              {{ estado.nombre_estado }}
-            </option>
-          {% endfor %}
-        </select>
-
-        <select name="id_usuario" id="editUsuario" class="form-control rounded-lg" required>
-          <option value="">Seleccione usuario</option>
-          {% for usuario in usuarios %}
-            <option value="{{ usuario.id }}" {% if envio.id_usuario.id == usuario.id %}selected{% endif %}>
-              {{ usuario.nombre }}
-            </option>
-          {% endfor %}
-        </select>
+            <option value="">Seleccione estado</option>
+            {% for estado in estados %}
+              <option value="{{ estado.id }}">{{ estado.nombre_estado }}</option>
+            {% endfor %}
+          </select>
+          <select name="id_usuario" id="editUsuario" class="form-control rounded-lg" required>
+            <option value="">Seleccione usuario</option>
+            {% for usuario in usuarios %}
+              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+            {% endfor %}
+          </select>
           <input type="datetime-local" name="fecha_envio" id="editFecha" class="form-control rounded-lg">
         </div>
 
@@ -280,7 +236,7 @@
         <div class="modal-header bg-red-700 text-white py-3">
           <div class="d-flex align-items-center gap-3">
             <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-                 class="rounded-circle bg-white p-2 shadow-sm" style="width: 38px; height: 38px;">
+                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
             <h5 class="modal-title mb-0 fw-bold">Eliminar Envío</h5>
             <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
           </div>
@@ -306,49 +262,242 @@
   </div>
 </div>
 
-<!-- ============================= SCRIPT ============================= -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  let selectedRow = null;
+<!-- ============================= ESTILOS (tabla tipo Productos) ============================= -->
+<style>
+.table-container{overflow-x:auto;width:100%;scroll-padding-top:90px}
+#tablaEnvios{table-layout:fixed;width:100%;min-width:900px;border-collapse:separate;border-spacing:0;outline:1px solid #e3e6ea;outline-offset:-1px;border-radius:.5rem;margin-bottom:0}
+#tablaEnvios th,#tablaEnvios td{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:middle;padding:.5rem;font-size:.875rem;background-clip:padding-box;border:1px solid #e3e6ea}
+#tablaEnvios tbody tr{background:#ffffff}
+thead.sticky-top{position:sticky;top:0;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,.06)}
+thead.sticky-top tr:first-child th{position:sticky;top:0;z-index:11;background:#e8f5ec;border-bottom:1px solid #d7dbdf}
+thead.sticky-top tr.filter-row th{position:sticky;top:42px;z-index:10;background:#f4fbf6;border-top:1px solid #d9f3e0;border-bottom:1px solid #d7dbdf;box-shadow:0 2px 3px rgba(0,0,0,.04) inset;padding:.35rem .5rem;overflow:visible}
+.filter-control{width:100%;height:32px;padding:.25rem .5rem;border:1px solid #cfe9d7;background:#fff;border-radius:.5rem;transition:border-color .15s,box-shadow .15s;font-size:.85rem;box-sizing:border-box}
+.filter-control::placeholder{color:#94a3b8}
+.filter-control.text-center{text-align:center}
+.filter-control:focus{border-color:#62c07b;outline:0;box-shadow:0 0 0 .15rem rgba(34,197,94,.15)}
+.hidden-by-pagination{display:none!important}
+#tablaEnvios thead tr:first-child th{border-top:0}
+#tablaEnvios tbody tr:last-child td{border-bottom:0}
+#tablaEnvios tr>*:first-child{border-left:0}
+#tablaEnvios tr>*:last-child{border-right:0}
+#tablaEnvios tbody tr.last-visible td{border-bottom:0!important}
+#tablaEnvios tbody tr:hover{background:#fafafa}
+.saif-modal .modal-content{border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25)}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem 1rem}
+.kv{display:grid;grid-template-columns:160px 1fr;align-items:start;gap:.35rem .5rem;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.65rem .75rem;box-shadow:0 4px 12px rgba(15,23,42,.04)}
+.kv__key{font-weight:700;color:#0b1220}
+.kv__val{color:#0f172a}
+</style>
 
-  document.querySelectorAll("#tablaEnvios tbody tr").forEach(row => {
-    row.addEventListener("click", function () {
-      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
-      selectedRow = this;
-      this.classList.add("bg-emerald-100");
+<!-- ============================= SCRIPT (lógica como Productos) ============================= -->
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  const table=document.getElementById("tablaEnvios");
+  const tbody=table.querySelector("tbody");
+  const pagerEl=document.getElementById("pagerEnvios");
+
+  let selectedRow=null, selectedId=null;
+
+  function toggleButtons(enabled){
+    ["btnConsultar","btnEditar","btnEliminar"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.disabled=!enabled;
     });
+  }
+  toggleButtons(false);
+
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedRow=row;
+    selectedId=row.getAttribute("data-id");
+    toggleButtons(true);
+  }
+
+  tbody.addEventListener("click",ev=>{
+    const row=ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
   });
 
-  // CONSULTAR
-  document.getElementById("btnConsultar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona un envío primero."); return; }
-    document.getElementById("detalleReporte").textContent = selectedRow.dataset.reporte;
-    document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario;
-    document.getElementById("detalleEstado").textContent = selectedRow.dataset.estado;
-    document.getElementById("detalleFecha").textContent = selectedRow.dataset.fecha;
+  tbody.addEventListener("dblclick",ev=>{
+    const row=ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    document.getElementById("btnConsultar").click();
+  });
+
+  document.addEventListener("keydown",ev=>{
+    if(ev.key==='Enter' && selectedId){
+      document.getElementById("btnConsultar").click();
+      ev.preventDefault();
+    }
+  });
+
+  // ====== Consultar ======
+  document.getElementById("btnConsultar").addEventListener("click",function(){
+    if(!selectedRow){ alert("Selecciona un envío primero."); return; }
+    document.getElementById("detalleReporte").textContent = selectedRow.dataset.reporte || "—";
+    document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario || "—";
+    document.getElementById("detalleEstado").textContent  = selectedRow.dataset.estado  || "—";
+    document.getElementById("detalleFecha").textContent   = selectedRow.dataset.fecha   || "—";
     new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
   });
 
-  // EDITAR
-  document.getElementById("btnEditar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona un envío primero."); return; }
-    const id = selectedRow.dataset.id;
-    document.getElementById("editReporte").value = selectedRow.dataset.reporte;
-    document.getElementById("editUsuario").value = selectedRow.dataset.usuario;
-    document.getElementById("editEstado").value = selectedRow.dataset.estado;
-    document.getElementById("editFecha").value = selectedRow.dataset.fecha.replace(" ", "T");
+  // ====== Editar (usa IDs y fecha ISO) ======
+  document.getElementById("btnEditar").addEventListener("click",function(){
+    if(!selectedRow){ alert("Selecciona un envío primero."); return; }
+    const id=selectedRow.dataset.id;
+    document.getElementById("editReporte").value = selectedRow.dataset.reporte || "";
+
+    const selEstado=document.getElementById("editEstado");
+    const selUsuario=document.getElementById("editUsuario");
+    if(selEstado) selEstado.value = selectedRow.dataset.estadoId || "";
+    if(selUsuario) selUsuario.value = selectedRow.dataset.usuarioId || "";
+
+    const iso = selectedRow.dataset.fechaIso || "";
+    document.getElementById("editFecha").value = iso;
+
     document.getElementById("editarEnvioForm").action = `/recetas/envio/${id}/editar/`;
     new bootstrap.Modal(document.getElementById("editarEnvioModal")).show();
   });
 
-  // ELIMINAR
-  document.getElementById("btnEliminar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona un envío primero."); return; }
-    const id = selectedRow.dataset.id;
-    document.getElementById("eliminarReporte").textContent = selectedRow.dataset.reporte;
+  // ====== Eliminar ======
+  document.getElementById("btnEliminar").addEventListener("click",function(){
+    if(!selectedRow){ alert("Selecciona un envío primero."); return; }
+    const id=selectedRow.dataset.id;
+    document.getElementById("eliminarReporte").textContent = selectedRow.dataset.reporte || "";
     document.getElementById("eliminarEnvioForm").action = `/recetas/envio/${id}/eliminar/`;
     new bootstrap.Modal(document.getElementById("eliminarEnvioModal")).show();
   });
+
+  // ====== Utilidades ======
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){ el.setAttribute("title", el.textContent.trim()); }
+      else{ el.removeAttribute("title"); }
+    });
+  }
+
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  // ====== Paginación dinámica ======
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML=""; pagerEl.style.display="none"; return;
+    }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  // ====== Filtros ======
+  function installFilters(){
+    const fRep=document.getElementById("f-reporte");
+    const fUsr=document.getElementById("f-usuario");
+    const fEst=document.getElementById("f-estado");
+    const fFec=document.getElementById("f-fecha");
+    const inputs=[fRep,fUsr,fEst,fFec].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+
+    function applyFilters(){
+      const vRep=norm(fRep?.value), vUsr=norm(fUsr?.value),
+            vEst=norm(fEst?.value), vFec=norm(fFec?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const ok =
+          (!vRep || (tds[0]?.textContent||"").toLowerCase().includes(vRep)) &&
+          (!vUsr || (tds[1]?.textContent||"").toLowerCase().includes(vUsr)) &&
+          (!vEst || (tds[2]?.textContent||"").toLowerCase().includes(vEst)) &&
+          (!vFec || (tr.getAttribute("data-fecha")||"").includes(vFec));
+        tr.style.display = ok ? "" : "none";
+      });
+      currentPage=1;
+      applyPagination();
+    }
+
+    inputs.forEach(inp=>inp.addEventListener("input",applyFilters));
+  }
+
+  // ====== Init ======
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 {% endblock %}

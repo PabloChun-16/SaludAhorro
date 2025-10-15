@@ -4,85 +4,121 @@
 {% block title %}Lista de Solicitudes · SAIF{% endblock %}
 
 {% block content %}
-<section class="p-6 md:p-8">
-
-  <!-- ================== TABLA ================== -->
-  <div class="border rounded-xl shadow-sm overflow-hidden">
-    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
-      <i class="bi bi-list-ul"></i> Lista de Solicitudes
+<section class="p-3">
+  <!-- ================== CARD ================== -->
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-list-ul me-2"></i> Lista de Solicitudes</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <table class="w-full text-sm text-left text-slate-700" id="tablaSolicitudes">
-      <thead class="bg-emerald-50 text-emerald-900">
-        <tr>
-          <th class="px-4 py-2">Documento</th>
-          <th class="px-4 py-2">Producto</th>
-          <th class="px-4 py-2">Cantidad</th>
-          <th class="px-4 py-2">Urgente</th>
-          <th class="px-4 py-2">Observaciones</th>
-          <th class="px-4 py-2">Estado</th>
-          <th class="px-4 py-2">Fecha</th>
-        </tr>
-        <tr>
-          {% for i in "1234567" %}
-          <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
+    <!-- ================== TABLA ================== -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaSolicitudes">
+        <colgroup>
+          <col style="width:18%"><col style="width:22%"><col style="width:10%"><col style="width:8%">
+          <col style="width:22%"><col style="width:10%"><col style="width:10%">
+        </colgroup>
+
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th scope="col">Documento</th>
+            <th scope="col">Producto</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Urgente</th>
+            <th scope="col">Observaciones</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Fecha</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="f-doc"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-prod" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-cant" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-urg" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option><option value="si">Sí</option><option value="no">No</option>
+                </select>
+              </div>
+            </th>
+            <th><input id="f-obs" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="enviada">Enviada</option>
+                </select>
+              </div>
+            </th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="YYYY-MM-DD"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for solicitud in solicitudes %}
+          <tr class="fila-solicitud"
+              data-id="{{ solicitud.id }}"
+              data-documento="{{ solicitud.nombre_documento }}"
+              data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
+              data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
+              data-urgente="{{ solicitud.detalles.first.es_urgente }}"
+              data-observaciones="{{ solicitud.detalles.first.observaciones }}"
+              data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
+              data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d' }}">
+            <td class="text-truncate">{{ solicitud.nombre_documento }}</td>
+            <td class="text-truncate">{{ solicitud.detalles.first.id_producto.nombre }}</td>
+            <td class="text-truncate">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
+            <td>
+              {% if solicitud.detalles.first.es_urgente %}
+                <span class="badge bg-primary">Sí</span>
+              {% else %}
+                <span class="badge bg-secondary">No</span>
+              {% endif %}
+            </td>
+            <td class="text-truncate">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
+            <td class="text-truncate">{{ solicitud.id_estado_solicitud.nombre_estado }}</td>
+            <td class="text-truncate">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="py-5 text-muted" data-empty-row>
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i> No hay solicitudes registradas
+          </td></tr>
           {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for solicitud in solicitudes %}
-        <tr class="fila-solicitud"
-            data-id="{{ solicitud.id }}"
-            data-documento="{{ solicitud.nombre_documento }}"
-            data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
-            data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
-            data-urgente="{{ solicitud.detalles.first.es_urgente }}"
-            data-observaciones="{{ solicitud.detalles.first.observaciones }}"
-            data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
-            data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d' }}">
-          <td class="px-4 py-2">{{ solicitud.nombre_documento }}</td>
-          <td class="px-4 py-2">{{ solicitud.detalles.first.id_producto.nombre }}</td>
-          <td class="px-4 py-2">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
-          <td class="px-4 py-2">
-            {% if solicitud.detalles.first.es_urgente %}
-              <span class="badge bg-red-500 text-white">Sí</span>
-            {% else %}
-              <span class="badge bg-gray-400 text-white">No</span>
-            {% endif %}
-          </td>
-          <td class="px-4 py-2">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
-          <td class="px-4 py-2">{{ solicitud.id_estado_solicitud.nombre_estado }}</td>
-          <td class="px-4 py-2">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7" class="text-center py-4 text-slate-500">No hay solicitudes registradas</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="pagerSolicitudes" class="saif-pager"></div>
+
+    <!-- ================== BOTONES (dentro del card) ================== -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnConsultar"
+              class="btn btn-primary rounded-pill px-3 me-2 shadow-sm"
+              disabled>
+        <i class="bi bi-file-earmark-text"></i> Consultar
+      </button>
+
+      <a href="{% url 'solicitudes_bodega_central:exportar_solicitudes_pdf' %}"
+         class="btn btn-success rounded-pill px-3 me-2 shadow-sm">
+        <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+      </a>
+
+      <button class="btn btn-info rounded-pill px-3 text-white shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#dashboardModal"
+              style="background-color:#8b5cf6; border:none;">
+        <i class="bi bi-bar-chart"></i> Dashboard
+      </button>
+    </div>
   </div>
 </section>
-
-<!-- ================== BOTONES ================== -->
-<div class="d-flex justify-content-center gap-3 mt-3">
-  <button id="btnConsultar" class="btn btn-primary rounded-pill px-4">
-    <i class="bi bi-file-earmark-text"></i> Consultar
-  </button>
-  <a href="{% url 'solicitudes_bodega_central:exportar_solicitudes_pdf' %}" 
-   class="btn btn-success rounded-pill px-4">
-  <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
-</a>
-  <button class="btn btn-info rounded-pill px-4 text-white"
-          data-bs-toggle="modal" data-bs-target="#dashboardModal"
-          style="background-color:#8b5cf6; border:none;">
-    <i class="bi bi-bar-chart"></i> Dashboard
-  </button>
-</div>
 
 <!-- ================== MODAL CONSULTAR ================== -->
 <div class="modal fade" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
-
       <div class="modal-header bg-emerald-700 text-white">
         <div class="d-flex align-items-center gap-2">
           <img src="{% static 'home/img/logo_empresa.png' %}" 
@@ -114,18 +150,6 @@
     </div>
   </div>
 </div>
-
-<!-- ================== ESTILOS ================== -->
-<style>
-  .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
-  .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
-  .saif-modal .saif-badge { background:rgba(255,255,255,.15); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
-  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
-  .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
-  .kv__key { font-weight:700; color:#0b1220 }
-  .kv__val { color:#0f172a }
-  @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
-</style>
 
 <!-- ================== MODAL DASHBOARD ================== -->
 <div class="modal fade" id="dashboardModal" tabindex="-1">
@@ -188,161 +212,363 @@
   </div>
 </div>
 
+<!-- ================== ESTILOS (clon de Productos) ================== -->
+<style>
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+#tablaSolicitudes{
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaSolicitudes th,#tablaSolicitudes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+#tablaSolicitudes tbody tr{ background:#ffffff; }
+#tablaSolicitudes tbody tr:hover{ background:#fafafa; }
+
+#tablaSolicitudes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaSolicitudes thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+#tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th select.form-select.filter-control{ -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important; }
+
+#tablaSolicitudes thead tr:first-child th{ border-top:0; }
+#tablaSolicitudes tbody tr:last-child td{ border-bottom:0; }
+#tablaSolicitudes tr>*:first-child{ border-left:0; }
+#tablaSolicitudes tr>*:last-child{  border-right:0; }
+#tablaSolicitudes tbody tr.last-visible td{ border-bottom:0 !important; }
+
+.hidden-by-pagination{ display:none !important; }
+
+/* Modal + tarjetas de detalle */
+.saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+.saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+.saif-modal .saif-badge { background:rgba(255,255,255,.15); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+.kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+.kv__key { font-weight:700; color:#0b1220 }
+.kv__val { color:#0f172a }
+@media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+</style>
+
 <!-- ================== LIBRERÍAS ================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <!-- ================== DATOS DESDE DJANGO ================== -->
 <script>
   let solicitudesData = [];
-  try {
-    solicitudesData = JSON.parse('{{ solicitudes_json|escapejs }}');
-    console.log("✅ Datos cargados desde Django:", solicitudesData);
-  } catch (error) {
-    console.error("❌ Error al parsear solicitudes_json:", error);
-  }
+  try { solicitudesData = JSON.parse('{{ solicitudes_json|escapejs }}'); }
+  catch (e) { console.error("Error al parsear solicitudes_json:", e); }
 </script>
 
-<!-- ================== DASHBOARD Y FUNCIONALIDAD ================== -->
+<!-- ================== LÓGICA TABLA (clon Productos) ================== -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  // ================== SELECCIÓN DE FILAS ==================
-  let selectedRow = null;
-  document.querySelectorAll(".fila-solicitud").forEach(row => {
-    row.addEventListener("click", () => {
-      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
-      selectedRow = row;
-      row.classList.add("bg-emerald-100");
-    });
+  const table = document.getElementById("tablaSolicitudes");
+  const tbody = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerSolicitudes");
+
+  let selectedId = null;
+
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active","bg-emerald-100"));
+    row.classList.add("table-active");
+    selectedId = row.getAttribute("data-id");
+    document.getElementById("btnConsultar").disabled = false;
+  }
+
+  tbody.addEventListener("click", (ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
   });
 
-  // ================== CONSULTAR MODAL ==================
-  const btnConsultar = document.getElementById("btnConsultar");
-  if (btnConsultar) {
-    btnConsultar.addEventListener("click", () => {
-      if (!selectedRow) {
-        alert("Selecciona una solicitud primero.");
-        return;
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    document.getElementById("btnConsultar").click();
+  });
+
+  document.addEventListener("keydown",(ev)=>{
+    if(ev.key==='Enter' && selectedId){ document.getElementById("btnConsultar").click(); ev.preventDefault(); }
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", ()=>{
+    const row = tbody.querySelector("tr.table-active");
+    if(!row){ alert("Selecciona una solicitud primero."); return; }
+    document.getElementById("detalleDocumento").innerText = row.dataset.documento || "—";
+    document.getElementById("detalleProducto").innerText = row.dataset.producto || "—";
+    document.getElementById("detalleCantidad").innerText = row.dataset.cantidad || "—";
+    document.getElementById("detalleUrgente").innerText = (row.dataset.urgente==="True"||row.dataset.urgente==="true")?"Sí":"No";
+    document.getElementById("detalleObservaciones").innerText = row.dataset.observaciones || "—";
+    document.getElementById("detalleEstado").innerText = row.dataset.estado || "—";
+    document.getElementById("detalleFecha").innerText = row.dataset.fecha || "—";
+    new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
+  });
+
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){ el.setAttribute("title", el.textContent.trim()); }
+      else{ el.removeAttribute("title"); }
+    });
+  }
+
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  /* ===== Paginación ===== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML=""; pagerEl.style.display="none"; return;
+    }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
       }
-
-      document.getElementById("detalleDocumento").innerText = selectedRow.dataset.documento;
-      document.getElementById("detalleProducto").innerText = selectedRow.dataset.producto;
-      document.getElementById("detalleCantidad").innerText = selectedRow.dataset.cantidad;
-      document.getElementById("detalleUrgente").innerText = selectedRow.dataset.urgente === "True" ? "Sí" : "No";
-      document.getElementById("detalleObservaciones").innerText = selectedRow.dataset.observaciones;
-      document.getElementById("detalleEstado").innerText = selectedRow.dataset.estado;
-      document.getElementById("detalleFecha").innerText = selectedRow.dataset.fecha;
-
-      new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
-    });
+    }
+    refreshAutoTitles();
   }
 
-  // ================== EXPORTAR PDF ==================
-  const btnPDF = document.getElementById("btnExportarPDF");
-  if (btnPDF) {
-    btnPDF.addEventListener("click", () => {
-      const tabla = document.getElementById("tablaSolicitudes").outerHTML;
-      const ventana = window.open("", "_blank");
-      ventana.document.write(`
-        <html><head><title>Reporte de Solicitudes · SAIF</title>
-        <style>
-          body { font-family: Arial; margin: 40px; color: #111; }
-          h2 { text-align: center; color: #0E7A3A; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-          th { background: #0E7A3A; color: #fff; }
-          tr:nth-child(even) { background: #f5f9f6; }
-        </style></head><body>
-        <h2>Reporte de Solicitudes · SAIF</h2>${tabla}</body></html>
-      `);
-      ventana.document.close();
-      ventana.print();
-    });
-  }
+  /* ===== Filtros ===== */
+  function installFilters(){
+    const fDoc=document.getElementById("f-doc");
+    const fProd=document.getElementById("f-prod");
+    const fCant=document.getElementById("f-cant");
+    const fUrg=document.getElementById("f-urg");
+    const fObs=document.getElementById("f-obs");
+    const fEst=document.getElementById("f-estado");
+    const fFecha=document.getElementById("f-fecha");
 
-  // ================== FILTROS DE BÚSQUEDA ==================
-  document.querySelectorAll(".filtro").forEach((input, index) => {
-    input.addEventListener("keyup", () => {
-      const value = input.value.toLowerCase();
-      document.querySelectorAll("#tablaSolicitudes tbody tr").forEach(row => {
-        const cell = row.cells[index]?.textContent.toLowerCase();
-        row.style.display = cell.includes(value) ? "" : "none";
+    const inputs=[fDoc,fProd,fCant,fUrg,fObs,fEst,fFecha].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
+
+    function applyFilters(){
+      const vDoc=norm(fDoc?.value), vProd=norm(fProd?.value), vCant=norm(fCant?.value),
+            vUrg=yesNo(fUrg?.value), vObs=norm(fObs?.value), vEst=norm(fEst?.value),
+            vFecha=norm(fFecha?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
+        const ok =
+          (!vDoc   || txt(0).includes(vDoc)) &&
+          (!vProd  || txt(1).includes(vProd)) &&
+          (!vCant  || txt(2).includes(vCant)) &&
+          (!vUrg   || yesNo(txt(3))===vUrg) &&
+          (!vObs   || txt(4).includes(vObs)) &&
+          (!vEst   || norm(tr.getAttribute("data-estado")||txt(5))===vEst) &&
+          (!vFecha || (tr.getAttribute("data-fecha")||"").includes(vFecha));
+        tr.style.display = ok ? "" : "none";
       });
-    });
-  });
+      currentPage=1;
+      applyPagination();
+    }
 
-  // ================== DASHBOARD ==================
-  const dashboardModal = document.getElementById("dashboardModal");
-  const filtroProducto = document.getElementById("filtroProducto");
-  const filtroUsuario = document.getElementById("filtroUsuario");
-  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
-  const filtroFechaFin = document.getElementById("filtroFechaFin");
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+  }
+
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
+});
+</script>
+
+<!-- ================== DASHBOARD (JSON o tabla como fallback) ================== -->
+<script>
+(function(){
+  function parseISO(d){ return (d||"").slice(0,10); }
+  function getDataFromJSON(){
+    if(!Array.isArray(solicitudesData) || !solicitudesData.length) return [];
+    return solicitudesData.map(x=>{
+      const producto = x.producto || x.id_producto || x.id_producto__nombre || x.nombre_producto || "—";
+      const usuario  = x.usuario  || x.user || x.created_by || x.creado_por || "—";
+      const fechaRaw = x.fecha    || x.fecha_solicitud || x.created_at || x.creado_el || "";
+      return { producto: String(producto), usuario: String(usuario), fecha: parseISO(String(fechaRaw)) };
+    }).filter(d=>d.producto!=="—" || d.usuario!=="—" || d.fecha);
+  }
+  function getDataFromTable(){
+    const rows = Array.from(document.querySelectorAll("#tablaSolicitudes tbody tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row"));
+    return rows.map(tr=>{
+      const producto = tr.dataset.producto || tr.cells[1]?.textContent.trim() || "—";
+      const usuario  = "—"; // si no lo traes en tabla
+      const fecha    = tr.dataset.fecha ? String(tr.dataset.fecha).slice(0,10) : "";
+      return { producto, usuario, fecha };
+    });
+  }
+
+  let baseData = getDataFromJSON();
+  if(!baseData.length) baseData = getDataFromTable();
+
+  // Autorrellenar selects si vienen vacíos
+  function fillSelectOptions(select, values){
+    if(!select) return;
+    const current = new Set(Array.from(select.options).map(o=>o.value));
+    values.forEach(v=>{
+      if(v && !current.has(v)){
+        const opt=document.createElement("option");
+        opt.value=v; opt.textContent=v;
+        select.appendChild(opt);
+      }
+    });
+  }
+  const fProd = document.getElementById("filtroProducto");
+  const fUser = document.getElementById("filtroUsuario");
+  fillSelectOptions(fProd, Array.from(new Set(baseData.map(d=>d.producto).filter(Boolean))));
+  fillSelectOptions(fUser, Array.from(new Set(baseData.map(d=>d.usuario).filter(Boolean))));
+
+  const modal = document.getElementById("dashboardModal");
+  const fIni  = document.getElementById("filtroFechaInicio");
+  const fFin  = document.getElementById("filtroFechaFin");
 
   let chartProductos, chartUsuarios, chartFechas;
 
-  function obtenerDatos() {
-    return solicitudesData.map(d => ({
-      producto: d.producto,
-      usuario: d.usuario,
-      fecha: d.fecha
-    }));
-  }
-
-  function filtrarDatos() {
-    let data = obtenerDatos();
-
-    if (filtroProducto && filtroProducto.value)
-      data = data.filter(d => d.producto === filtroProducto.value);
-    if (filtroUsuario && filtroUsuario.value)
-      data = data.filter(d => d.usuario === filtroUsuario.value);
-    if (filtroFechaInicio && filtroFechaInicio.value)
-      data = data.filter(d => d.fecha >= filtroFechaInicio.value);
-    if (filtroFechaFin && filtroFechaFin.value)
-      data = data.filter(d => d.fecha <= filtroFechaFin.value);
-
+  function filtrar(){
+    let data = baseData.slice();
+    if(fProd && fProd.value) data = data.filter(d=>d.producto===fProd.value);
+    if(fUser && fUser.value) data = data.filter(d=>d.usuario===fUser.value);
+    if(fIni  && fIni.value)  data = data.filter(d=>!d.fecha || d.fecha >= fIni.value);
+    if(fFin  && fFin.value)  data = data.filter(d=>!d.fecha || d.fecha <= fFin.value);
     return data;
   }
 
-  function renderCharts() {
-    const data = filtrarDatos();
+  function destroyAll(){
+    if(chartProductos){ chartProductos.destroy(); chartProductos = null; }
+    if(chartUsuarios){ chartUsuarios.destroy(); chartUsuarios = null; }
+    if(chartFechas){   chartFechas.destroy();   chartFechas   = null; }
+  }
 
-    const productos = [...new Set(data.map(d => d.producto))];
-    const usuarios = [...new Set(data.map(d => d.usuario))];
-    const fechas = [...new Set(data.map(d => d.fecha))].sort();
+  function contBy(arr, key){
+    const map=new Map();
+    arr.forEach(o=>{
+      const k=(o[key]||"—")+"";
+      map.set(k,(map.get(k)||0)+1);
+    });
+    const labels=[...map.keys()];
+    const counts=labels.map(l=>map.get(l));
+    return {labels,counts};
+  }
 
-    const conteoProductos = productos.map(p => data.filter(d => d.producto === p).length);
-    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
-    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
+  function renderCharts(){
+    const data = filtrar();
+    const byProd = contBy(data,"producto");
+    const byUser = contBy(data,"usuario");
+    const onlyDates = data.filter(d=>d.fecha);
+    const labelsDates = [...new Set(onlyDates.map(d=>d.fecha))].sort();
+    const countsDates = labelsDates.map(f=> onlyDates.filter(d=>d.fecha===f).length);
 
-    if (chartProductos) chartProductos.destroy();
-    if (chartUsuarios) chartUsuarios.destroy();
-    if (chartFechas) chartFechas.destroy();
+    destroyAll();
 
-    // === Barras ===
     chartProductos = new Chart(document.getElementById("chartProductos"), {
-      type: "bar",
-      data: { labels: productos, datasets: [{ label: "Solicitudes por Producto", data: conteoProductos, backgroundColor: "#10b981" }] },
-      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      type:"bar",
+      data:{ labels:byProd.labels, datasets:[{ label:"Solicitudes por Producto", data:byProd.counts, backgroundColor:"#10b981" }] },
+      options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
     });
 
-    // === Pastel ===
     chartUsuarios = new Chart(document.getElementById("chartUsuarios"), {
-      type: "pie",
-      data: { labels: usuarios, datasets: [{ label: "Solicitudes por Usuario", data: conteoUsuarios, backgroundColor: ["#0E7A3A","#f59e0b","#ef4444","#6366f1"] }] },
-      options: { plugins: { legend: { position: "bottom" } } }
+      type:"pie",
+      data:{ labels:byUser.labels, datasets:[{ data:byUser.counts, backgroundColor:["#0E7A3A","#f59e0b","#ef4444","#6366f1","#14b8a6","#6b7280"] }] },
+      options:{ plugins:{legend:{position:"bottom"}} }
     });
 
-    // === Línea ===
     chartFechas = new Chart(document.getElementById("chartFechas"), {
-      type: "line",
-      data: { labels: fechas, datasets: [{ label: "Solicitudes por Fecha", data: conteoFechas, borderColor: "#8b5cf6", backgroundColor: "rgba(139,92,246,0.2)", fill: true, tension: 0.3 }] },
-      options: { plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true } } }
+      type:"line",
+      data:{ labels:labelsDates, datasets:[{ label:"Solicitudes por Fecha", data:countsDates, borderColor:"#8b5cf6", backgroundColor:"rgba(139,92,246,.2)", tension:.3, fill:true }] },
+      options:{ plugins:{legend:{position:"top"}}, scales:{y:{beginAtZero:true}} }
     });
   }
 
-  if (dashboardModal) dashboardModal.addEventListener("shown.bs.modal", renderCharts);
-  if (filtroProducto) filtroProducto.addEventListener("change", renderCharts);
-  if (filtroUsuario) filtroUsuario.addEventListener("change", renderCharts);
-  if (filtroFechaInicio) filtroFechaInicio.addEventListener("change", renderCharts);
-  if (filtroFechaFin) filtroFechaFin.addEventListener("change", renderCharts);
-});
+  if(modal) modal.addEventListener("shown.bs.modal", renderCharts);
+  [fProd,fUser,fIni,fFin].forEach(el=>{ if(el) el.addEventListener("change", renderCharts); });
+})();
 </script>
 {% endblock %}

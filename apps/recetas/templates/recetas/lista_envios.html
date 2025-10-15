@@ -4,83 +4,97 @@
 {% block title %}Lista de Envíos · SAIF{% endblock %}
 
 {% block content %}
-<section class="p-6 md:p-8">
+<section class="p-3">
 
-  <!-- ============================= TABLA ============================= -->
-  <div class="border rounded-xl shadow-sm overflow-hidden">
-    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
-      <i class="bi bi-list-ul"></i> Lista de Envíos
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- Header -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-list-ul me-2"></i> Lista de Envíos</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <table class="w-full text-sm text-left text-slate-700" id="tablaEnvios">
-      <thead class="bg-emerald-50 text-emerald-900">
-      <tr>
-        <th class="px-4 py-2">Reporte</th>
-        <th class="px-4 py-2">Usuario</th>
-        <th class="px-4 py-2">Estado</th>
-        <th class="px-4 py-2">Fecha</th>
-        <th class="px-4 py-2">Factura</th>
-        <th class="px-4 py-2">Referente</th>
-        <th class="px-4 py-2">Producto</th>
-        <th class="px-4 py-2">Usuario Venta</th>
-      </tr>
-      <tr class="bg-emerald-50 text-slate-700">
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-        <th><input type="text" class="form-control form-control-sm filtro" placeholder="Filtrar"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for detalle in detalles %}
-      <tr class="fila-envio"
-          data-id="{{ detalle.id_envio.id }}"
-          data-reporte="{{ detalle.id_envio.nombre_reporte }}"
-          data-usuario="{{ detalle.id_envio.id_usuario.nombre }}"
-          data-estado="{{ detalle.id_envio.id_estado_envio.nombre_estado }}"
-          data-fecha="{{ detalle.id_envio.fecha_envio|date:'d/m/Y H:i' }}"
-          data-factura="{{ detalle.id_receta.referencia_factura }}"
-          data-referente="{{ detalle.id_receta.referente_receta }}"
-          data-producto="{{ detalle.id_receta.id_producto.nombre }}"
-          data-usuario-venta="{{ detalle.id_receta.id_usuario_venta.nombre }}">
+    <!-- Tabla -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaEnvios">
+        <colgroup>
+          <col style="width:12%"><col style="width:12%"><col style="width:10%"><col style="width:12%">
+          <col style="width:12%"><col style="width:15%"><col style="width:15%"><col style="width:12%">
+        </colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th>Reporte</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Factura</th>
+            <th>Referente</th>
+            <th>Producto</th>
+            <th>Usuario Venta</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="f-reporte" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <input id="f-estado" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar">
+            </th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="YYYY-MM-DD"></th>
+            <th><input id="f-factura" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-referente" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-producto" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-usuario-venta" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for detalle in detalles %}
+          <tr class="fila-envio"
+              data-id="{{ detalle.id_envio.id }}"
+              data-reporte="{{ detalle.id_envio.nombre_reporte }}"
+              data-usuario="{{ detalle.id_envio.id_usuario.nombre }}"
+              data-estado="{{ detalle.id_envio.id_estado_envio.nombre_estado }}"
+              data-fecha="{{ detalle.id_envio.fecha_envio|date:'Y-m-d' }}"
+              data-factura="{{ detalle.id_receta.referencia_factura }}"
+              data-referente="{{ detalle.id_receta.referente_receta }}"
+              data-producto="{{ detalle.id_receta.id_producto.nombre }}"
+              data-usuario-venta="{{ detalle.id_receta.id_usuario_venta.nombre }}">
+            <td class="text-truncate">{{ detalle.id_envio.nombre_reporte }}</td>
+            <td class="text-truncate">{{ detalle.id_envio.id_usuario.nombre }}</td>
+            <td class="text-truncate">{{ detalle.id_envio.id_estado_envio.nombre_estado }}</td>
+            <td class="text-truncate">{{ detalle.id_envio.fecha_envio|date:"d/m/Y H:i" }}</td>
+            <td class="text-truncate">{{ detalle.id_receta.referencia_factura }}</td>
+            <td class="text-truncate">{{ detalle.id_receta.referente_receta }}</td>
+            <td class="text-truncate">{{ detalle.id_receta.id_producto.nombre }}</td>
+            <td class="text-truncate">{{ detalle.id_receta.id_usuario_venta.nombre }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay envíos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-        <td class="px-4 py-2">{{ detalle.id_envio.nombre_reporte }}</td>
-        <td class="px-4 py-2">{{ detalle.id_envio.id_usuario.nombre }}</td>
-        <td class="px-4 py-2">{{ detalle.id_envio.id_estado_envio.nombre_estado }}</td>
-        <td class="px-4 py-2">{{ detalle.id_envio.fecha_envio|date:"d/m/Y H:i" }}</td>
-        <td class="px-4 py-2">{{ detalle.id_receta.referencia_factura }}</td>
-        <td class="px-4 py-2">{{ detalle.id_receta.referente_receta }}</td>
-        <td class="px-4 py-2">{{ detalle.id_receta.id_producto.nombre }}</td>
-        <td class="px-4 py-2">{{ detalle.id_receta.id_usuario_venta.nombre }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="8" class="text-center py-4 text-slate-500">No hay envíos registrados</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-    </table>
-  </div>
+    <!-- Pager -->
+    <div id="pagerEnvios" class="saif-pager"></div>
 
-  <!-- ============================= BOTONES ============================= -->
-  <div class="flex justify-center gap-3 mt-4">
-    <button id="btnConsultar" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-eye"></i> Consultar
-    </button>
-    <a href="{% url 'recetas:exportar_envios_pdf' %}"
-       class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-full inline-flex items-center gap-2">
-      <i class="bi bi-filetype-pdf"></i> Exportar PDF
-    </a>
-    <!-- Botón Dashboard -->
-    <button class="btn btn-purple rounded-pill px-4 text-white" 
-            data-bs-toggle="modal" data-bs-target="#dashboardModal"
-            style="background-color:#8b5cf6; border:none;">
-      <i class="bi bi-bar-chart"></i> Dashboard
-    </button>
+    <!-- Botones -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-eye"></i> Consultar
+      </button>
+      <a href="{% url 'recetas:exportar_envios_pdf' %}"
+         class="btn btn-success rounded-pill px-3 me-2 shadow-sm">
+        <i class="bi bi-filetype-pdf"></i> Exportar PDF
+      </a>
+      <button class="btn rounded-pill px-3 text-white shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#dashboardModal"
+              style="background-color:#8b5cf6; border:none;">
+        <i class="bi bi-bar-chart"></i> Dashboard
+      </button>
+    </div>
   </div>
 </section>
 
@@ -93,9 +107,9 @@
       <div class="modal-header bg-emerald-700 text-white">
         <div class="d-flex align-items-center gap-2">
           <img src="{% static 'home/img/logo_empresa.png' %}" 
-                 alt="Logo" 
-                 class="rounded-circle bg-white p-2 shadow-sm" 
-                 style="width: 38px; height: 38px;">
+               alt="Logo" 
+               class="rounded-circle bg-white p-2 shadow-sm" 
+               style="width: 38px; height: 38px;">
           <h5 class="modal-title mb-0 fw-bold">Detalle de Envío</h5>
           <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
         </div>
@@ -141,15 +155,46 @@
 
 <!-- ============================= ESTILOS ============================= -->
 <style>
-  .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
-  .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
-  .saif-modal .saif-badge { background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
-  .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
-  .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
-  .kv__key { font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
-  .kv__val { color:#0f172a; word-break:break-word }
-  .kv__val.text-muted { color:#64748b }
-  @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+#tablaEnvios{
+  table-layout:fixed; width:100%; min-width:1100px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaEnvios th,#tablaEnvios td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+#tablaEnvios tbody tr{ background:#ffffff; }
+#tablaEnvios thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaEnvios thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaEnvios thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+.hidden-by-pagination{ display:none !important; }
+#tablaEnvios thead tr:first-child th{ border-top:0; }
+#tablaEnvios tbody tr:last-child td{ border-bottom:0; }
+#tablaEnvios tr>*:first-child{ border-left:0; }
+#tablaEnvios tr>*:last-child{  border-right:0; }
+#tablaEnvios tbody tr.last-visible td{ border-bottom:0 !important; }
+#tablaEnvios tbody tr:hover{ background:#fafafa; }
+
+.saif-modal .modal-content{ border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+.saif-modal .modal-header{ background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+.saif-modal .saif-badge{ background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+.kv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+.kv{ display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+.kv__key{ font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
+.kv__val{ color:#0f172a; word-break:break-word }
+@media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
 </style>
 
 <!-- ============================= MODAL DASHBOARD ============================= -->
@@ -163,37 +208,30 @@
 
       <div class="modal-body bg-slate-50">
         <!-- Filtros -->
-        <div class="d-flex gap-3 mb-3">
-          <select id="filtroUsuario" class="form-select">
+        <div class="d-flex flex-wrap gap-3 mb-3">
+          <select id="filtroUsuario" class="form-select w-auto">
             <option value="">Filtrar por Usuario</option>
-            {% for detalle in detalles %}
-              <option value="{{ detalle.id_envio.id_usuario.nombre }}">{{ detalle.id_envio.id_usuario.nombre }}</option>
-            {% endfor %}
           </select>
-
-          <select id="filtroEstado" class="form-select">
+          <select id="filtroEstado" class="form-select w-auto">
             <option value="">Filtrar por Estado</option>
-            {% for detalle in detalles %}
-              <option value="{{ detalle.id_envio.id_estado_envio.nombre_estado }}">{{ detalle.id_envio.id_estado_envio.nombre_estado }}</option>
-            {% endfor %}
           </select>
-
-          <div class="flex gap-2">
-          <label>Desde: <input type="date" id="filtroFechaInicio"></label>
-          <label>Hasta: <input type="date" id="filtroFechaFin"></label>
-        </div>
-
+          <div class="d-flex gap-2 align-items-center">
+            <label class="mb-0">Desde: <input type="date" id="filtroFechaInicio" class="form-control"></label>
+            <label class="mb-0">Hasta: <input type="date" id="filtroFechaFin" class="form-control"></label>
+          </div>
         </div>
 
         <!-- Gráficas -->
-        <div class="row g-3">
+        <div class="row g-4">
           <div class="col-md-6">
-            <div style="height: 300px;">
+            <div class="bg-white p-3 rounded shadow" style="height: 320px;">
+              <h6 class="fw-bold mb-2">Envíos por Estado</h6>
               <canvas id="chartEstados"></canvas>
             </div>
           </div>
           <div class="col-md-6">
-            <div style="height: 300px;">
+            <div class="bg-white p-3 rounded shadow" style="height: 320px;">
+              <h6 class="fw-bold mb-2">Envíos por Usuario</h6>
               <canvas id="chartUsuarios"></canvas>
             </div>
           </div>
@@ -213,196 +251,297 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  let selectedRow = null;
+  const table = document.getElementById("tablaEnvios");
+  const tbody = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerEnvios");
 
-  // Seleccionar fila
-  document.querySelectorAll("#tablaEnvios tbody tr").forEach(row => {
-    row.addEventListener("click", function () {
-      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
-      selectedRow = this;
-      this.classList.add("bg-emerald-100");
-    });
+  let selectedRow = null;
+  let selectedId  = null;
+
+  function toggleButtons(enabled){
+    const btn=document.getElementById("btnConsultar");
+    if(btn) btn.disabled=!enabled;
+  }
+  toggleButtons(false);
+
+  // Selección de fila
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedRow = row;
+    selectedId  = row.dataset.id;
+    toggleButtons(true);
+  }
+  tbody.addEventListener("click",ev=>{
+    const row=ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+  });
+  tbody.addEventListener("dblclick",ev=>{
+    const row=ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    document.getElementById("btnConsultar").click();
+  });
+  document.addEventListener("keydown",ev=>{
+    if(ev.key==='Enter' && selectedId){
+      document.getElementById("btnConsultar").click();
+      ev.preventDefault();
+    }
   });
 
-  // CONSULTAR ENVÍO
+  // Consultar: agrupa recetas por ID de envío
   document.getElementById("btnConsultar").addEventListener("click", function () {
-    if (!selectedRow) {
-      alert("Selecciona un envío primero.");
-      return;
+    if (!selectedRow) { alert("Selecciona un envío primero."); return; }
+
+    // Cabecera
+    document.getElementById("detalleFechaEnvio").innerText = selectedRow.dataset.fecha || "—";
+    document.getElementById("detalleReporte").innerText    = selectedRow.dataset.reporte || "—";
+    document.getElementById("detalleUsuario").innerText    = selectedRow.dataset.usuario || "—";
+    document.getElementById("detalleEstado").innerText     = selectedRow.dataset.estado  || "—";
+
+    // Recetas asociadas al mismo envío (todas las filas con data-id = id envío)
+    const envioId = selectedRow.dataset.id;
+    const asociadas = [...tbody.querySelectorAll(`tr[data-id="${envioId}"]`)];
+    const cont = document.getElementById("detalleRecetasAsociadas");
+    if(asociadas.length){
+      cont.innerHTML = asociadas.map(r=>`
+        <tr>
+          <td>${r.dataset.factura||"—"}</td>
+          <td>${r.dataset.referente||"—"}</td>
+          <td>${r.dataset.producto||"—"}</td>
+          <td>${r.dataset.usuarioVenta||"—"}</td>
+          <td>${(r.querySelectorAll("td")[3]?.textContent||"—")}</td>
+        </tr>
+      `).join("");
+    }else{
+      cont.innerHTML = `<tr><td colspan="5" class="text-center text-slate-500">No hay recetas asociadas</td></tr>`;
     }
-
-    document.getElementById("detalleFechaEnvio").innerText = selectedRow.dataset.fecha;
-    document.getElementById("detalleReporte").innerText = selectedRow.dataset.reporte || "—";
-    document.getElementById("detalleUsuario").innerText = selectedRow.dataset.usuario;
-    document.getElementById("detalleEstado").innerText = selectedRow.dataset.estado;
-
-    // Recetas asociadas
-    const tbody = document.getElementById("detalleRecetasAsociadas");
-    tbody.innerHTML = `
-      <tr>
-        <td>${selectedRow.dataset.factura}</td>
-        <td>${selectedRow.dataset.referente}</td>
-        <td>${selectedRow.dataset.producto}</td>
-        <td>${selectedRow.dataset.usuario}</td>
-        <td>${selectedRow.dataset.fecha}</td>
-      </tr>
-    `;
 
     new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
   });
 
-  // Filtros en tabla
-  document.querySelectorAll(".filtro").forEach((input, index) => {
-    input.addEventListener("keyup", function () {
-      const value = this.value.toLowerCase();
-      document.querySelectorAll("#tablaEnvios tbody tr").forEach(row => {
-        const cell = row.cells[index]?.textContent.toLowerCase();
-        row.style.display = cell.includes(value) ? "" : "none";
+  /* ===== Utilidades ===== */
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){ el.setAttribute("title", el.textContent.trim()); }
+      else{ el.removeAttribute("title"); }
+    });
+  }
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds=[...tr.cells];
+      const hasContent=tds.some(td=>(td.textContent||'').trim()!=='' || td.querySelector('*'));
+      if(!hasContent) tr.remove();
+    });
+  }
+
+  /* ===== Paginación ===== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+  function getDataRows(){
+    return [...tbody.querySelectorAll("tr")].filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+  function renderPager(totalPages){
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles=rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last=visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  /* ===== Filtros ===== */
+  function installFilters(){
+    const fRep = document.getElementById("f-reporte");
+    const fUsu = document.getElementById("f-usuario");
+    const fEst = document.getElementById("f-estado");
+    const fFec = document.getElementById("f-fecha");
+    const fFac = document.getElementById("f-factura");
+    const fRef = document.getElementById("f-referente");
+    const fPro = document.getElementById("f-producto");
+    const fUV  = document.getElementById("f-usuario-venta");
+    const inputs=[fRep,fUsu,fEst,fFec,fFac,fRef,fPro,fUV].filter(Boolean);
+    const norm = s => (s||"").toString().trim().toLowerCase();
+
+    function applyFilters(){
+      const vRep=norm(fRep?.value), vUsu=norm(fUsu?.value), vEst=norm(fEst?.value),
+            vFec=norm(fFec?.value), vFac=norm(fFac?.value), vRef=norm(fRef?.value),
+            vPro=norm(fPro?.value), vUV =norm(fUV ?.value);
+
+      const rows=[...tbody.querySelectorAll("tr")].filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const ok =
+          (!vRep || (tds[0]?.textContent||"").toLowerCase().includes(vRep)) &&
+          (!vUsu || (tds[1]?.textContent||"").toLowerCase().includes(vUsu)) &&
+          (!vEst || (tr.dataset.estado||"").toLowerCase().includes(vEst)) &&
+          (!vFec || (tr.dataset.fecha||"").includes(vFec)) &&
+          (!vFac || (tds[4]?.textContent||"").toLowerCase().includes(vFac)) &&
+          (!vRef || (tds[5]?.textContent||"").toLowerCase().includes(vRef)) &&
+          (!vPro || (tds[6]?.textContent||"").toLowerCase().includes(vPro)) &&
+          (!vUV  || (tr.dataset.usuarioVenta||"").toLowerCase().includes(vUV));
+        tr.style.display = ok ? "" : "none";
       });
-    });
-  });
-});
-
-// ============================= DASHBOARD =============================
-document.addEventListener("DOMContentLoaded", () => {
-  const rows = document.querySelectorAll("#tablaEnvios tbody tr");
-  const filtroUsuario = document.getElementById("filtroUsuario");
-  const filtroEstado = document.getElementById("filtroEstado");
-  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
-  const filtroFechaFin = document.getElementById("filtroFechaFin");
-
-  let chartEstados = null;
-  let chartUsuarios = null;
-  let chartFechas = null;
-
-  // Normalizar dd/mm/yyyy -> yyyy-mm-dd
-  function normalizarFecha(fechaStr) {
-    if (!fechaStr) return "";
-    const partes = fechaStr.split(" ")[0].split("/"); // ["21","09","2025"]
-    return `${partes[2]}-${partes[1]}-${partes[0]}`; // "2025-09-21"
-  }
-
-  function obtenerDatos() {
-    let data = [];
-    rows.forEach(row => {
-      data.push({
-        usuario: row.dataset.usuario,
-        estado: row.dataset.estado,
-        fecha: normalizarFecha(row.dataset.fecha), // yyyy-mm-dd
-      });
-    });
-    return data;
-  }
-
-  function filtrarDatos() {
-    let data = obtenerDatos();
-    if (filtroUsuario.value) {
-      data = data.filter(d => d.usuario === filtroUsuario.value);
+      currentPage=1;
+      applyPagination();
     }
-    if (filtroEstado.value) {
-      data = data.filter(d => d.estado === filtroEstado.value);
-    }
-    if (filtroFechaInicio.value) {
-      data = data.filter(d => d.fecha >= filtroFechaInicio.value);
-    }
-    if (filtroFechaFin.value) {
-      data = data.filter(d => d.fecha <= filtroFechaFin.value);
-    }
-    return data;
+    inputs.forEach(inp=>inp.addEventListener("input",applyFilters));
   }
 
-  function renderCharts() {
-    const data = filtrarDatos();
-
-    // Conteo por estado
-    const estados = [...new Set(data.map(d => d.estado))];
-    const conteoEstados = estados.map(e => data.filter(d => d.estado === e).length);
-
-    // Conteo por usuario
-    const usuarios = [...new Set(data.map(d => d.usuario))];
-    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
-
-    // Conteo por fecha
-    const fechas = [...new Set(data.map(d => d.fecha))].sort();
-    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
-
-    // --- ACTUALIZAR O CREAR ---
-    if (chartEstados) chartEstados.destroy();
-    if (chartUsuarios) chartUsuarios.destroy();
-    if (chartFechas) chartFechas.destroy();
-
-    chartEstados = new Chart(document.getElementById("chartEstados"), {
-      type: "bar",
-      data: {
-        labels: estados,
-        datasets: [{ 
-          label: "Cantidad por Estado", 
-          data: conteoEstados, 
-          backgroundColor: "#34d399" 
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    chartUsuarios = new Chart(document.getElementById("chartUsuarios"), {
-      type: "pie",
-      data: {
-        labels: usuarios,
-        datasets: [{ 
-          label: "Cantidad por Usuario", 
-          data: conteoUsuarios, 
-          backgroundColor: ["#6366f1","#fbbf24","#ef4444","#10b981"] 
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    chartFechas = new Chart(document.getElementById("chartFechas"), {
-      type: "line",
-      data: {
-        labels: fechas,
-        datasets: [{ 
-          label: "Envíos por Fecha", 
-          data: conteoFechas, 
-          borderColor: "#8b5cf6",
-          backgroundColor: "#c4b5fd",
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
-  }
-
-  // Llenar filtros dinámicamente
-  function llenarFiltros() {
-    const data = obtenerDatos();
-    const usuarios = [...new Set(data.map(d => d.usuario))];
-    const estados = [...new Set(data.map(d => d.estado))];
-
-    filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>`;
-    usuarios.forEach(u => {
-      filtroUsuario.innerHTML += `<option value="${u}">${u}</option>`;
-    });
-
-    filtroEstado.innerHTML = `<option value="">Filtrar por Estado</option>`;
-    estados.forEach(e => {
-      filtroEstado.innerHTML += `<option value="${e}">${e}</option>`;
-    });
-  }
-
-  // Eventos
-  filtroUsuario.addEventListener("change", renderCharts);
-  filtroEstado.addEventListener("change", renderCharts);
-  filtroFechaInicio.addEventListener("change", renderCharts);
-  filtroFechaFin.addEventListener("change", renderCharts);
-
-  // Inicializar al abrir modal
-  document.getElementById("dashboardModal").addEventListener("shown.bs.modal", () => {
-    llenarFiltros();
-    renderCharts();
-  });
+  // Init
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 
+<!-- ============================= DASHBOARD ============================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const rows = document.querySelectorAll("#tablaEnvios tbody tr");
+  const filtroUsuario = document.getElementById("filtroUsuario");
+  const filtroEstado  = document.getElementById("filtroEstado");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicio");
+  const filtroFechaFin    = document.getElementById("filtroFechaFin");
+
+  let chartEstados=null, chartUsuarios=null;
+
+  // Normaliza "d/m/Y ..." -> "Y-m-d"
+  function normalizarFechaDMY(fechaStr){
+    if(!fechaStr) return "";
+    const soloFecha = fechaStr.split(" ")[0]; // dd/mm/YYYY
+    const [d,m,y] = soloFecha.split("/");
+    return `${y}-${m}-${d}`;
+  }
+
+  function obtenerDatos(){
+    const data=[];
+    rows.forEach(r=>{
+      if(r.hasAttribute("data-empty-row")) return;
+      // Ojo: la celda visible tiene dd/mm/YYYY H:i, pero en data-fecha ya puse Y-m-d.
+      data.push({
+        usuario: r.dataset.usuario,
+        estado:  r.dataset.estado,
+        fecha:   r.dataset.fecha || normalizarFechaDMY(r.cells[3]?.textContent||""),
+      });
+    });
+    return data;
+  }
+
+  function llenarFiltros(){
+    const data = obtenerDatos();
+    const usuarios=[...new Set(data.map(d=>d.usuario))];
+    const estados =[...new Set(data.map(d=>d.estado))];
+
+    if(filtroUsuario){
+      filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>` +
+        usuarios.map(u=>`<option value="${u}">${u}</option>`).join("");
+    }
+    if(filtroEstado){
+      filtroEstado.innerHTML = `<option value="">Filtrar por Estado</option>` +
+        estados.map(e=>`<option value="${e}">${e}</option>`).join("");
+    }
+  }
+
+  function filtrarDatos(){
+    let data = obtenerDatos();
+    if(filtroUsuario && filtroUsuario.value) data = data.filter(d=>d.usuario===filtroUsuario.value);
+    if(filtroEstado  && filtroEstado.value)  data = data.filter(d=>d.estado===filtroEstado.value);
+    if(filtroFechaInicio && filtroFechaInicio.value) data = data.filter(d=>d.fecha >= filtroFechaInicio.value);
+    if(filtroFechaFin    && filtroFechaFin.value)    data = data.filter(d=>d.fecha <= filtroFechaFin.value);
+    return data;
+  }
+
+  function renderCharts(){
+    const data = filtrarDatos();
+    const estados =[...new Set(data.map(d=>d.estado))];
+    const usuarios=[...new Set(data.map(d=>d.usuario))];
+
+    const conteoEstados  = estados.map(e=>data.filter(d=>d.estado===e).length);
+    const conteoUsuarios = usuarios.map(u=>data.filter(d=>d.usuario===u).length);
+
+    if(chartEstados) chartEstados.destroy();
+    if(chartUsuarios) chartUsuarios.destroy();
+
+    chartEstados = new Chart(document.getElementById("chartEstados"),{
+      type:"bar",
+      data:{ labels:estados, datasets:[{label:"Envíos por Estado", data:conteoEstados, backgroundColor:"#34d399"}]},
+      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }}}
+    });
+
+    chartUsuarios = new Chart(document.getElementById("chartUsuarios"),{
+      type:"pie",
+      data:{ labels:usuarios, datasets:[{label:"Envíos por Usuario", data:conteoUsuarios, backgroundColor:["#6366f1","#fbbf24","#ef4444","#10b981","#0ea5e9","#f472b6"]}]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom"}}}
+    });
+  }
+
+  const dash = document.getElementById("dashboardModal");
+  if(dash){
+    dash.addEventListener("shown.bs.modal", ()=>{ llenarFiltros(); renderCharts(); });
+    ["change","input"].forEach(ev=>{
+      if(filtroUsuario) filtroUsuario.addEventListener(ev,renderCharts);
+      if(filtroEstado)  filtroEstado.addEventListener(ev,renderCharts);
+      if(filtroFechaInicio) filtroFechaInicio.addEventListener(ev,renderCharts);
+      if(filtroFechaFin)    filtroFechaFin.addEventListener(ev,renderCharts);
+    });
+  }
+});
+</script>
 {% endblock %}

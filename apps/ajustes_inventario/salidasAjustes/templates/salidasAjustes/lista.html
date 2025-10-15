@@ -6,20 +6,67 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
+<style>
+/* ====== Estilo de tabla idéntico al módulo de Productos (solo diseño) ====== */
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+#tablaAjustes{
+  table-layout:fixed; width:100%; min-width:900px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+
+#tablaAjustes th,#tablaAjustes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+
+#tablaAjustes tbody tr{ background:#ffffff; }
+
+#tablaAjustes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaAjustes thead.sticky-top tr:first-child th{
+  position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf;
+}
+#tablaAjustes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{
+  width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7;
+  background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s;
+  font-size:.85rem; box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+#tablaAjustes thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+
+#tablaAjustes thead tr:first-child th{ border-top:0; }
+#tablaAjustes tbody tr:last-child td{ border-bottom:0; }
+#tablaAjustes tr>*:first-child{ border-left:0; }
+#tablaAjustes tr>*:last-child{  border-right:0; }
+
+#tablaAjustes tbody tr:hover{ background:#fafafa; }
+</style>
+
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
-    <!-- HEADER -->
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-danger text-white px-3 py-2">
+    <!-- HEADER verde SAIF -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
       <h3 class="mb-0 fs-6">
         <i class="bi bi-box-arrow-up me-2"></i> Salidas por Ajuste
       </h3>
-      <span class="badge bg-light text-danger px-2 py-1 fs-7">SAIF</span>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
     <!-- TABLA -->
     <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaAjustes">
-        <thead class="table-danger text-dark shadow-sm sticky-top">
+        <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th>Correlativo</th>
             <th>Estado</th>
@@ -27,10 +74,10 @@
             <th>Usuario</th>
           </tr>
           <tr class="filter-row">
-            <th><input id="f-id" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
-            <th><input id="f-estado" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
-            <th><input id="f-fecha" class="form-control form-control-sm text-center" placeholder="dd/mm/aaaa"></th>
-            <th><input id="f-usuario" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-id" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-estado" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
           </tr>
         </thead>
 
@@ -40,7 +87,7 @@
             <td>{{ a.id }}</td>
             <td>
               {% if a.estado == "Completado" %}
-                <span class="badge bg-danger">Completado</span>
+                <span class="badge bg-success">Completado</span>
               {% elif a.estado == "Pendiente" %}
                 <span class="badge bg-warning text-dark">Pendiente</span>
               {% else %}
@@ -82,7 +129,7 @@
       </button>
 
       <button id="btnAnularAjuste"
-              class="btn btn-danger rounded-pill px-3 shadow-sm"
+              class="btn btn-success rounded-pill px-3 shadow-sm"
               disabled>
         <i class="bi bi-x-circle"></i> Anular
       </button>
@@ -104,7 +151,7 @@
   </div>
 </div>
 
-<!-- MODALES AUXILIARES -->
+<!-- (Si tienes modales globales en esta vista, no pasa nada; el JS limpiará duplicados) -->
 {% include "recepcion/partials/producto_modal.html" %}
 {% include "recepcion/partials/lote_modal.html" %}
 {% endblock %}
@@ -118,55 +165,98 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalInstance = new bootstrap.Modal(modalEl);
   let detalles = [];
 
+  /** Utilidad: mover submodal al <body> temporalmente y reinsertarlo al cerrar */
+  function abrirSubmodal(modalPadreEl, modalHijoEl){
+    if(!modalPadreEl || !modalHijoEl) return;
+
+    // placeholder para devolver el submodal a su sitio original
+    const placeholder = document.createElement("div");
+    placeholder.className = "modal-placeholder";
+    modalHijoEl.parentNode.insertBefore(placeholder, modalHijoEl);
+
+    // mover al body y enlazar eventos
+    document.body.appendChild(modalHijoEl);
+
+    const padre = bootstrap.Modal.getOrCreateInstance(modalPadreEl);
+    const hijo  = bootstrap.Modal.getOrCreateInstance(modalHijoEl);
+
+    modalPadreEl.addEventListener("hidden.bs.modal", function onHidden(){
+      modalPadreEl.removeEventListener("hidden.bs.modal", onHidden);
+      hijo.show();
+    }, {once:true});
+
+    modalHijoEl.addEventListener("hidden.bs.modal", function onChildHidden(){
+      modalHijoEl.removeEventListener("hidden.bs.modal", onChildHidden);
+      // devolver el submodal a su posición original
+      if(placeholder.parentNode){
+        placeholder.parentNode.insertBefore(modalHijoEl, placeholder);
+        placeholder.remove();
+      }
+      padre.show();
+    }, {once:true});
+
+    padre.hide();
+  }
+
+  /** Limpia modales duplicados con el mismo id que queden fuera del modal actual */
+  function limpiarDuplicadosModales(ids){
+    ids.forEach(id=>{
+      document.querySelectorAll("#"+id).forEach(el=>{
+        // Si el submodal encontrado NO está dentro del contenido actual del modal padre, elimínalo
+        if(!modalContent.contains(el)) el.remove();
+      });
+    });
+  }
+
   // === ABRIR FORMULARIO ===
   btnCrear?.addEventListener("click", (ev) => {
     const url = ev.currentTarget.getAttribute("data-url");
-    modalContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalContent.innerHTML = '<div class="p-4 text-center text-success">Cargando...</div>';
     modalInstance.show();
 
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r => r.text())
       .then(html => {
         modalContent.innerHTML = html;
-        inicializarFormulario();
+
+        // Evita modales duplicados de aperturas previas
+        limpiarDuplicadosModales(["modalBuscarProducto","modalBuscarLote"]);
+
+        inicializarFormulario(); // engancha eventos a los submodales DENTRO del contenido actual
       })
       .catch(() => {
-        modalContent.innerHTML = '<div class="p-4 text-danger text-center">Error cargando el formulario.</div>';
+        modalContent.innerHTML = '<div class="p-4 text-success text-center">Error cargando el formulario.</div>';
       });
   });
 
   // === INICIALIZAR FORMULARIO ===
   function inicializarFormulario() {
-    const btnAdd = document.getElementById("btnAddDetalle");
-    const tableBody = document.getElementById("detalleTable");
-    const modalProducto = document.getElementById("modalBuscarProducto");
-    const modalLote = document.getElementById("modalBuscarLote");
+    const btnAdd       = modalContent.querySelector("#btnAddDetalle");
+    const tableBody    = modalContent.querySelector("#detalleTable");
 
-    const productoInput = document.getElementById("productoInput");
-    const productoIdInput = document.getElementById("productoIdInput");
-    const loteInput = document.getElementById("loteInput");
-    const loteIdInput = document.getElementById("loteIdInput");
-    const cantidadInput = document.getElementById("cantidadInput");
+    // IMPORTANTÍSIMO: tomar SIEMPRE los submodales desde el contenido del modal padre
+    const modalProducto = modalContent.querySelector("#modalBuscarProducto");
+    const modalLote     = modalContent.querySelector("#modalBuscarLote");
 
-    // === AÑADIR DETALLE ===
+    const productoInput   = modalContent.querySelector("#productoInput");
+    const productoIdInput = modalContent.querySelector("#productoIdInput");
+    const loteInput       = modalContent.querySelector("#loteInput");
+    const loteIdInput     = modalContent.querySelector("#loteIdInput");
+    const cantidadInput   = modalContent.querySelector("#cantidadInput");
+
+    // === AÑADIR DETALLE (misma lógica) ===
     btnAdd?.addEventListener("click", () => {
-      const productoId = productoIdInput.value.trim();
-      const producto = productoInput.value.trim();
-      const loteId = loteIdInput.value.trim();
-      const lote = loteInput.value.trim();
-      const cantidad = parseInt(cantidadInput.value) || 0;
+      const productoId = (productoIdInput?.value||"").trim();
+      const producto   = (productoInput?.value||"").trim();
+      const loteId     = (loteIdInput?.value||"").trim();
+      const lote       = (loteInput?.value||"").trim();
+      const cantidad   = parseInt(cantidadInput?.value)||0;
 
       if (!productoId) return alert("Seleccione un producto antes de añadir.");
       if (!lote && !loteId) return alert("Seleccione o ingrese un lote.");
       if (cantidad <= 0) return alert("Ingrese una cantidad válida.");
 
-      const item = {
-        producto_id: productoId,
-        producto,
-        lote_id: loteId,
-        numero_lote: lote,
-        cantidad_ajustada: cantidad
-      };
+      const item = { producto_id: productoId, producto, lote_id: loteId, numero_lote: lote, cantidad_ajustada: cantidad };
       detalles.push(item);
 
       const row = document.createElement("tr");
@@ -175,11 +265,10 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>${lote}</td>
         <td>${cantidad}</td>
         <td>
-          <button type="button" class="btn btn-sm btn-outline-danger btnRemove">
+          <button type="button" class="btn btn-sm btn-outline-success btnRemove">
             <i class="bi bi-trash"></i>
           </button>
-        </td>
-      `;
+        </td>`;
       row.querySelector(".btnRemove").addEventListener("click", () => {
         row.remove();
         detalles = detalles.filter(d => d !== item);
@@ -190,16 +279,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if (detalles.length === 1) tableBody.innerHTML = "";
       tableBody.appendChild(row);
 
-      productoInput.value = "";
-      productoIdInput.value = "";
-      loteInput.value = "";
-      loteIdInput.value = "";
-      cantidadInput.value = "0";
+      if(productoInput)   productoInput.value   = "";
+      if(productoIdInput) productoIdInput.value = "";
+      if(loteInput)       loteInput.value       = "";
+      if(loteIdInput)     loteIdInput.value     = "";
+      if(cantidadInput)   cantidadInput.value   = "0";
     });
 
-    // === GUARDAR SALIDA ===
-    const form = document.getElementById("formAjusteSalida");
-
+    // === GUARDAR SALIDA (misma lógica) ===
+    const form = modalContent.querySelector("#formAjusteSalida");
     form?.addEventListener("submit", function (e) {
       e.preventDefault();
       document.activeElement?.blur();
@@ -208,134 +296,129 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Debe agregar al menos un producto antes de guardar.");
         return;
       }
-
-      const fecha_ajuste = document.querySelector("#id_fecha_ajuste")?.value;
+      const fecha_ajuste = modalContent.querySelector("#id_fecha_ajuste")?.value;
       const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-      const payload = {
-        form_data: { fecha_ajuste },
-        detalles: detalles
-      };
+      const payload = { form_data: { fecha_ajuste }, detalles: detalles };
 
       fetch("{% url 'ajustes_inventario:salidas:ajuste_salida_create' %}", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrf,
-          "X-Requested-With": "XMLHttpRequest"
-        },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(payload)
       })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            alert("Salida registrada correctamente.");
-            modalInstance.hide();
-            window.location.reload();
-          } else {
-            alert("Error al guardar: " + (data.errors || "Desconocido."));
-          }
-        })
-        .catch(() => alert("Error de red o servidor al guardar la salida."));
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) { alert("Salida registrada correctamente."); bootstrap.Modal.getInstance(modalEl).hide(); window.location.reload(); }
+        else { alert("Error al guardar: " + (data.errors || "Desconocido.")); }
+      })
+      .catch(() => alert("Error de red o servidor al guardar la salida."));
     });
 
-    // === MODALES ===
-    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+    // === ABRIR SUBMODALES (con fix) ===
+    modalContent.querySelector("#btnBuscarProducto")?.addEventListener("click", () => {
+      if (!modalProducto) return;
+      abrirSubmodal(modalEl, modalProducto);
     });
-    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(modalLote).show();
-      cargarLotes();
+
+    modalContent.querySelector("#btnBuscarLote")?.addEventListener("click", () => {
+      if (!productoIdInput?.value) { alert("Seleccione un producto primero."); return; }
+      if (!modalLote) return;
+      abrirSubmodal(modalEl, modalLote);
+      cargarLotes(); // precargar
     });
 
     // === BUSCAR PRODUCTOS ===
     modalProducto?.addEventListener("shown.bs.modal", () => {
-      const searchInput = document.getElementById("searchProducto");
-      const tbodyResultados = document.getElementById("tablaBuscarProductos");
+      const searchInput      = modalProducto.querySelector("#searchProducto");
+      const tbodyResultados  = modalProducto.querySelector("#tablaBuscarProductos");
       if (!searchInput || !tbodyResultados) return;
 
       searchInput.value = "";
       tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
 
-      searchInput.oninput = function () {
+      searchInput.oninput = function(){
         const term = this.value.trim();
-        fetch("{% url 'ajustes_inventario:salidas:search_productos' %}?term=" + encodeURIComponent(term))
-          .then(r => r.json())
-          .then(data => {
-            tbodyResultados.innerHTML = "";
-            if (data.length === 0) {
-              tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
-              return;
-            }
-            data.forEach(p => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${p.codigo}</td>
-                <td>${p.nombre}</td>
-                <td>${p.descripcion || "-"}</td>
-                <td>${p.presentacion || "-"}</td>
-                <td>${p.unidad || "-"}</td>
-                <td>${p.condicion || "-"}</td>
-                <td>${p.receta ? "Sí" : "No"}</td>
-                <td>${p.controlado ? "Sí" : "No"}</td>
-                <td><button class="btn btn-sm btn-danger"><i class="bi bi-check2"></i></button></td>
-              `;
-              tr.querySelector("button").addEventListener("click", () => {
+        fetch("{% url 'ajustes_inventario:salidas:search_productos' %}?term=" + encodeURIComponent(term), {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(r=>r.json())
+        .then(data=>{
+          tbodyResultados.innerHTML = "";
+          if(!data || data.length===0){
+            tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
+            return;
+          }
+          data.forEach(p=>{
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo}</td>
+              <td>${p.nombre}</td>
+              <td>${p.descripcion || "-"}</td>
+              <td>${p.presentacion || "-"}</td>
+              <td>${p.unidad || "-"}</td>
+              <td>${p.condicion || "-"}</td>
+              <td>${p.receta ? "Sí" : "No"}</td>
+              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>`;
+            tr.querySelector("button").addEventListener("click", ()=>{
+              if(productoInput && productoIdInput){
                 productoInput.value = `${p.codigo} - ${p.nombre}`;
                 productoIdInput.value = p.id;
-                bootstrap.Modal.getInstance(modalProducto).hide();
-              });
-              tbodyResultados.appendChild(tr);
+              }
+              bootstrap.Modal.getInstance(modalProducto)?.hide(); // al cerrar, reabre el padre
             });
+            tbodyResultados.appendChild(tr);
           });
+        });
       };
     });
 
     // === BUSCAR LOTES ===
-    function cargarLotes() {
-      const productoId = productoIdInput.value;
-      const searchLoteInput = document.getElementById("searchLote");
-      const tablaLotes = document.getElementById("tablaBuscarLotes");
+    function cargarLotes(){
+      const productoId = productoIdInput?.value;
+      const searchLoteInput = modalLote?.querySelector("#searchLote");
+      const tablaLotes      = modalLote?.querySelector("#tablaBuscarLotes");
+      if(!tablaLotes) return;
 
-      if (!productoId) {
-        tablaLotes.innerHTML = '<tr><td colspan="4" class="text-danger">Seleccione un producto primero.</td></tr>';
+      if(!productoId){
+        tablaLotes.innerHTML = '<tr><td colspan="4" class="text-success">Seleccione un producto primero.</td></tr>';
         return;
       }
 
-      const base = "{% url 'ajustes_inventario:salidas:search_lotes' 0 %}".replace("0/", productoId + "/");
-      const term = searchLoteInput?.value || "";
-      const url = base + (term ? "?term=" + encodeURIComponent(term) : "");
+      const base = "{% url 'ajustes_inventario:salidas:search_lotes' 0 %}".replace("0/", (productoId||"") + "/");
+      const term = (searchLoteInput?.value || "");
+      const url  = base + (term ? "?term=" + encodeURIComponent(term) : "");
 
-      fetch(url)
-        .then(r => r.json())
-        .then(data => {
-          tablaLotes.innerHTML = "";
-          if (data.length === 0) {
-            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes registrados.</td></tr>';
-            return;
-          }
-          data.forEach(l => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${l.numero_lote}</td>
-              <td>${l.fecha_caducidad || "-"}</td>
-              <td>${l.cantidad || 0}</td>
-              <td><button class="btn btn-sm btn-danger"><i class="bi bi-check2"></i></button></td>
-            `;
-            tr.querySelector("button").addEventListener("click", () => {
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r=>r.json())
+      .then(data=>{
+        tablaLotes.innerHTML = "";
+        if(!data || data.length===0){
+          tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes registrados.</td></tr>';
+          return;
+        }
+        data.forEach(l=>{
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${l.numero_lote}</td>
+            <td>${l.fecha_caducidad || "-"}</td>
+            <td>${l.cantidad || 0}</td>
+            <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>`;
+          tr.querySelector("button").addEventListener("click", ()=>{
+            if(loteInput && loteIdInput){
               loteInput.value = l.numero_lote;
               loteIdInput.value = l.id;
-              bootstrap.Modal.getInstance(modalLote).hide();
-            });
-            tablaLotes.appendChild(tr);
+            }
+            bootstrap.Modal.getInstance(modalLote)?.hide(); // al cerrar, reabre el padre
           });
+          tablaLotes.appendChild(tr);
         });
+      });
     }
-
-    document.getElementById("searchLote")?.addEventListener("input", cargarLotes);
+    modalLote?.querySelector("#searchLote")?.addEventListener("input", cargarLotes);
   }
 
-  // === CONSULTAR Y ANULAR ===
+  // === CONSULTAR Y ANULAR (sin cambios de lógica) ===
   const btnConsultar = document.getElementById("btnConsultarAjuste");
   const btnAnular = document.getElementById("btnAnularAjuste");
   const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"));
@@ -346,8 +429,8 @@ document.addEventListener("DOMContentLoaded", function () {
     filas.forEach(row => {
       row.addEventListener("click", () => {
         const id = row.dataset.id;
-        filas.forEach(r => r.classList.remove("table-danger"));
-        row.classList.add("table-danger");
+        filas.forEach(r => r.classList.remove("table-success"));
+        row.classList.add("table-success");
         btnConsultar.removeAttribute("disabled");
         btnAnular.removeAttribute("disabled");
         btnConsultar.dataset.id = id;
@@ -363,41 +446,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetch(`/ajustes_inventario/salidas/anular/${id}/`, {
       method: "POST",
-      headers: {
-        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-        "X-Requested-With": "XMLHttpRequest",
-      },
+      headers: { "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value, "X-Requested-With": "XMLHttpRequest" },
     })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          alert("Salida anulada correctamente. El stock fue restaurado.");
-          window.location.reload();
-        } else {
-          alert("Error: " + (data.error || "No se pudo anular la salida."));
-        }
-      })
-      .catch(() => alert("Error de red o servidor."));
+    .then(r=>r.json())
+    .then(data=>{
+      if (data.success) { alert("Salida anulada correctamente. El stock fue restaurado."); window.location.reload(); }
+      else { alert("Error: " + (data.error || "No se pudo anular la salida.")); }
+    })
+    .catch(()=>alert("Error de red o servidor."));
   });
 
   btnConsultar?.addEventListener("click", () => {
     const id = btnConsultar.dataset.id;
     if (!id) return;
-    modalConsultarContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalConsultarContent.innerHTML = '<div class="p-4 text-center text-success">Cargando...</div>';
     modalConsultar.show();
 
-    fetch(`/ajustes_inventario/salidas/consultar/${id}/`, {
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    })
-      .then(r => r.text())
-      .then(html => (modalConsultarContent.innerHTML = html))
-      .catch(() => {
-        modalConsultarContent.innerHTML =
-          '<div class="p-4 text-danger text-center">Error al cargar el detalle.</div>';
-      });
+    fetch(`/ajustes_inventario/salidas/consultar/${id}/`, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r=>r.text())
+      .then(html=> (modalConsultarContent.innerHTML = html))
+      .catch(()=>{ modalConsultarContent.innerHTML = '<div class="p-4 text-success text-center">Error al cargar el detalle.</div>'; });
   });
 
   activarSeleccionFilas();
+
+  /* Doble clic + Enter para consultar usando tu botón */
+  (function addDblClickAndEnter() {
+    const tbodyAjustes = document.querySelector("#tablaAjustes tbody");
+    if (tbodyAjustes && btnConsultar) {
+      tbodyAjustes.addEventListener("dblclick", (ev) => {
+        const row = ev.target.closest("tr[data-id]");
+        if (!row) return;
+        row.click();
+        if (!btnConsultar.disabled) btnConsultar.click();
+      });
+    }
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" && btnConsultar && !btnConsultar.disabled) {
+        btnConsultar.click();
+        ev.preventDefault();
+      }
+    });
+  })();
 });
 </script>
 {% endblock %}

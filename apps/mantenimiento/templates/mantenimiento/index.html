@@ -13,61 +13,67 @@
     <!-- Usuarios -->
     <a href="{% url 'mantenimiento:mantenimiento_usuarios:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-people text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Usuarios</div>
+      <div class="mt-2 text-slate-600">Gestión de cuentas del sistema.</div>
     </a>
 
     <!-- Roles -->
     <a href="{% url 'mantenimiento:mantenimiento_roles:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-person-badge text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Roles</div>
+      <div class="mt-2 text-slate-600">Permisos y perfiles de acceso.</div>
     </a>
 
     <!-- Laboratorios -->
-    <a href="{% url 'laboratorios:lista' %}"
+    <a href="{% url 'mantenimiento:mantenimiento_laboratorios:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-building text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Laboratorios</div>
+      <div class="mt-2 text-slate-600">Catálogo de laboratorios.</div>
     </a>
     
     <!-- Presentaciones -->
     <a href="{% url 'mantenimiento:mantenimiento_presentaciones:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-box text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Presentaciones</div>
+      <div class="mt-2 text-slate-600">Formas farmacéuticas disponibles.</div>
     </a>
 
     <!-- Unidades de Medida -->
     <a href="{% url 'mantenimiento:mantenimiento_unidadesmedida:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-rulers text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Unidades de Medida</div>
+      <div class="mt-2 text-slate-600">Unidades y equivalencias.</div>
     </a>
 
     <!-- Condiciones de Almacenamiento -->
     <a href="{% url 'mantenimiento:mantenimiento_condicionesalmacenamiento:lista' %}"
        class="group border rounded-xl p-6 text-center hover:shadow-lg transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-16 h-16 mb-3">
         <i class="bi bi-thermometer-snow text-4xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
       <div class="font-semibold">Condiciones de Almacenamiento</div>
+      <div class="mt-2 text-slate-600">Temperatura y requisitos de conservación.</div>
     </a>
   </div>
 </section>

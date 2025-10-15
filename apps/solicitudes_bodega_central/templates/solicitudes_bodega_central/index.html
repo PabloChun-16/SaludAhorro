@@ -13,25 +13,23 @@
     <!-- Crear Solicitud -->
     <a href="{% url 'solicitudes_bodega_central:registrar_solicitud' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-file-earmark-plus text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Registrar Solicitud
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Registrar Solicitud</div>
+      <div class="mt-2 text-slate-600">Crear pedido a bodega central.</div>
     </a>
 
     <!-- Listado de Solicitudes -->
     <a href="{% url 'solicitudes_bodega_central:listar_solicitudes' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-clipboard-data text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Listado de Solicitudes
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Listado de Solicitudes</div>
+      <div class="mt-2 text-slate-600">Ver y filtrar solicitudes creadas.</div>
     </a>
   </div>
 </section>

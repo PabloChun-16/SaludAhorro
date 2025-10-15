@@ -13,25 +13,34 @@
     <!-- Gestión de Productos -->
     <a href="{% url 'inventario:productos:lista' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-box-seam text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Gestión de Productos
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Gestión de Productos</div>
+      <div class="mt-2 text-slate-600">Catálogo y estados de productos.</div>
     </a>
 
     <!-- Stock -->
     <a href="{% url 'inventario:stock:lista' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-boxes text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Stock
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Stock</div>
+      <div class="mt-2 text-slate-600">Existencias y reportes de inventario.</div>
+    </a>
+
+    <!-- Lotes -->
+    <a href="{% url 'inventario:lotes:lista' %}"
+       class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
+              focus:text-slate-800 focus-visible:outline-none bg-white">
+      <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+        <i class="bi bi-upc-scan text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Lotes</div>
+      <div class="mt-2 text-slate-600">Administración de lotes y vencimientos.</div>
     </a>
   </div>
 </section>
@@ -45,3 +54,4 @@
 }
 </style>
 {% endblock %}
+

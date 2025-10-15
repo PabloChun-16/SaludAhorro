@@ -7,86 +7,68 @@
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <style>
-/* ====== Contenedor con scroll ====== */
+/* ====== Contenedor con scroll (igual al modelo) ====== */
 .table-container{
-  overflow-x:auto;
-  width:100%;
-  max-height:calc(100vh - 250px);
-  scroll-padding-top:90px;
+  overflow-x:auto; width:100%; scroll-padding-top:90px;
+  max-width:100%;
 }
 
-/* ====== Tabla (COLLAPSE para evitar fila fantasma) ====== */
+/* ====== Tabla (mismo esqueleto del modelo) ====== */
 #tablaStock{
-  table-layout:fixed;
-  width:100%; min-width:1200px;
-  border-collapse:collapse;            /* << cambio clave */
-  border:1px solid #e3e6ea;            /* borde exterior */
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate;           /* como el modelo */
+  border-spacing:0;                   /* como el modelo */
+  outline:1px solid #e3e6ea;          /* borde exterior */
+  outline-offset:-1px;
   border-radius:.5rem;
   margin-bottom:0;
   background:#fff;
 }
 
 /* ====== Celdas ====== */
-#tablaStock th,
-#tablaStock td{
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  vertical-align:middle;
-  padding:.5rem;
-  font-size:.875rem;
-  background-clip:padding-box;
-  border:1px solid #e3e6ea;           /* rejilla interna */
+#tablaStock th, #tablaStock td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box;
+  border:1px solid #e3e6ea; /* rejilla interna */
 }
 
-/* Mismo color en todas las filas */
+/* Mismo color en filas + hover del modelo */
 #tablaStock tbody tr{ background:#ffffff; }
+#tablaStock tbody tr:hover{ background:#fafafa; }
 
-/* ====== Encabezado sticky (2 filas) ====== */
-#tablaStock thead.sticky-top{
-  position:sticky; top:0; z-index:10;
-  box-shadow:0 2px 4px rgba(0,0,0,.06);
-}
+/* ====== Encabezado sticky (idéntico al modelo) ====== */
+#tablaStock thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
 #tablaStock thead.sticky-top tr:first-child th{
-  position:sticky; top:0; z-index:11;
-  background:#e8f5ec;
+  position:sticky; top:0; z-index:11; background:#e8f5ec;
   border-bottom:1px solid #d7dbdf;
 }
-/* El "top" de la fila de filtros se ajusta por JS */
 #tablaStock thead.sticky-top tr.filter-row th{
-  position:sticky; z-index:10;
+  position:sticky; top:42px; z-index:10;       /* << fijo como en el modelo */
   background:#f4fbf6;
-  border-top:1px solid #d9f3e0;
-  border-bottom:1px solid #d7dbdf;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf;
   box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
-  padding:.35rem .5rem;
-  overflow:visible;
-  min-width:80px;
+  padding:.35rem .5rem; overflow:visible; min-width:80px;
 }
 
 /* Controles compactos del thead */
-thead .form-control-sm, thead .form-select-sm{
-  padding-top:.25rem; padding-bottom:.25rem; height:28px;
-}
+thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
 
 /* ===== Look de filtros ===== */
 .filter-control{
-  display:block; width:100%; min-width:0; height:32px;
-  padding:.25rem .5rem; box-sizing:border-box;
+  width:100%; height:32px; padding:.25rem .5rem; box-sizing:border-box;
   border:1px solid #cfe9d7; background:#fff; border-radius:.5rem;
-  font-size:.85rem; text-align:center;
-  transition:border-color .15s, box-shadow .15s, background-color .15s;
+  transition:border-color .15s, box-shadow .15s; font-size:.85rem;
 }
 .filter-control::placeholder{ color:#94a3b8; }
-.filter-control:focus{
-  border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
-  background:#fcfffd;
-}
-select.filter-control{
-  appearance:none; -webkit-appearance:none; -moz-appearance:none;
-  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat:no-repeat; background-position:right .5rem center; background-size:16px 12px;
-  padding-right:1.75rem; -moz-text-align-last:center !important; text-align-last:center !important;
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; }
+
+/* Wrapper para selects centrados (como en el modelo) */
+#tablaStock thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+#tablaStock thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
+#tablaStock thead.sticky-top tr.filter-row th select.form-select.filter-control{
+  -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important;
 }
 
 /* Fuerza ancho de “Estado” */
@@ -95,12 +77,12 @@ select.filter-control{
 /* Paginación: ocultar filas fuera de página */
 .hidden-by-pagination{ display:none !important; }
 
-/* Anchos por colgroup */
-.col-codigo{width:90px}.col-nombre{width:140px}.col-descripcion{width:180px}
-.col-presentacion{width:120px}.col-disponible{width:100px}.col-lote{width:110px}
-.col-caducidad{width:120px}.col-estado{width:120px}.col-compra{width:100px}.col-venta{width:100px}
+/* ===== Anchos (%), igual que el modelo ===== */
+.wp-5{width:5%}.wp-6{width:6%}.wp-7{width:7%}.wp-8{width:8%}
+.wp-11{width:11%}.wp-12{width:12%}.wp-14{width:14%}.wp-16{width:16%}
+.wp-15{width:15%}.wp-22{width:22%}
 
-/* Responsivo */
+/* Responsivo (igual patrón) */
 @media (max-width:1400px){
   #tablaStock th,#tablaStock td{ padding:.4rem; font-size:.8rem; }
   .filter-control{ font-size:.8rem; padding:.2rem .4rem; }
@@ -117,32 +99,30 @@ select.filter-control{
   #tablaStock th,#tablaStock td{ padding:.3rem; }
 }
 </style>
-<!-- Overrides para evitar salto y unificar comportamiento -->
-<style>
-.table-container{ overflow-y: auto; }
-</style>
+<style>.table-container{ overflow-y:auto; }</style>
 
-<section class="p-3 p-md-4">
+<section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
 
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 px-md-4 py-2 py-md-3">
-      <h3 class="mb-0 fs-5 fs-md-4"><i class="bi bi-box-seam me-2"></i> Stock de Productos</h3>
-      <span class="badge bg-light text-success px-2 px-md-3 py-1 py-md-2 fs-6 fs-md-5">SAIF</span>
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-box-seam me-2"></i> Stock de Productos</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
     <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaStock" role="grid" aria-label="Tabla de stock">
+        <!-- ===== colgroup con los mismos % que Productos ===== -->
         <colgroup>
-          <col class="col-codigo">
-          <col class="col-nombre">
-          <col class="col-descripcion">
-          <col class="col-presentacion">
-          <col class="col-disponible">
-          <col class="col-lote">
-          <col class="col-caducidad">
-          <col class="col-estado">
-          <col class="col-compra">
-          <col class="col-venta">
+          <col class="wp-7">
+          <col class="wp-15">
+          <col class="wp-22">
+          <col class="wp-12">
+          <col class="wp-12">
+          <col class="wp-8">
+          <col class="wp-6">
+          <col class="wp-6">
+          <col class="wp-6">
+          <col class="wp-6">
         </colgroup>
 
         <thead class="table-success text-dark shadow-sm sticky-top">
@@ -159,20 +139,22 @@ select.filter-control{
             <th scope="col">P. Venta</th>
           </tr>
           <tr class="filter-row">
-            <th><input id="f-codigo" class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
-            <th><input id="f-nombre" class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
-            <th><input id="f-desc"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
-            <th><input id="f-pres"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
+            <th><input id="f-codigo" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-nombre" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-desc"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-pres"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th></th>
-            <th><input id="f-lote"   class="form-control form-control-sm filter-control" placeholder="Filtrar"></th>
+            <th><input id="f-lote"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th></th>
             <th>
-              <select id="f-estado" class="form-select form-select-sm filter-control">
-                <option value="">Todos</option>
-                <option value="vigente">Vigente</option>
-                <option value="vencido">Vencido</option>
-                <option value="otros">Otros</option>
-              </select>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="vigente">Vigente</option>
+                  <option value="vencido">Vencido</option>
+                  <option value="otros">Otros</option>
+                </select>
+              </div>
             </th>
             <th></th>
             <th></th>
@@ -265,13 +247,12 @@ select.filter-control{
     </div>
   </div>
 </div>
-
-
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script>
+/* === LÓGICA ORIGINAL (sin cambios) === */
 document.addEventListener("DOMContentLoaded", function () {
   const table        = document.getElementById("tablaStock");
   const tbody        = table.querySelector("tbody");
@@ -284,7 +265,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedId = null;
   const norm = (s)=> (s ?? "").toString().trim().toLowerCase();
 
-  /* ===== Sticky offsets dinámicos ===== */
   function fixStickyOffsets(){
     if(!thead) return;
     const headerRow = thead.rows[0];
@@ -294,7 +274,6 @@ document.addEventListener("DOMContentLoaded", function () {
     Array.from(filterRow.cells).forEach(th => th.style.top = `${h}px`);
   }
 
-  /* Titles sólo en celdas visibles */
   function refreshAutoTitles(){
     const visibles = table.querySelectorAll('thead th, tbody tr:not(.hidden-by-pagination):not([style*="display: none"]) td');
     visibles.forEach(el=>{
@@ -303,7 +282,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ===== Quitar filas totalmente vacías (definitivo) ===== */
   function isEmptyRow(tr){
     if(tr.hasAttribute('data-empty-row')) return false;
     const tds = Array.from(tr.cells);
@@ -395,7 +373,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-
 /* ====== Paginación ====== */
 let currentPage=1; let pageSize=15; const rowHeight=42;
 
@@ -419,7 +396,6 @@ function renderPager(totalPages){
   }
 
   pagerEl.style.display="flex";
-  // Estilo elegante y centrado
   pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
   pagerEl.innerHTML="";
 
@@ -535,7 +511,7 @@ function applyPagination(){
   }
 
   /* ===== Init ===== */
-  purgeEmptyRows();          // por si viniera del template
+  purgeEmptyRows();
   preprocessRows();
   fixStickyOffsets();
   recomputarPageSize();
@@ -549,11 +525,10 @@ function applyPagination(){
     applyPagination();
   });
 
-  // Si fuentes/estilos cambian alturas tras pintar
   setTimeout(()=>{ fixStickyOffsets(); recomputarPageSize(); applyPagination(); }, 0);
 });
 
-// Reporte Stock Crítico
+/* Reporte Stock Crítico (igual) */
 document.addEventListener("DOMContentLoaded", () => {
   const btnReporte = document.getElementById("btnReporteStockCritico");
   const modalEl    = document.getElementById("modalReporteStockCritico");
@@ -563,7 +538,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("{% url 'inventario:stock:reporte_stock_critico' %}")
       .then(r => r.json())
       .then(data => {
-        // llenar tabla
         const tbody = document.getElementById("tablaStockCritico");
         tbody.innerHTML = "";
         data.forEach(p => {
@@ -576,34 +550,27 @@ document.addEventListener("DOMContentLoaded", () => {
           tbody.appendChild(tr);
         });
 
-       // gráfica
-          const ctx = document.getElementById("graficaStockCritico").getContext("2d");
-
-          // destruir solo si es una instancia de Chart
-          if (window.graficaStockCritico instanceof Chart) {
-              window.graficaStockCritico.destroy();
-          }
-
-          window.graficaStockCritico = new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels: data.map(p => p.nombre),
-              datasets: [{
-                label: "Stock Disponible",
-                data: data.map(p => p.stock_total ?? 0),
-                backgroundColor: "#ffc107"
-              }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-          });
+        const ctx = document.getElementById("graficaStockCritico").getContext("2d");
+        if (window.graficaStockCritico instanceof Chart) {
+            window.graficaStockCritico.destroy();
+        }
+        window.graficaStockCritico = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: data.map(p => p.nombre),
+            datasets: [{
+              label: "Stock Disponible",
+              data: data.map(p => p.stock_total ?? 0),
+              backgroundColor: "#ffc107"
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
 
         modalInst.show();
       });
   });
 });
-
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 {% endblock %}
-

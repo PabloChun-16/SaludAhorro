@@ -6,6 +6,56 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
+<style>
+/* ====== Estilo de tabla tipo “Productos” (solo diseño) ====== */
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+#tablaAjustes{
+  table-layout:fixed; width:100%; min-width:900px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+
+#tablaAjustes th,#tablaAjustes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea; /* líneas internas */
+}
+
+#tablaAjustes tbody tr{ background:#ffffff; }
+
+#tablaAjustes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaAjustes thead.sticky-top tr:first-child th{
+  position:sticky; top:0; z-index:11; background:#e8f5ec;  /* verde suave */
+  border-bottom:1px solid #d7dbdf;                        /* división header/filtros */
+}
+#tablaAjustes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf;
+  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+/* Inputs de filtros (solo estilo) */
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{
+  width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7;
+  background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s;
+  font-size:.85rem; box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+#tablaAjustes thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+
+/* Bordes y hover */
+#tablaAjustes thead tr:first-child th{ border-top:0; }
+#tablaAjustes tbody tr:last-child td{ border-bottom:0; }
+#tablaAjustes tr>*:first-child{ border-left:0; }
+#tablaAjustes tr>*:last-child{  border-right:0; }
+#tablaAjustes tbody tr:hover{ background:#fafafa; }
+</style>
+
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
     <!-- Header -->
@@ -78,18 +128,17 @@
 
       <!-- CONSULTAR -->
       <button id="btnConsultarAjuste"
-        class="btn btn-primary rounded-pill px-3 shadow-sm"
-        disabled>
-      <i class="bi bi-search"></i> Consultar
-    </button>
+              class="btn btn-primary rounded-pill px-3 shadow-sm"
+              disabled>
+        <i class="bi bi-search"></i> Consultar
+      </button>
 
-    <!-- ANULAR -->
-    <button id="btnAnularAjuste"
-            class="btn btn-danger rounded-pill px-3 shadow-sm"
-            disabled>
-      <i class="bi bi-x-circle"></i> Anular
-    </button>
-
+      <!-- ANULAR -->
+      <button id="btnAnularAjuste"
+              class="btn btn-danger rounded-pill px-3 shadow-sm"
+              disabled>
+        <i class="bi bi-x-circle"></i> Anular
+      </button>
     </div>
   </div>
 </section>
@@ -371,32 +420,31 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* === ANULAR AJUSTE === */
-const btnAnular = document.getElementById("btnAnularAjuste");
+  const btnAnular = document.getElementById("btnAnularAjuste");
+  btnAnular?.addEventListener("click", () => {
+    const id = btnConsultar?.dataset.id; // usamos el mismo id seleccionado
+    if (!id) return alert("Seleccione un ajuste para anular.");
 
-btnAnular?.addEventListener("click", () => {
-  const id = btnConsultar?.dataset.id; // usamos el mismo id seleccionado
-  if (!id) return alert("Seleccione un ajuste para anular.");
+    if (!confirm("¿Seguro que desea anular este ajuste? Esta acción revertirá el stock.")) return;
 
-  if (!confirm("¿Seguro que desea anular este ajuste? Esta acción revertirá el stock.")) return;
-
-  fetch(`/ajustes_inventario/ingresos/anular/${id}/`, {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-      "X-Requested-With": "XMLHttpRequest",
-    },
-  })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        alert("Ajuste anulado correctamente. El stock ha sido revertido.");
-        window.location.reload();
-      } else {
-        alert("Error: " + (data.error || "No se pudo anular el ajuste."));
-      }
+    fetch(`/ajustes_inventario/ingresos/anular/${id}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "X-Requested-With": "XMLHttpRequest",
+      },
     })
-    .catch(() => alert("Error de red o servidor."));
-});
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("Ajuste anulado correctamente. El stock ha sido revertido.");
+          window.location.reload();
+        } else {
+          alert("Error: " + (data.error || "No se pudo anular el ajuste."));
+        }
+      })
+      .catch(() => alert("Error de red o servidor."));
+  });
 
   // activar selección de filas desde el inicio
   activarSeleccionFilas();
@@ -418,9 +466,27 @@ btnAnular?.addEventListener("click", () => {
       });
   });
 
+  /* === EXTRA NO INVASIVO: doble clic y Enter para consultar (reutiliza tu botón) === */
+  (function addDblClickAndEnter(){
+    const tbody = document.querySelector("#tablaAjustes tbody");
+    const btn = btnConsultar;
+    if(tbody && btn){
+      tbody.addEventListener("dblclick",(ev)=>{
+        const row = ev.target.closest("tr[data-id]");
+        if(!row) return;
+        row.click();                           // usa tu misma lógica de selección
+        if(!btn.disabled) btn.click();         // abre consulta con tu propio botón
+      });
+    }
+    document.addEventListener("keydown",(ev)=>{
+      if(ev.key==="Enter" && btn && !btn.disabled){
+        btn.click();
+        ev.preventDefault();
+      }
+    });
+  })();
+
 });
 </script>
 
-
 {% endblock %}
-

@@ -5,189 +5,120 @@
 {% block title %}Registro de Recetas · SAIF{% endblock %}
 
 {% block content %}
-<section class="p-6 md:p-8">
-
-  <!-- ============================= ESTILOS ============================= -->
-  <style>
-    .saif-modal .modal-content {
-      border: 0;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 18px 45px rgba(14, 122, 58, .25);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    .saif-modal .modal-header {
-      background: #0E7A3A;
-      color: #fff;
-      border-bottom: 0;
-      padding: .6rem .9rem;
-    }
-    .saif-modal .modal-header .saif-badge {
-      background: rgba(255, 255, 255, .15);
-      backdrop-filter: blur(4px);
-      border-radius: 999px;
-      padding: .12rem .5rem;
-      font-weight: 600;
-      font-size: .8rem;
-    }
-    .saif-modal .modal-body {
-      background: #f7fbf9;
-      padding: 1rem 1.1rem;
-    }
-    .saif-modal .modal-footer {
-      border-top: 0;
-      background: #fff;
-    }
-    .kv-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .85rem 1rem;
-    }
-    .kv {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      align-items: start;
-      gap: .35rem .5rem;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: .65rem .75rem;
-      box-shadow: 0 4px 12px rgba(15,23,42,.04);
-    }
-    .kv--block {
-      grid-column: 1 / -1;
-      grid-template-columns: 230px 1fr;
-    }
-    .kv__key {
-      font-weight: 700;
-      color: #0b1220;
-      display: flex;
-      align-items: center;
-      gap: .45rem;
-      white-space: nowrap;
-    }
-    .kv__val { color: #0f172a; word-break: break-word; }
-    .kv__val.text-muted { color: #64748b; }
-    @media (max-width:768px) {
-      .kv-grid{grid-template-columns:1fr}
-      .kv,.kv--block{grid-template-columns:160px 1fr}
-    }
-  </style>
-
-  <!-- ============================= TABLA ============================= -->
-  <div class="border rounded-xl shadow-sm overflow-hidden">
-    <div class="bg-emerald-700 text-white px-4 py-2 font-semibold flex items-center gap-2">
-      <i class="bi bi-journal-medical"></i> Registro de Recetas
+<section class="p-3">
+  <!-- ================== CARD ================== -->
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6"><i class="bi bi-journal-medical me-2"></i> Registro de Recetas</h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <table class="w-full text-sm text-left text-slate-700" id="tablaRecetas">
-      <thead class="bg-emerald-50 text-emerald-900">
-        <tr>
-          <th class="px-4 py-2">Factura</th>
-          <th class="px-4 py-2">Referente</th>
-          <th class="px-4 py-2">Producto</th>
-          <th class="px-4 py-2">Usuario Venta</th>
-          <th class="px-4 py-2">Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for receta in recetas %}
-        <tr data-id="{{ receta.id }}"
-            data-factura="{{ receta.referencia_factura }}"
-            data-referente="{{ receta.referente_receta }}"
-            data-producto-id="{{ receta.id_producto.id }}"
-            data-producto-nombre="{{ receta.id_producto.nombre }}"
-            data-usuario-id="{{ receta.id_usuario_venta.id }}"
-            data-usuario-nombre="{{ receta.id_usuario_venta.nombre }}"
-            data-fecha="{{ receta.fecha_venta|date:'Y-m-d' }}"
-            class="cursor-pointer hover:bg-emerald-50">
+    <!-- ================== TABLA ================== -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaRecetas">
+        <colgroup>
+          <col style="width:18%"><col style="width:20%"><col style="width:22%"><col style="width:20%"><col style="width:20%">
+        </colgroup>
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th scope="col">Factura</th>
+            <th scope="col">Referente</th>
+            <th scope="col">Producto</th>
+            <th scope="col">Usuario Venta</th>
+            <th scope="col">Fecha</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="f-factura"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-referente" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-producto"  class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-usuario"   class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha"     class="form-control form-control-sm filter-control text-center" placeholder="YYYY-MM-DD"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for receta in recetas %}
+          <tr class="fila-receta"
+              data-id="{{ receta.id }}"
+              data-factura="{{ receta.referencia_factura }}"
+              data-referente="{{ receta.referente_receta }}"
+              data-producto-id="{{ receta.id_producto.id }}"
+              data-producto-nombre="{{ receta.id_producto.nombre }}"
+              data-usuario-id="{{ receta.id_usuario_venta.id }}"
+              data-usuario-nombre="{{ receta.id_usuario_venta.nombre }}"
+              data-fecha="{{ receta.fecha_venta|date:'Y-m-d' }}">
+            <td class="text-truncate">{{ receta.referencia_factura }}</td>
+            <td class="text-truncate">{{ receta.referente_receta }}</td>
+            <td class="text-truncate">{{ receta.id_producto.nombre }}</td>
+            <td class="text-truncate">{{ receta.id_usuario_venta.nombre }}</td>
+            <td class="text-truncate">{{ receta.fecha_venta|localtime|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="py-5 text-muted" data-empty-row>
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i> No hay recetas registradas
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-          <td class="px-4 py-2">{{ receta.referencia_factura }}</td>
-          <td class="px-4 py-2">{{ receta.referente_receta }}</td>
-          <td class="px-4 py-2">{{ receta.id_producto.nombre }}</td>
-          <td class="px-4 py-2">{{ receta.id_usuario_venta.nombre }}</td>
-          <td class="px-4 py-2">{{ receta.fecha_venta|localtime|date:"d/m/Y H:i" }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="text-center py-4 text-slate-500">No hay recetas registradas</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    <div id="pagerRecetas" class="saif-pager"></div>
 
-  <!-- ============================= BOTONES ============================= -->
-  <div class="flex justify-center gap-3 mt-4">
-    <button class="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-2 rounded-full"
-            data-bs-toggle="modal" data-bs-target="#crearRecetaModal">
-      <i class="bi bi-plus-circle"></i> Crear
-    </button>
-    <button id="btnConsultar" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-eye"></i> Consultar
-    </button>
-    <button id="btnEditar" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-pencil"></i> Editar
-    </button>
-    <button id="btnEliminar" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-full">
-      <i class="bi bi-trash"></i> Eliminar
-    </button>
+    <!-- ================== BOTONES ================== -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#crearRecetaModal">
+        <i class="bi bi-plus-circle"></i> Crear
+      </button>
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-eye"></i> Consultar
+      </button>
+      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
+        <i class="bi bi-pencil"></i> Editar
+      </button>
+      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-trash"></i> Eliminar
+      </button>
+    </div>
   </div>
 </section>
 
-<!-- ============================= MODAL CREAR ============================= -->
+<!-- ================== MODAL CREAR ================== -->
 <div class="modal fade saif-modal" id="crearRecetaModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_receta' %}">
         {% csrf_token %}
-
-        <!-- Header -->
-        <div class="modal-header bg-emerald-700 text-white py-3">
+        <div class="modal-header bg-emerald-700 text-white">
           <div class="d-flex align-items-center gap-3">
-            <!-- Logo -->
-            <img src="{% static 'home/img/logo_empresa.png' %}" 
-                 alt="Logo" 
-                 class="rounded-circle bg-white p-2 shadow-sm" 
-                 style="width: 38px; height: 38px;">
-
-            <!-- Título -->
-            <h5 class="modal-title mb-0 fw-bold">
-              Nueva Receta
-            </h5>
-
-            <!-- Badge -->
-            <span class="saif-badge ms-2">
-              <i class="bi bi-shield-check"></i> SAIF
-            </span>
+            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
+            <h5 class="modal-title fw-bold mb-0">Nueva Receta</h5>
+            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
           </div>
-          <!-- Botón cerrar -->
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <!-- Body -->
         <div class="modal-body bg-slate-50 py-4">
           <div class="grid md:grid-cols-2 gap-4">
             <input type="text" name="referencia_factura" class="form-control rounded-lg" placeholder="Referencia Factura" required>
-            <input type="text" name="referente_receta" class="form-control rounded-lg" placeholder="Referente Receta" required>
+            <input type="text" name="referente_receta"   class="form-control rounded-lg" placeholder="Referente Receta" required>
 
             <select name="id_producto" class="form-control rounded-lg" required>
               <option value="">Seleccione un producto</option>
               {% for producto in productos %}
-              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
               {% endfor %}
             </select>
 
             <select name="id_usuario_venta" class="form-control rounded-lg" required>
               <option value="">Seleccione un usuario</option>
               {% for usuario in usuarios %}
-              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+                <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
               {% endfor %}
             </select>
           </div>
         </div>
 
-        <!-- Footer -->
         <div class="modal-footer bg-white">
           <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
@@ -201,37 +132,30 @@
   </div>
 </div>
 
-<!-- ============================= MODAL CONSULTAR ============================= -->
+<!-- ================== MODAL CONSULTAR ================== -->
 <div class="modal fade saif-modal" id="consultarRecetaModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <!-- Header -->
-      <div class="modal-header bg-emerald-700 text-white py-3">
+      <div class="modal-header bg-emerald-700 text-white">
         <div class="d-flex align-items-center gap-3">
-          <img src="{% static 'home/img/logo_empresa.png' %}" 
-               alt="Logo" 
-               class="rounded-circle bg-white p-2 shadow-sm" 
-               style="width: 38px; height: 38px;">
-          <h5 class="modal-title mb-0 fw-bold">
-           Detalle de Receta
-          </h5>
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+               class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
+          <h5 class="modal-title fw-bold mb-0">Detalle de Receta</h5>
           <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <!-- Body -->
       <div class="modal-body py-3 bg-slate-50">
         <div class="kv-grid">
-          <div class="kv"><div class="kv__key">Factura</div><div class="kv__val" id="detalleFactura"></div></div>
-          <div class="kv"><div class="kv__key">Referente</div><div class="kv__val" id="detalleReferente"></div></div>
-          <div class="kv"><div class="kv__key">Producto</div><div class="kv__val" id="detalleProducto"></div></div>
-          <div class="kv"><div class="kv__key">Usuario Venta</div><div class="kv__val" id="detalleUsuario"></div></div>
-          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha"></div></div>
+          <div class="kv"><div class="kv__key">Factura</div><div class="kv__val" id="detalleFactura">—</div></div>
+          <div class="kv"><div class="kv__key">Referente</div><div class="kv__val" id="detalleReferente">—</div></div>
+          <div class="kv"><div class="kv__key">Producto</div><div class="kv__val" id="detalleProducto">—</div></div>
+          <div class="kv"><div class="kv__key">Usuario Venta</div><div class="kv__val" id="detalleUsuario">—</div></div>
+          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="modal-footer bg-white">
         <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
@@ -241,74 +165,68 @@
   </div>
 </div>
 
-<!-- ============================= MODAL EDITAR ============================= -->
+<!-- ================== MODAL EDITAR ================== -->
 <div class="modal fade saif-modal" id="editarRecetaModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="editarRecetaForm">
         {% csrf_token %}
         <div class="modal-header bg-green-600 text-white">
-          <h5 class="modal-title fw-bold">Editar Receta</h5>
+          <h5 class="modal-title fw-bold mb-0">Editar Receta</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
-          <input type="text" name="referencia_factura" id="editFactura" class="form-control rounded-lg">
-          <input type="text" name="referente_receta" id="editReferente" class="form-control rounded-lg">
+          <input type="text" name="referencia_factura" id="editFactura"   class="form-control rounded-lg" placeholder="Referencia Factura">
+          <input type="text" name="referente_receta"   id="editReferente" class="form-control rounded-lg" placeholder="Referente Receta">
 
           <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
             <option value="">Seleccione un producto</option>
             {% for producto in productos %}
-            <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
             {% endfor %}
           </select>
 
           <select name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg" required>
             <option value="">Seleccione un usuario</option>
             {% for usuario in usuarios %}
-            <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
+              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
             {% endfor %}
           </select>
         </div>
 
         <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Guardar</button>
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success rounded-pill px-4">Guardar</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- ============================= MODAL ELIMINAR ============================= -->
+<!-- ================== MODAL ELIMINAR ================== -->
 <div class="modal fade saif-modal" id="eliminarRecetaModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="eliminarRecetaForm">
         {% csrf_token %}
-        <!-- Header -->
-        <div class="modal-header bg-red-700 text-white py-3">
+        <div class="modal-header bg-red-700 text-white">
           <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" 
-                 alt="Logo" 
-                 class="rounded-circle bg-white p-2 shadow-sm" 
-                 style="width: 38px; height: 38px;">
-            <h5 class="modal-title mb-0 fw-bold">
-              Eliminar Receta
-            </h5>
+            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
+                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
+            <h5 class="modal-title fw-bold mb-0">Eliminar Receta</h5>
             <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <!-- Body -->
         <div class="modal-body text-center py-4 bg-slate-50">
           <p class="fw-semibold text-slate-700">
-            ¿Seguro que deseas eliminar la receta <strong id="eliminarFactura" class="text-red-600"></strong>?
+            ¿Seguro que deseas eliminar la receta
+            <strong id="eliminarFactura" class="text-red-600"></strong>?
           </p>
         </div>
 
-        <!-- Footer -->
         <div class="modal-footer justify-center bg-white">
           <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
@@ -322,93 +240,264 @@
   </div>
 </div>
 
-<!-- ============================= ESTILOS ============================= -->
+<!-- ================== ESTILOS (tabla + modal) ================== -->
 <style>
-  .saif-badge {
-    background: rgba(255, 255, 255, .2);
-    border-radius: 999px;
-    padding: .25rem .7rem;
-    font-weight: 600;
-    font-size: .85rem;
-    backdrop-filter: blur(4px);
-  }
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
 
-  .kv-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .85rem 1rem;
-  }
-  .kv {
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    align-items: start;
-    gap: .35rem .5rem;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: .65rem .75rem;
-    box-shadow: 0 4px 12px rgba(15,23,42,.04);
-  }
-  .kv__key {
-    font-weight: 700;
-    color: #0b1220;
-  }
-  .kv__val {
-    color: #0f172a;
-  }
+#tablaRecetas{
+  table-layout:fixed; width:100%; min-width:1100px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaRecetas th,#tablaRecetas td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+#tablaRecetas tbody tr{ background:#ffffff; }
+#tablaRecetas tbody tr:hover{ background:#fafafa; }
+
+#tablaRecetas thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaRecetas thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaRecetas thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+#tablaRecetas thead tr:first-child th{ border-top:0; }
+#tablaRecetas tbody tr:last-child td{ border-bottom:0; }
+#tablaRecetas tr>*:first-child{ border-left:0; }
+#tablaRecetas tr>*:last-child{  border-right:0; }
+#tablaRecetas tbody tr.last-visible td{ border-bottom:0 !important; }
+
+.hidden-by-pagination{ display:none !important; }
+
+/* Modal detalle */
+.saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+.saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
+.saif-modal .saif-badge { background:rgba(255,255,255,.15); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
+.kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
+.kv__key { font-weight:700; color:#0b1220 }
+.kv__val { color:#0f172a }
+@media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
 </style>
 
-<!-- ============================= SCRIPT ============================= -->
+<!-- ================== LÓGICA ================== -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  let selectedRow = null;
+document.addEventListener("DOMContentLoaded", function(){
+  const table   = document.getElementById("tablaRecetas");
+  const tbody   = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerRecetas");
 
-  document.querySelectorAll("#tablaRecetas tbody tr").forEach(row => {
-    row.addEventListener("click", function () {
-      if (selectedRow) selectedRow.classList.remove("bg-emerald-100");
-      selectedRow = this;
-      this.classList.add("bg-emerald-100");
-    });
+  let selectedRow = null, selectedId = null;
+
+  function setButtonsState(enabled){
+    document.getElementById("btnConsultar").disabled = !enabled;
+    document.getElementById("btnEditar").disabled    = !enabled;
+    document.getElementById("btnEliminar").disabled  = !enabled;
+  }
+  setButtonsState(false);
+
+  function selectRow(row){
+    if(!row) return;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
+    row.classList.add("table-active");
+    selectedRow = row;
+    selectedId  = row.getAttribute("data-id");
+    setButtonsState(true);
+  }
+
+  tbody.addEventListener("click",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
   });
 
-  // CONSULTAR
-  document.getElementById("btnConsultar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona una receta primero."); return; }
-    document.getElementById("detalleFactura").textContent = selectedRow.dataset.factura;
-    document.getElementById("detalleReferente").textContent = selectedRow.dataset.referente;
-    document.getElementById("detalleProducto").textContent = selectedRow.dataset.producto;
-    document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario;
-    document.getElementById("detalleFecha").textContent = selectedRow.dataset.fecha;
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    document.getElementById("btnConsultar").click();
+  });
+
+  document.addEventListener("keydown",(ev)=>{
+    if(ev.key==='Enter' && selectedId){
+      document.getElementById("btnConsultar").click();
+      ev.preventDefault();
+    }
+  });
+
+  /* ====== Consultar ====== */
+  document.getElementById("btnConsultar").addEventListener("click",()=>{
+    if(!selectedRow){ alert("Selecciona una receta primero."); return; }
+    document.getElementById("detalleFactura").textContent   = selectedRow.dataset.factura || "—";
+    document.getElementById("detalleReferente").textContent = selectedRow.dataset.referente || "—";
+    document.getElementById("detalleProducto").textContent  = selectedRow.dataset.productoNombre || "—";
+    document.getElementById("detalleUsuario").textContent   = selectedRow.dataset.usuarioNombre || "—";
+    document.getElementById("detalleFecha").textContent     = selectedRow.dataset.fecha || "—";
     new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
   });
 
-  // EDITAR
-document.getElementById("btnEditar").addEventListener("click", function () {
-  if (!selectedRow) { alert("Selecciona una receta primero."); return; }
-  const id = selectedRow.dataset.id;
-
-  document.getElementById("editFactura").value = selectedRow.dataset.factura;
-  document.getElementById("editReferente").value = selectedRow.dataset.referente;
-
-  // Seleccionar opción correcta en producto
-  document.getElementById("editProducto").value = selectedRow.dataset.productoId;
-  // Seleccionar opción correcta en usuario
-  document.getElementById("editUsuario").value = selectedRow.dataset.usuarioId;
-
-  // Action dinámico
-  document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
-
-  new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
-});
-
-  // ELIMINAR
-  document.getElementById("btnEliminar").addEventListener("click", function () {
-    if (!selectedRow) { alert("Selecciona una receta primero."); return; }
+  /* ====== Editar ====== */
+  document.getElementById("btnEditar").addEventListener("click",()=>{
+    if(!selectedRow){ alert("Selecciona una receta primero."); return; }
     const id = selectedRow.dataset.id;
-    document.getElementById("eliminarFactura").textContent = selectedRow.dataset.factura;
-    document.getElementById("eliminarRecetaForm").action = `/recetas/${id}/eliminar/`;
+    document.getElementById("editFactura").value   = selectedRow.dataset.factura || "";
+    document.getElementById("editReferente").value = selectedRow.dataset.referente || "";
+    document.getElementById("editProducto").value  = selectedRow.dataset.productoId || "";
+    document.getElementById("editUsuario").value   = selectedRow.dataset.usuarioId  || "";
+    document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
+    new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
+  });
+
+  /* ====== Eliminar ====== */
+  document.getElementById("btnEliminar").addEventListener("click",()=>{
+    if(!selectedRow){ alert("Selecciona una receta primero."); return; }
+    const id = selectedRow.dataset.id;
+    document.getElementById("eliminarFactura").textContent = selectedRow.dataset.factura || "";
+    document.getElementById("eliminarRecetaForm").action  = `/recetas/${id}/eliminar/`;
     new bootstrap.Modal(document.getElementById("eliminarRecetaModal")).show();
   });
+
+  /* ====== Utilidades ====== */
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){ el.setAttribute("title", el.textContent.trim()); }
+      else{ el.removeAttribute("title"); }
+    });
+  }
+
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  /* ====== Paginación ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+
+  function renderPager(totalPages){
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  /* ====== Filtros ====== */
+  function installFilters(){
+    const fFactura  = document.getElementById("f-factura");
+    const fReferente= document.getElementById("f-referente");
+    const fProducto = document.getElementById("f-producto");
+    const fUsuario  = document.getElementById("f-usuario");
+    const fFecha    = document.getElementById("f-fecha");
+
+    const inputs=[fFactura,fReferente,fProducto,fUsuario,fFecha].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+
+    function applyFilters(){
+      const vFac=norm(fFactura?.value), vRef=norm(fReferente?.value),
+            vProd=norm(fProducto?.value), vUser=norm(fUsuario?.value),
+            vFecha=norm(fFecha?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
+        const ok =
+          (!vFac   || txt(0).includes(vFac)) &&
+          (!vRef   || txt(1).includes(vRef)) &&
+          (!vProd  || txt(2).includes(vProd)) &&
+          (!vUser  || txt(3).includes(vUser)) &&
+          (!vFecha || (tr.getAttribute("data-fecha")||"").includes(vFecha));
+        tr.style.display = ok ? "" : "none";
+      });
+      currentPage=1;
+      applyPagination();
+    }
+
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+  }
+
+  /* ====== Init ====== */
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 {% endblock %}

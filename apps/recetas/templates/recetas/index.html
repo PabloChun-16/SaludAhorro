@@ -13,49 +13,45 @@
     <!-- Registrar Receta -->
     <a href="{% url 'recetas:registrar_receta' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-journal-plus text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Registrar Receta
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Registrar Receta</div>
+      <div class="mt-2 text-slate-600">Registro de medicamentos prescritos.</div>
     </a>
 
     <!-- Listado Recetas -->
     <a href="{% url 'recetas:lista_recetas' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-list-ul text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Listado de Recetas
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Listado de Recetas</div>
+      <div class="mt-2 text-slate-600">Consulta y seguimiento de recetas.</div>
     </a>
 
     <!-- Registrar Envío -->
     <a href="{% url 'recetas:registrar_envio' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-send-plus text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Registrar Envío
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Registrar Envío</div>
+      <div class="mt-2 text-slate-600">Despacho de recetas a destino.</div>
     </a>
 
     <!-- Listado Envíos -->
     <a href="{% url 'recetas:lista_envios' %}"
        class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
-              focus:text-slate-800 focus-visible:outline-none">
+              focus:text-slate-800 focus-visible:outline-none bg-white">
       <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
         <i class="bi bi-archive text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       </div>
-      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
-        Listado de Envíos
-      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">Listado de Envíos</div>
+      <div class="mt-2 text-slate-600">Historial de envíos realizados.</div>
     </a>
   </div>
 </section>
@@ -69,3 +65,4 @@
 }
 </style>
 {% endblock %}
+

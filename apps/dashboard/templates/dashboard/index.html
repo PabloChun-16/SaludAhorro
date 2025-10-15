@@ -6,11 +6,11 @@
 {% block content %}
 <section class="p-6 md:p-8">
 
-  <!-- Encabezado cheto -->
+  <!-- Encabezado -->
   <div class="mb-8 flex items-start justify-between gap-4">
     <div>
       <div class="text-sm text-slate-500">
-        Hola, {% firstof request.user.first_name request.user.get_full_name request.user.get_username request.user %} 👋
+        Hola, {% firstof request.user.first_name request.user.get_full_name request.user.get_username request.user %}
       </div>
 
       <h1 class="cheto-title text-4xl md:text-5xl">Panel De Control</h1>
@@ -34,48 +34,56 @@
     <a href="/inventario/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-clipboard2 text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Gestión de Inventario</div>
+      <div class="mt-2 text-slate-600">Productos, stock y lotes.</div>
     </a>
 
     <!-- Recepción y Almacenamiento -->
     <a href="/recepcion_almacenamiento/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-box-seam text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Recepción y Almacenamiento</div>
+      <div class="mt-2 text-slate-600">Registro y control de recepciones.</div>
     </a>
 
     <!-- Salidas y Devoluciones -->
     <a href="/salidas_devoluciones/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-box-arrow-right text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Salidas y Devoluciones</div>
+      <div class="mt-2 text-slate-600">Ventas y devoluciones al inventario.</div>
     </a>
 
     <!-- Alertas y Vencimientos -->
     <a href="/alertas_vencimientos/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-exclamation-triangle text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Alertas y Vencimientos</div>
+      <div class="mt-2 text-slate-600">Notificaciones por stock crítico y fechas.</div>
     </a>
 
     <!-- Solicitudes a Bodega Central -->
     <a href="/solicitudes_bodega_central/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-inboxes text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Solicitudes a Bodega Central</div>
+      <div class="mt-2 text-slate-600">Crear y revisar solicitudes.</div>
     </a>
 
     <!-- Conteo Físico y Ajuste -->
     <a href="/ajustes_inventario/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-sliders2-vertical text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Conteo Físico y Ajuste</div>
+      <div class="mt-2 text-slate-600">Conteos cíclicos y ajustes de stock.</div>
     </a>
 
     <!-- Gestión de Recetas -->
     <a href="/recetas/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-bookmark text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Gestión de Recetas</div>
+      <div class="mt-2 text-slate-600">Registro, envíos y listados.</div>
     </a>
 
     <!-- Mantenimiento -->
     <a href="/mantenimiento/" class="group border rounded-xl p-8 text-center hover:shadow-lg transition bg-white">
       <i class="bi bi-gear-wide-connected text-7xl text-slate-800 group-hover:text-emerald-700 transition"></i>
       <div class="mt-4 font-semibold text-slate-800">Mantenimiento</div>
+      <div class="mt-2 text-slate-600">Catálogos maestros y usuarios.</div>
     </a>
   </div>
 
@@ -114,3 +122,4 @@
 
 </section>
 {% endblock %}
+

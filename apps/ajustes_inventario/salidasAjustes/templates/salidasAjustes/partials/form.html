@@ -2,12 +2,12 @@
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <!-- ENCABEZADO -->
-<div class="modal-header py-3 bg-danger text-white">
+<div class="modal-header py-3 bg-success text-white">
   <h5 class="modal-title fw-bold">
     <i class="bi bi-box-arrow-up me-2"></i> Salida por Ajuste
   </h5>
-  <span class="badge bg-light text-danger px-2 py-1 ms-2">SAIF</span>
-  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <span class="badge bg-light text-success px-2 py-1 ms-2">SAIF</span>
+  <button type="button" class="btn-close btn-close-white d-none" tabindex="-1" aria-hidden="true"></button>
 </div>
 
 <!-- CUERPO -->
@@ -35,7 +35,7 @@
 
     <!-- DETALLE DE PRODUCTOS -->
     <div class="border rounded p-3">
-      <h6 class="text-danger fw-semibold mb-3">Detalle de Productos</h6>
+      <h6 class="text-success fw-semibold mb-3">Detalle de Productos</h6>
 
       <div class="row g-2 align-items-center mb-3">
         <div class="col-md-5">
@@ -43,7 +43,7 @@
           <div class="input-group">
             <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre..." readonly>
             <input type="hidden" id="productoIdInput">
-            <button type="button" id="btnBuscarProducto" class="btn btn-outline-danger">
+            <button type="button" id="btnBuscarProducto" class="btn btn-outline-success">
               <i class="bi bi-search"></i>
             </button>
           </div>
@@ -54,7 +54,7 @@
           <div class="input-group">
             <input type="text" id="loteInput" class="form-control" placeholder="N.º de lote..." readonly>
             <input type="hidden" id="loteIdInput">
-            <button type="button" id="btnBuscarLote" class="btn btn-outline-danger">
+            <button type="button" id="btnBuscarLote" class="btn btn-outline-success">
               <i class="bi bi-search"></i>
             </button>
           </div>
@@ -66,7 +66,7 @@
         </div>
 
         <div class="col-md-1 d-flex align-items-end">
-          <button type="button" id="btnAddDetalle" class="btn btn-danger w-100">
+          <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
             <i class="bi bi-dash-circle"></i>
           </button>
         </div>
@@ -75,7 +75,7 @@
       <!-- TABLA DE DETALLES -->
       <div class="table-responsive">
         <table class="table table-sm table-bordered align-middle text-center">
-          <thead class="table-danger">
+          <thead class="table-success">
             <tr>
               <th>Producto</th>
               <th>Lote</th>
@@ -95,7 +95,7 @@
       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
-      <button type="submit" class="btn btn-danger">
+      <button type="submit" class="btn btn-success">
         <i class="bi bi-check-circle"></i> Guardar Salida
       </button>
     </div>
