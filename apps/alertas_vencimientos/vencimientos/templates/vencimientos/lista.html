@@ -1,0 +1,329 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Reportes de Vencimiento · SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <!-- HEADER -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6">
+        <i class="bi bi-calendar-x me-2"></i> Reportes de Vencimiento
+      </h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaReportes">
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            
+            <th>Documento</th>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+          </tr>
+          <tr class="filter-row">
+            
+            <th><input id="f-doc" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-user" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-est" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in reportes %}
+          <tr data-id="{{ r.id }}">
+            
+            <td>{{ r.documento }}</td>
+            <td>{{ r.fecha_reporte|date:"d/m/Y" }}</td>
+            <td>{{ r.id_usuario }}</td>
+            <td>
+              {% if r.id_estado.nombre_estado == "Completado" %}
+                <span class="badge bg-success">Completado</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ r.id_estado.nombre_estado }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-5 text-muted">
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay reportes de vencimiento registrados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINADOR -->
+    <div id="pagerReportes" class="saif-pager"></div>
+
+    <!-- BOTONES -->
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnCrearReporte"
+              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#modalCrearReporte"
+              data-url="{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_create' %}">
+        <i class="bi bi-plus-circle"></i> Crear
+      </button>
+
+      <button id="btnConsultarReporte"
+              class="btn btn-primary rounded-pill px-3 shadow-sm"
+              disabled>
+        <i class="bi bi-search"></i> Consultar
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL CREAR -->
+<div class="modal fade" id="modalCrearReporte" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-reporte-content"></div>
+  </div>
+</div>
+
+<!-- MODAL CONSULTAR -->
+<div class="modal fade" id="modalConsultarReporte" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" id="modal-consultar-content"></div>
+  </div>
+</div>
+
+<!-- MODALES AUXILIARES -->
+{% include "ingresos/partials/producto_modal_ingresos.html" %}
+{% include "ingresos/partials/lote_modal_ingresos.html" %}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modalEl = document.getElementById("modalCrearReporte");
+  const modalContent = document.getElementById("modal-reporte-content");
+  const btnCrear = document.getElementById("btnCrearReporte");
+  const modalInstance = new bootstrap.Modal(modalEl);
+  let detalles = [];
+
+  // === ABRIR FORMULARIO ===
+  btnCrear?.addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
+    modalContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalInstance.show();
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        inicializarFormulario();
+      })
+      .catch(() => {
+        modalContent.innerHTML = '<div class="p-4 text-danger text-center">Error cargando el formulario.</div>';
+      });
+  });
+
+
+
+
+
+
+  // === INICIALIZAR FORMULARIO ===
+function inicializarFormulario() {
+  const btnAdd = document.getElementById("btnAddDetalle");
+  const tableBody = document.getElementById("detalleTable").querySelector("tbody");
+  const productoInput = document.getElementById("productoInput");
+  const productoIdInput = document.getElementById("productoIdInput");
+  const loteInput = document.getElementById("loteInput");
+  const loteIdInput = document.getElementById("loteIdInput");
+  let detalles = [];
+
+  // === MODALES ===
+  document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+    const modalProducto = document.getElementById("modalBuscarProducto");
+    bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+  });
+
+  document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
+    if (!productoIdInput.value) {
+      alert("Seleccione primero un producto con lotes vencidos.");
+      return;
+    }
+    const modalLote = document.getElementById("modalBuscarLote");
+    bootstrap.Modal.getOrCreateInstance(modalLote).show();
+    cargarLotes();
+  });
+
+  // === BUSCAR PRODUCTOS (solo con lotes vencidos) ===
+  const modalProducto = document.getElementById("modalBuscarProducto");
+  modalProducto?.addEventListener("shown.bs.modal", () => {
+    const searchInput = document.getElementById("searchProducto");
+    const tbodyResultados = document.getElementById("tablaBuscarProductos");
+    tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
+
+    searchInput.oninput = function () {
+      const term = this.value.trim();
+      fetch("{% url 'alertas_vencimientos:vencimientos:search_productos' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyResultados.innerHTML = "";
+          if (!data.length) {
+            tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
+            return;
+          }
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo}</td>
+                <td>${p.nombre}</td>
+                <td>${p.descripcion || "-"}</td>
+                <td>${p.presentacion || "-"}</td>
+                <td>${p.unidad || "-"}</td>
+                <td>${p.condicion || "-"}</td>
+                <td>${p.receta ? "Sí" : "No"}</td>
+                <td>${p.controlado ? "Sí" : "No"}</td>
+                <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+              `;
+            tr.querySelector("button").addEventListener("click", () => {
+              productoInput.value = `${p.codigo} - ${p.nombre}`;
+              productoIdInput.value = p.id;
+              bootstrap.Modal.getInstance(modalProducto).hide();
+            });
+            tbodyResultados.appendChild(tr);
+          });
+        });
+    };
+  });
+
+  // === BUSCAR LOTES VENCIDOS ===
+  function cargarLotes() {
+    const productoId = productoIdInput.value;
+    const searchLoteInput = document.getElementById("searchLote");
+    const tablaLotes = document.getElementById("tablaBuscarLotes");
+    const urlBase = "{% url 'alertas_vencimientos:vencimientos:search_lotes' 0 %}".replace("0/", productoId + "/");
+    const term = searchLoteInput?.value || "";
+
+    fetch(urlBase + (term ? "?term=" + encodeURIComponent(term) : ""))
+      .then(r => r.json())
+      .then(data => {
+        tablaLotes.innerHTML = "";
+        if (!data.length) {
+          tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Sin lotes vencidos.</td></tr>';
+          return;
+        }
+        data.forEach(l => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${l.numero_lote}</td>
+            <td>${l.fecha_caducidad}</td>
+            <td>${l.cantidad}</td>
+            <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+          `;
+          tr.querySelector("button").addEventListener("click", () => {
+            loteInput.value = l.numero_lote;
+            loteIdInput.value = l.id;
+            // Agregar directamente a la tabla
+            agregarDetalle(productoInput.value, productoIdInput.value, l.numero_lote, l.id, l.cantidad);
+            bootstrap.Modal.getInstance(document.getElementById("modalBuscarLote")).hide();
+          });
+          tablaLotes.appendChild(tr);
+        });
+      });
+  }
+
+  function agregarDetalle(prodNombre, prodId, loteNombre, loteId, cantidad) {
+    const item = { producto: prodNombre, producto_id: prodId, lote: loteNombre, lote_id: loteId, cantidad_reportada: cantidad };
+    detalles.push(item);
+
+    if (detalles.length === 1) tableBody.innerHTML = "";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${prodNombre}</td>
+      <td>${loteNombre}</td>
+      <td>${cantidad}</td>
+      <td><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
+    `;
+    tr.querySelector(".btnRemove").addEventListener("click", () => {
+      detalles = detalles.filter(d => d !== item);
+      tr.remove();
+      if (!detalles.length)
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+    });
+    tableBody.appendChild(tr);
+  }
+
+  // === GUARDAR REPORTE ===
+  const form = document.getElementById("formReporteVencimiento");
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    if (!detalles.length) return alert("Debe agregar al menos un producto con lote vencido.");
+
+    const formData = {
+      documento: document.querySelector("#id_documento").value,
+      observaciones: document.querySelector("#id_observaciones").value
+    };
+
+    fetch("{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_create' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
+      body: JSON.stringify({ form_data: formData, detalles })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("Reporte de vencimiento generado correctamente.");
+          window.location.reload();
+        } else {
+          alert("Error: " + (data.errors || "Error desconocido."));
+        }
+      })
+      .catch(() => alert("Error al guardar el reporte."));
+  });
+}
+
+
+
+
+
+
+
+
+  // === CONSULTAR REPORTE ===
+  const btnConsultar = document.getElementById("btnConsultarReporte");
+  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarReporte"));
+  const modalConsultarContent = document.getElementById("modal-consultar-content");
+
+  function activarSeleccionFilas() {
+    const filas = document.querySelectorAll("#tablaReportes tbody tr[data-id]");
+    filas.forEach(row => {
+      row.addEventListener("click", () => {
+        filas.forEach(r => r.classList.remove("table-success"));
+        row.classList.add("table-success");
+        btnConsultar.disabled = false;
+        btnConsultar.dataset.id = row.dataset.id;
+      });
+    });
+  }
+  activarSeleccionFilas();
+
+  btnConsultar?.addEventListener("click", () => {
+    const id = btnConsultar.dataset.id;
+    modalConsultarContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    modalConsultar.show();
+    fetch(`/alertas_vencimientos/vencimientos/consultar/${id}/`, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => modalConsultarContent.innerHTML = html)
+      .catch(() => modalConsultarContent.innerHTML = '<div class="p-4 text-danger">Error cargando reporte.</div>');
+  });
+});
+</script>
+{% endblock %}

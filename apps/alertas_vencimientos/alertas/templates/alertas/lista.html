@@ -1,0 +1,116 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Alertas de Inventario · SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<section class="p-3">
+  <div class="saif-card shadow-lg rounded-3 overflow-hidden">
+    <!-- HEADER -->
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-danger text-white px-3 py-2">
+      <h3 class="mb-0 fs-6">
+        <i class="bi bi-exclamation-triangle me-2"></i> Alertas de Inventario
+      </h3>
+      <span class="badge bg-light text-danger px-2 py-1 fs-7">SAIF</span>
+    </div>
+
+    <!-- BODY -->
+    <div class="p-4">
+      <div class="row g-3">
+        <!-- Stock Bajo -->
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+            <div class="card-body">
+              <h5 class="fw-bold text-danger">Stock Bajo</h5>
+              <h2 class="fw-bolder">{{ stock_bajo }}</h2>
+
+              <button class="btn btn-outline-primary btn-sm mt-2"
+        data-modal="#modalStockBajo">Ver Detalle</button>
+
+              </div>
+          </div>
+        </div>
+
+        <!-- Próximos a Vencer -->
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+            <div class="card-body">
+              <h5 class="fw-bold text-warning">Próximos a Vencer</h5>
+              <h2 class="fw-bolder">{{ proximos_vencer }}</h2>
+
+                <button class="btn btn-outline-primary btn-sm mt-2"
+        data-modal="#modalProximosVencer">Ver Detalle</button>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Vencidos -->
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+            <div class="card-body">
+              <h5 class="fw-bold text-secondary">Vencidos</h5>
+              <h2 class="fw-bolder">{{ vencidos }}</h2>
+              <button class="btn btn-outline-primary btn-sm mt-2"
+        data-modal="#modalVencidos">Ver Detalle</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agotamiento -->
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+            <div class="card-body">
+              <h5 class="fw-bold text-primary">Próximos a Agotarse</h5>
+              <h2 class="fw-bolder">{{ agotamiento }}</h2>
+                    <button class="btn btn-outline-primary btn-sm mt-2"
+              data-modal="#modalAgotamiento">Ver Detalle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal placeholder -->
+<div id="modalContainer"></div>
+
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modals = [
+    { selector: '[data-modal="#modalStockBajo"]',       url: "{% url 'alertas_vencimientos:alertas:alertas_stock_bajo' %}",       id: "#modalStockBajo" },
+    { selector: '[data-modal="#modalProximosVencer"]',  url: "{% url 'alertas_vencimientos:alertas:alertas_proximos_vencer' %}",  id: "#modalProximosVencer" },
+    { selector: '[data-modal="#modalVencidos"]',        url: "{% url 'alertas_vencimientos:alertas:alertas_vencidos' %}",         id: "#modalVencidos" },
+    { selector: '[data-modal="#modalAgotamiento"]',     url: "{% url 'alertas_vencimientos:alertas:alertas_agotamiento' %}",      id: "#modalAgotamiento" },
+  ];
+
+  const container = document.querySelector("#modalContainer");
+
+  modals.forEach(({selector, url, id}) => {
+    const btn = document.querySelector(selector);
+    if (!btn) return;
+
+    btn.addEventListener("click", function (e) {
+      e.preventDefault(); // 👈 evita que Bootstrap intente abrir nada
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(r => r.text())
+        .then(html => {
+          container.innerHTML = html;
+          const el = container.querySelector(id);
+          new bootstrap.Modal(el).show();
+        })
+        .catch(() => {
+          container.innerHTML = '<div class="p-4 text-danger text-center">Error cargando el detalle.</div>';
+        });
+    });
+  });
+});
+</script>
+{% endblock %}

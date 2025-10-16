@@ -1,0 +1,55 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'consult/consult.css' %}">
+
+<div class="modal-header bg-success text-white">
+  <h5 class="modal-title fw-bold"><i class="bi bi-calendar-x me-2"></i> Detalle del Reporte de Vencimiento</h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+  <div class="mb-4">
+    <div class="row text-center g-3">
+      <div class="col-md-3"><strong>ID:</strong> #{{ reporte.id }}</div>
+      <div class="col-md-3"><strong>Usuario:</strong> {{ reporte.id_usuario }}</div>
+      <div class="col-md-3"><strong>Fecha:</strong> {{ reporte.fecha_reporte|date:"d/m/Y" }}</div>
+      <div class="col-md-3"><strong>Estado:</strong> {{ reporte.id_estado.nombre_estado }}</div>
+    </div>
+    <div class="mt-3">
+      <strong>Observaciones:</strong>
+      <p class="mb-0">{{ reporte.observaciones|default:"Sin observaciones" }}</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-success">
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Lote</th>
+          <th>Fecha de Caducidad</th>
+          <th>Cantidad Reportada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in detalles %}
+        <tr>
+          <td>{{ d.id_lote.id_producto.codigo_producto }}</td>
+          <td>{{ d.id_lote.id_producto.nombre }}</td>
+          <td>{{ d.id_lote.numero_lote }}</td>
+          <td>{{ d.id_lote.fecha_caducidad|date:"d/m/Y" }}</td>
+          <td>{{ d.cantidad_reportada }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">Sin productos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+    <i class="bi bi-x-lg"></i> Cerrar
+  </button>
+</div>
