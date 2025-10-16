@@ -455,9 +455,9 @@ document.addEventListener("DOMContentLoaded", function () {
               <td>${p.presentacion ?? ""}</td>
               <td>${p.unidad ?? ""}</td>
               <td>${p.condicion ?? ""}</td>
-              <td>${p.receta ? "SÃ­" : "No"}</td>
-              <td>${p.controlado ? "SÃ­" : "No"}</td>
-              <td><button type="button" class="btn btn-sm btn-success">âœ“</button></td>
+              <td>${p.receta ? "Sí" : "No"}</td>
+              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
             `;
             tr.querySelector("button").addEventListener("click", () => { if (typeof window.setProductoSeleccionado === "function") { window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` }); } else { if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`; if (productoIdInput) productoIdInput.value = p.id; } bootstrap.Modal.getInstance(modalBuscar)?.hide(); bootstrap.Modal.getOrCreateInstance(modalEl).show(); });
             tbodyResultados.appendChild(tr);
@@ -494,9 +494,23 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>${l.numero_lote}</td>
         <td>${l.fecha_caducidad || ""}</td>
         <td>${l.cantidad}</td>
-        <td><button type="button" class="btn btn-sm btn-success">âœ“</button></td>
+        <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
       `;
-      tr.querySelector("button").addEventListener("click", () => { if (typeof window.setProductoSeleccionado === "function") { window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` }); } else { if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`; if (productoIdInput) productoIdInput.value = p.id; } bootstrap.Modal.getInstance(modalBuscar)?.hide(); bootstrap.Modal.getOrCreateInstance(modalEl).show(); });
+      tr.querySelector("button").addEventListener("click", () => {
+        // Preferir helper global del formulario si existe
+        if (typeof window.setLoteSeleccionado === "function") {
+          window.setLoteSeleccionado({ id: l.id, numero: l.numero_lote, fecha: l.fecha_caducidad });
+        } else {
+          const loteIdInput = document.querySelector("#modalRecepcion #loteIdInput");
+          const loteInput = document.querySelector("#modalRecepcion #loteInput");
+          const cadInput = document.querySelector("#modalRecepcion #caducidadInput");
+          if (loteIdInput) loteIdInput.value = l.id;
+          if (loteInput) loteInput.value = l.numero_lote;
+          if (cadInput && l.fecha_caducidad) cadInput.value = l.fecha_caducidad;
+        }
+        bootstrap.Modal.getInstance(modalLote)?.hide();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      });
       tablaLotes.appendChild(tr);
     });
   }
