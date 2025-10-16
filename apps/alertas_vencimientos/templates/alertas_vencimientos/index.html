@@ -1,0 +1,49 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Alertas y Vencimientos · SAIF{% endblock %}
+
+{% block content %}
+<section class="p-6 md:p-8">
+  <h1 class="text-2xl md:text-3xl font-extrabold text-center mb-10">
+    Módulos de Alertas y Vencimientos
+  </h1>
+
+  <div class="grid gap-10 md:grid-cols-2 max-w-6xl mx-auto">
+
+    <!-- ===== Registrar Vencimiento de Productos ===== -->
+    <a href="{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_list' %}"
+       class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
+              focus:text-slate-800 focus-visible:outline-none bg-white hover:border-emerald-600/40">
+      <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+        <i class="bi bi-arrow-down-square text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
+        Registrar Vencimiento de Productos
+      </div>
+    </a>
+
+    <!-- ===== Reporte de Alertas de Vencimientos ===== -->
+    <a href="{% url 'alertas_vencimientos:alertas:alertas_dashboard' %}"
+       class="group border rounded-2xl p-12 text-center hover:shadow-xl transition
+              focus:text-slate-800 focus-visible:outline-none bg-white hover:border-emerald-600/40">
+      <div class="mx-auto w-20 h-20 mb-6 flex items-center justify-center">
+        <i class="bi bi-arrow-up-square text-6xl text-slate-800 group-hover:text-emerald-700 transition"></i>
+      </div>
+      <div class="text-xl font-semibold group-hover:text-emerald-700 transition">
+        Reporte de Alertas de Vencimientos
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- Fix hover en dispositivos táctiles -->
+<style>
+@media (hover: none) and (pointer: coarse) {
+  .group:hover .group-hover\:text-emerald-700 {
+    color: inherit !important;
+  }
+}
+</style>
+{% endblock %}

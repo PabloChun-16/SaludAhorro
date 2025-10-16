@@ -73,6 +73,10 @@ INSTALLED_APPS = [
     'apps.ajustes_inventario.ingresos',
     'apps.ajustes_inventario.salidasAjustes',
 
+    'apps.alertas_vencimientos.vencimientos',
+    'apps.alertas_vencimientos.alertas',
+    
+
 ]
 
 MIDDLEWARE = [

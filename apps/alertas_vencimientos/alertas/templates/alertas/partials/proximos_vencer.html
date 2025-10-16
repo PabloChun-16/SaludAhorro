@@ -1,0 +1,38 @@
+<div class="modal fade" id="modalProximosVencer" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title"><i class="bi bi-hourglass-split"></i> Lotes Próximos a Vencer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if lotes %}
+        <table class="table table-hover text-center">
+          <thead class="table-warning">
+            <tr>
+              <th>Producto</th>
+              <th>Lote</th>
+              <th>Disponible</th>
+              <th>Fecha de Vencimiento</th>
+              <th>Días Restantes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lote in lotes %}
+            <tr>
+              <td>{{ lote.id_producto.nombre }}</td>
+              <td>{{ lote.codigo_lote }}</td>
+              <td>{{ lote.cantidad_disponible }}</td>
+              <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
+              <td>{{ lote.dias_restantes }} días</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center mb-0">No hay lotes próximos a vencer.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
