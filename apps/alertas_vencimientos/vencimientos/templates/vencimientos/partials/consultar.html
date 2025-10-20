@@ -2,54 +2,138 @@
 <link rel="stylesheet" href="{% static 'consult/consult.css' %}">
 
 <div class="modal-header bg-success text-white">
-  <h5 class="modal-title fw-bold"><i class="bi bi-calendar-x me-2"></i> Detalle del Reporte de Vencimiento</h5>
-  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
+    <i class="bi bi-calendar-x-fill"></i>
+    Detalle del Reporte de Vencimiento
+    <span class="badge bg-light text-success ms-2">SAIF</span>
+  </h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 </div>
 
-<div class="modal-body">
-  <div class="mb-4">
-    <div class="row text-center g-3">
-      <div class="col-md-3"><strong>ID:</strong> #{{ reporte.id }}</div>
-      <div class="col-md-3"><strong>Usuario:</strong> {{ reporte.id_usuario }}</div>
-      <div class="col-md-3"><strong>Fecha:</strong> {{ reporte.fecha_reporte|date:"d/m/Y" }}</div>
-      <div class="col-md-3"><strong>Estado:</strong> {{ reporte.id_estado.nombre_estado }}</div>
+<div class="modal-body p-3 p-md-4 saif-modal-body">
+  <!-- RESUMEN SUPERIOR -->
+  <div class="saif-summary row g-3 mb-4 text-center">
+    <div class="col-6 col-md-3">
+      <div class="saif-chip">
+        <div class="saif-chip__label">ID</div>
+        <div class="saif-chip__value">#{{ reporte.id }}</div>
+      </div>
     </div>
-    <div class="mt-3">
-      <strong>Observaciones:</strong>
-      <p class="mb-0">{{ reporte.observaciones|default:"Sin observaciones" }}</p>
+    <div class="col-6 col-md-3">
+      <div class="saif-chip">
+        <div class="saif-chip__label">Usuario</div>
+        <div class="saif-chip__value">{{ reporte.id_usuario }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="saif-chip">
+        <div class="saif-chip__label">Fecha</div>
+        <div class="saif-chip__value">{{ reporte.fecha_reporte|date:"d/m/Y" }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="saif-chip">
+        <div class="saif-chip__label">Estado</div>
+        <div class="saif-chip__value">
+          {% if reporte.id_estado.nombre_estado == "Completado" %}
+            <span class="badge rounded-pill bg-success px-3">Completado</span>
+          {% else %}
+            <span class="badge rounded-pill bg-secondary px-3">{{ reporte.id_estado.nombre_estado }}</span>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="table table-bordered text-center align-middle">
-      <thead class="table-success">
-        <tr>
-          <th>Código</th>
-          <th>Producto</th>
-          <th>Lote</th>
-          <th>Fecha de Caducidad</th>
-          <th>Cantidad Reportada</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in detalles %}
-        <tr>
-          <td>{{ d.id_lote.id_producto.codigo_producto }}</td>
-          <td>{{ d.id_lote.id_producto.nombre }}</td>
-          <td>{{ d.id_lote.numero_lote }}</td>
-          <td>{{ d.id_lote.fecha_caducidad|date:"d/m/Y" }}</td>
-          <td>{{ d.cantidad_reportada }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="text-muted">Sin productos registrados</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- OBSERVACIONES -->
+  <div class="saif-section mb-4">
+    <div class="saif-section__title">
+      <i class="bi bi-journal-text me-2"></i> Observaciones
+    </div>
+    <div class="saif-note mt-2">
+      {{ reporte.observaciones|default:"Sin observaciones" }}
+    </div>
+  </div>
+
+  <!-- DETALLES -->
+  <div class="saif-section">
+    <div class="saif-section__title">
+      <i class="bi bi-list-ul me-2"></i> Detalles reportados
+    </div>
+
+    <div class="table-responsive mt-2">
+      <table class="table table-hover align-middle text-center saif-table">
+        <thead class="table-success">
+          <tr>
+            <th class="text-center">Código</th>
+            <th class="text-center">Producto</th>
+            <th class="text-center">Lote</th>
+            <th class="text-center">Fecha de Caducidad</th>
+            <th class="text-center">Cantidad Reportada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detalles %}
+          <tr>
+            <td class="text-truncate" title="{{ d.id_lote.id_producto.codigo_producto }}">{{ d.id_lote.id_producto.codigo_producto }}</td>
+            <td class="text-truncate" title="{{ d.id_lote.id_producto.nombre }}">{{ d.id_lote.id_producto.nombre }}</td>
+            <td class="text-truncate" title="{{ d.id_lote.numero_lote }}">{{ d.id_lote.numero_lote }}</td>
+            <td>{{ d.id_lote.fecha_caducidad|date:"d/m/Y" }}</td>
+            <td>{{ d.cantidad_reportada }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-muted py-3">
+              <i class="bi bi-inbox me-1"></i> Sin productos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<div class="modal-footer">
-  <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+<div class="modal-footer d-flex justify-content-between">
+  <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
+  <button type="button" class="btn btn-light border-success text-success rounded-pill px-3 saif-btn-light" data-bs-dismiss="modal">
     <i class="bi bi-x-lg"></i> Cerrar
   </button>
 </div>
+
+<!-- Estilos verdes SAIF locales -->
+<style>
+  .saif-modal-body{ background:#f7fcf8; }
+
+  .saif-section__title{
+    font-weight:700; color:#14532d; display:flex; align-items:center;
+    background:#e8f5ec; border:1px solid #d7ebe0; padding:.5rem .75rem; border-radius:.6rem;
+  }
+
+  .saif-note{
+    background:#f0fdf4; border:1px solid #cfe9d7; color:#166534;
+    border-radius:.6rem; padding:.75rem .9rem;
+    white-space:pre-wrap;
+  }
+
+  .saif-table{
+    border:1px solid #e3e6ea; border-radius:.65rem; overflow:hidden;
+  }
+  .saif-table thead th{
+    background:#e8f5ec !important; color:#065f46; border-bottom:1px solid #d7ebe0 !important;
+  }
+  .saif-table tbody tr:hover{ background:#f3fbf6; }
+  .saif-table td, .saif-table th{
+    vertical-align:middle; padding:.6rem .5rem; font-size:.9rem;
+  }
+
+  .saif-summary .saif-chip{
+    background:#f0fdf4; border:1px solid #cfe9d7; border-radius:.75rem; padding:.6rem .75rem;
+    height:100%; display:flex; flex-direction:column; justify-content:center;
+  }
+  .saif-chip__label{ font-size:.75rem; color:#166534; text-transform:uppercase; letter-spacing:.02em; }
+  .saif-chip__value{ font-weight:700; color:#065f46; }
+
+  .saif-btn-light{ background:#f8fff9; }
+  .rounded-pill{ border-radius:9999px !important; }
+</style>

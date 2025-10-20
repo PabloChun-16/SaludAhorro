@@ -1,38 +1,113 @@
 <div class="modal fade" id="modalProximosVencer" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content saif-modal">
+      <!-- HEADER -->
       <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title"><i class="bi bi-hourglass-split"></i> Lotes Próximos a Vencer</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <i class="bi bi-hourglass-split"></i>
+          <span>Lotes Próximos a Vencer</span>
+          <span class="badge bg-light text-dark ms-2" id="pvTotalBadge">0 ítems</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body">
+
+      <!-- BODY -->
+      <div class="modal-body p-3 p-md-4">
         {% if lotes %}
-        <table class="table table-hover text-center">
-          <thead class="table-warning">
-            <tr>
-              <th>Producto</th>
-              <th>Lote</th>
-              <th>Disponible</th>
-              <th>Fecha de Vencimiento</th>
-              <th>Días Restantes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for lote in lotes %}
-            <tr>
-              <td>{{ lote.id_producto.nombre }}</td>
-              <td>{{ lote.codigo_lote }}</td>
-              <td>{{ lote.cantidad_disponible }}</td>
-              <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
-              <td>{{ lote.dias_restantes }} días</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <!-- Filtros -->
+        <div class="saif-filter-card border rounded-3 p-3 mb-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-funnel-fill text-success"></i>
+            <span class="fw-semibold text-success">Filtros del reporte</span>
+          </div>
+
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label saif-label">Producto</label>
+              <input id="pv-q-producto" class="form-control saif-input" placeholder="Buscar producto…">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label saif-label">Lote</label>
+              <input id="pv-q-lote" class="form-control saif-input" placeholder="Buscar lote…">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label saif-label">Rango de días</label>
+              <input id="pv-q-dias" class="form-control saif-input" placeholder="Ej: 5, 10, 15…">
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end mt-2">
+            <button id="pv-btn-apply" class="btn btn-success">
+              <i class="bi bi-sliders"></i> Aplicar
+            </button>
+            <button id="pv-btn-clear" class="btn btn-light border-success text-success">
+              <i class="bi bi-eraser"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-container">
+          <table class="table table-hover align-middle text-center" id="tablaProximosVencer">
+            <thead class="table-warning">
+              <tr>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th>Disponible</th>
+                <th>Fecha de Vencimiento</th>
+                <th>Días Restantes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lote in lotes %}
+              <tr>
+                <td class="text-truncate" title="{{ lote.id_producto.nombre }}">{{ lote.id_producto.nombre }}</td>
+                <td class="text-truncate" title="{{ lote.codigo_lote }}">{{ lote.codigo_lote }}</td>
+                <td>{{ lote.cantidad_disponible }}</td>
+                <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
+                <td>{{ lote.dias_restantes }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
         {% else %}
-        <p class="text-muted text-center mb-0">No hay lotes próximos a vencer.</p>
+          <p class="text-muted text-center mb-0">
+            <i class="bi bi-inbox me-1"></i> No hay lotes próximos a vencer.
+          </p>
         {% endif %}
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer justify-content-between">
+        <span class="small text-success fw-semibold">
+          <i class="bi bi-shield-check me-1"></i> Reporte SAIF
+        </span>
+        <button type="button" class="btn btn-light border-success text-success rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  #modalProximosVencer .saif-modal{ border-radius:.9rem; overflow:hidden; }
+  #modalProximosVencer .table-container{ overflow-x:auto; width:100%; }
+  #modalProximosVencer .saif-filter-card{ background:#f7fcf8; border-color:#cfe9d7 !important; }
+  #modalProximosVencer .saif-label{ font-weight:600; color:#166534; }
+  #modalProximosVencer .saif-input{ border:1px solid #cfe9d7; }
+  #modalProximosVencer .saif-input:focus{ border-color:#22c55e; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+  #tablaProximosVencer{
+    table-layout:fixed; width:100%; min-width:850px;
+    border-collapse:separate; border-spacing:0;
+    outline:1px solid #e5e7eb; outline-offset:-1px; border-radius:.6rem; margin-bottom:0;
+  }
+  #tablaProximosVencer th,#tablaProximosVencer td{
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+    padding:.6rem; font-size:.9rem; background-clip:padding-box; border:1px solid #eef2f4;
+  }
+  #tablaProximosVencer thead th{ background:#fff8e1 !important; color:#5f370e; border-bottom:1px solid #f6e05e !important; }
+  #tablaProximosVencer tbody tr:hover{ background:#fffdf5; }
+</style>

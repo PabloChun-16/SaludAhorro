@@ -21,29 +21,26 @@
       <table class="table table-hover align-middle text-center" id="tablaReportes">
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
-            
             <th>Documento</th>
             <th>Fecha</th>
             <th>Usuario</th>
             <th>Estado</th>
           </tr>
           <tr class="filter-row">
-            
-            <th><input id="f-doc" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
-            <th><input id="f-fecha" class="form-control form-control-sm text-center" placeholder="dd/mm/aaaa"></th>
-            <th><input id="f-user" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
-            <th><input id="f-est" class="form-control form-control-sm text-center" placeholder="Filtrar"></th>
+            <th><input id="f-doc"   class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm text-center filter-control" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-user"  class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
+            <th><input id="f-est"   class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
           </tr>
         </thead>
 
         <tbody>
           {% for r in reportes %}
           <tr data-id="{{ r.id }}">
-            
-            <td>{{ r.documento }}</td>
-            <td>{{ r.fecha_reporte|date:"d/m/Y" }}</td>
-            <td>{{ r.id_usuario }}</td>
-            <td>
+            <td class="text-truncate">{{ r.documento }}</td>
+            <td class="text-truncate">{{ r.fecha_reporte|date:"d/m/Y" }}</td>
+            <td class="text-truncate">{{ r.id_usuario }}</td>
+            <td class="text-truncate">
               {% if r.id_estado.nombre_estado == "Completado" %}
                 <span class="badge bg-success">Completado</span>
               {% else %}
@@ -102,12 +99,60 @@
 <!-- MODALES AUXILIARES -->
 {% include "ingresos/partials/producto_modal_ingresos.html" %}
 {% include "ingresos/partials/lote_modal_ingresos.html" %}
+
+<style>
+/* ==== Diseño de tabla SAIF (idéntico al patrón que analizamos) ==== */
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+
+#tablaReportes{
+  table-layout:fixed; width:100%; min-width:900px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaReportes th,#tablaReportes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
+}
+#tablaReportes tbody tr{ background:#ffffff; }
+
+#tablaReportes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaReportes thead.sticky-top tr:first-child th{
+  position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf;
+}
+#tablaReportes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+
+thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+/* mínimos de columnas */
+#tablaReportes thead .filter-row th{ min-width:120px; }
+#tablaReportes thead .filter-row th:nth-child(2){ min-width:140px; } /* Fecha */
+
+.hidden-by-pagination{ display:none !important; }
+#tablaReportes thead tr:first-child th{ border-top:0; }
+#tablaReportes tbody tr:last-child td{ border-bottom:0; }
+#tablaReportes tr>*:first-child{ border-left:0; }
+#tablaReportes tr>*:last-child{  border-right:0; }
+#tablaReportes tbody tr.last-visible td{ border-bottom:0 !important; }
+
+#tablaReportes tbody tr:hover{ background:#fafafa; }
+</style>
 {% endblock %}
 
 
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  /* =======================
+     TU LÓGICA ORIGINAL (sin cambios)
+     ======================= */
   const modalEl = document.getElementById("modalCrearReporte");
   const modalContent = document.getElementById("modal-reporte-content");
   const btnCrear = document.getElementById("btnCrearReporte");
@@ -131,58 +176,53 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   });
 
-
-
-
-
-
   // === INICIALIZAR FORMULARIO ===
-function inicializarFormulario() {
-  const btnAdd = document.getElementById("btnAddDetalle");
-  const tableBody = document.getElementById("detalleTable").querySelector("tbody");
-  const productoInput = document.getElementById("productoInput");
-  const productoIdInput = document.getElementById("productoIdInput");
-  const loteInput = document.getElementById("loteInput");
-  const loteIdInput = document.getElementById("loteIdInput");
-  let detalles = [];
+  function inicializarFormulario() {
+    const btnAdd = document.getElementById("btnAddDetalle");
+    const tableBody = document.getElementById("detalleTable").querySelector("tbody");
+    const productoInput = document.getElementById("productoInput");
+    const productoIdInput = document.getElementById("productoIdInput");
+    const loteInput = document.getElementById("loteInput");
+    const loteIdInput = document.getElementById("loteIdInput");
+    let detalles = [];
 
-  // === MODALES ===
-  document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+    // === MODALES ===
+    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+      const modalProducto = document.getElementById("modalBuscarProducto");
+      bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+    });
+
+    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
+      if (!productoIdInput.value) {
+        alert("Seleccione primero un producto con lotes vencidos.");
+        return;
+      }
+      const modalLote = document.getElementById("modalBuscarLote");
+      bootstrap.Modal.getOrCreateInstance(modalLote).show();
+      cargarLotes();
+    });
+
+    // === BUSCAR PRODUCTOS (solo con lotes vencidos) ===
     const modalProducto = document.getElementById("modalBuscarProducto");
-    bootstrap.Modal.getOrCreateInstance(modalProducto).show();
-  });
+    modalProducto?.addEventListener("shown.bs.modal", () => {
+      const searchInput = document.getElementById("searchProducto");
+      const tbodyResultados = document.getElementById("tablaBuscarProductos");
+      tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
 
-  document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-    if (!productoIdInput.value) {
-      alert("Seleccione primero un producto con lotes vencidos.");
-      return;
-    }
-    const modalLote = document.getElementById("modalBuscarLote");
-    bootstrap.Modal.getOrCreateInstance(modalLote).show();
-    cargarLotes();
-  });
-
-  // === BUSCAR PRODUCTOS (solo con lotes vencidos) ===
-  const modalProducto = document.getElementById("modalBuscarProducto");
-  modalProducto?.addEventListener("shown.bs.modal", () => {
-    const searchInput = document.getElementById("searchProducto");
-    const tbodyResultados = document.getElementById("tablaBuscarProductos");
-    tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
-
-    searchInput.oninput = function () {
-      const term = this.value.trim();
-      fetch("{% url 'alertas_vencimientos:vencimientos:search_productos' %}?term=" + encodeURIComponent(term))
-        .then(r => r.json())
-        .then(data => {
-          tbodyResultados.innerHTML = "";
-          if (!data.length) {
-            tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
-            return;
-          }
-          data.forEach(p => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${p.codigo}</td>
+      searchInput.oninput = function () {
+        const term = this.value.trim();
+        fetch("{% url 'alertas_vencimientos:vencimientos:search_productos' %}?term=" + encodeURIComponent(term))
+          .then(r => r.json())
+          .then(data => {
+            tbodyResultados.innerHTML = "";
+            if (!data.length) {
+              tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
+              return;
+            }
+            data.forEach(p => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${p.codigo}</td>
                 <td>${p.nombre}</td>
                 <td>${p.descripcion || "-"}</td>
                 <td>${p.presentacion || "-"}</td>
@@ -192,110 +232,103 @@ function inicializarFormulario() {
                 <td>${p.controlado ? "Sí" : "No"}</td>
                 <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
               `;
-            tr.querySelector("button").addEventListener("click", () => {
-              productoInput.value = `${p.codigo} - ${p.nombre}`;
-              productoIdInput.value = p.id;
-              bootstrap.Modal.getInstance(modalProducto).hide();
+              tr.querySelector("button").addEventListener("click", () => {
+                productoInput.value = `${p.codigo} - ${p.nombre}`;
+                productoIdInput.value = p.id;
+                bootstrap.Modal.getInstance(modalProducto).hide();
+              });
+              tbodyResultados.appendChild(tr);
             });
-            tbodyResultados.appendChild(tr);
           });
-        });
-    };
-  });
-
-  // === BUSCAR LOTES VENCIDOS ===
-  function cargarLotes() {
-    const productoId = productoIdInput.value;
-    const searchLoteInput = document.getElementById("searchLote");
-    const tablaLotes = document.getElementById("tablaBuscarLotes");
-    const urlBase = "{% url 'alertas_vencimientos:vencimientos:search_lotes' 0 %}".replace("0/", productoId + "/");
-    const term = searchLoteInput?.value || "";
-
-    fetch(urlBase + (term ? "?term=" + encodeURIComponent(term) : ""))
-      .then(r => r.json())
-      .then(data => {
-        tablaLotes.innerHTML = "";
-        if (!data.length) {
-          tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Sin lotes vencidos.</td></tr>';
-          return;
-        }
-        data.forEach(l => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${l.numero_lote}</td>
-            <td>${l.fecha_caducidad}</td>
-            <td>${l.cantidad}</td>
-            <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
-          `;
-          tr.querySelector("button").addEventListener("click", () => {
-            loteInput.value = l.numero_lote;
-            loteIdInput.value = l.id;
-            // Agregar directamente a la tabla
-            agregarDetalle(productoInput.value, productoIdInput.value, l.numero_lote, l.id, l.cantidad);
-            bootstrap.Modal.getInstance(document.getElementById("modalBuscarLote")).hide();
-          });
-          tablaLotes.appendChild(tr);
-        });
-      });
-  }
-
-  function agregarDetalle(prodNombre, prodId, loteNombre, loteId, cantidad) {
-    const item = { producto: prodNombre, producto_id: prodId, lote: loteNombre, lote_id: loteId, cantidad_reportada: cantidad };
-    detalles.push(item);
-
-    if (detalles.length === 1) tableBody.innerHTML = "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${prodNombre}</td>
-      <td>${loteNombre}</td>
-      <td>${cantidad}</td>
-      <td><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
-    `;
-    tr.querySelector(".btnRemove").addEventListener("click", () => {
-      detalles = detalles.filter(d => d !== item);
-      tr.remove();
-      if (!detalles.length)
-        tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+      };
     });
-    tableBody.appendChild(tr);
-  }
 
-  // === GUARDAR REPORTE ===
-  const form = document.getElementById("formReporteVencimiento");
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    if (!detalles.length) return alert("Debe agregar al menos un producto con lote vencido.");
+    // === BUSCAR LOTES VENCIDOS ===
+    function cargarLotes() {
+      const productoId = productoIdInput.value;
+      const searchLoteInput = document.getElementById("searchLote");
+      const tablaLotes = document.getElementById("tablaBuscarLotes");
+      const urlBase = "{% url 'alertas_vencimientos:vencimientos:search_lotes' 0 %}".replace("0/", productoId + "/");
+      const term = searchLoteInput?.value || "";
 
-    const formData = {
-      documento: document.querySelector("#id_documento").value,
-      observaciones: document.querySelector("#id_observaciones").value
-    };
+      fetch(urlBase + (term ? "?term=" + encodeURIComponent(term) : ""))
+        .then(r => r.json())
+        .then(data => {
+          tablaLotes.innerHTML = "";
+          if (!data.length) {
+            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Sin lotes vencidos.</td></tr>';
+            return;
+          }
+          data.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${l.numero_lote}</td>
+              <td>${l.fecha_caducidad}</td>
+              <td>${l.cantidad}</td>
+              <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              loteInput.value = l.numero_lote;
+              loteIdInput.value = l.id;
+              // Agregar directamente a la tabla
+              agregarDetalle(productoInput.value, productoIdInput.value, l.numero_lote, l.id, l.cantidad);
+              bootstrap.Modal.getInstance(document.getElementById("modalBuscarLote")).hide();
+            });
+            tablaLotes.appendChild(tr);
+          });
+        });
+    }
 
-    fetch("{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_create' %}", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
-      body: JSON.stringify({ form_data: formData, detalles })
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          alert("Reporte de vencimiento generado correctamente.");
-          window.location.reload();
-        } else {
-          alert("Error: " + (data.errors || "Error desconocido."));
-        }
+    function agregarDetalle(prodNombre, prodId, loteNombre, loteId, cantidad) {
+      const item = { producto: prodNombre, producto_id: prodId, lote: loteNombre, lote_id: loteId, cantidad_reportada: cantidad };
+      detalles.push(item);
+
+      if (detalles.length === 1) tableBody.innerHTML = "";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${prodNombre}</td>
+        <td>${loteNombre}</td>
+        <td>${cantidad}</td>
+        <td><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
+      `;
+      tr.querySelector(".btnRemove").addEventListener("click", () => {
+        detalles = detalles.filter(d => d !== item);
+        tr.remove();
+        if (!detalles.length)
+          tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+      });
+      tableBody.appendChild(tr);
+    }
+
+    // === GUARDAR REPORTE ===
+    const form = document.getElementById("formReporteVencimiento");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+      if (!detalles.length) return alert("Debe agregar al menos un producto con lote vencido.");
+
+      const formData = {
+        documento: document.querySelector("#id_documento").value,
+        observaciones: document.querySelector("#id_observaciones").value
+      };
+
+      fetch("{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_create' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ form_data: formData, detalles })
       })
-      .catch(() => alert("Error al guardar el reporte."));
-  });
-}
-
-
-
-
-
-
-
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            alert("Reporte de vencimiento generado correctamente.");
+            window.location.reload();
+          } else {
+            alert("Error: " + (data.errors || "Error desconocido."));
+          }
+        })
+        .catch(() => alert("Error al guardar el reporte."));
+    });
+  }
 
   // === CONSULTAR REPORTE ===
   const btnConsultar = document.getElementById("btnConsultarReporte");
@@ -306,10 +339,11 @@ function inicializarFormulario() {
     const filas = document.querySelectorAll("#tablaReportes tbody tr[data-id]");
     filas.forEach(row => {
       row.addEventListener("click", () => {
-        filas.forEach(r => r.classList.remove("table-success"));
-        row.classList.add("table-success");
+        filas.forEach(r => r.classList.remove("table-success", "table-active"));
+        row.classList.add("table-success", "table-active"); // mantenemos tu clase y sumamos table-active para consistencia visual
         btnConsultar.disabled = false;
         btnConsultar.dataset.id = row.dataset.id;
+        selectedId = row.dataset.id; // <-- usado por las mejoras de navegación
       });
     });
   }
@@ -324,6 +358,189 @@ function inicializarFormulario() {
       .then(html => modalConsultarContent.innerHTML = html)
       .catch(() => modalConsultarContent.innerHTML = '<div class="p-4 text-danger">Error cargando reporte.</div>');
   });
+
+  /* =======================
+     SOLO AÑADIDOS: UI/UX TABLA
+     ======================= */
+
+  // --- Tooltips por overflow
+  const table = document.getElementById("tablaReportes");
+  const tbody = table.querySelector("tbody");
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
+    });
+  }
+
+  // --- Limpieza visual de filas vacías
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const tds = Array.from(tr.cells);
+      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+
+  // --- Paginación client-side
+  const pagerEl = document.getElementById("pagerReportes");
+  let selectedId = null;
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML="";
+      pagerEl.style.display="none";
+      return;
+    }
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.setAttribute("aria-live","polite");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.setAttribute("aria-label","Página anterior");
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.setAttribute("aria-label","Página siguiente");
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
+
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
+
+    renderPager(totalPages);
+
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible){
+          // mantener usabilidad
+          firstVisible.classList.add("table-active","table-success");
+        }
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  // --- Filtros con debounce (no altera tu búsqueda/consultas)
+  function installFilters(){
+    const fDoc   = document.getElementById("f-doc");
+    const fFecha = document.getElementById("f-fecha");
+    const fUser  = document.getElementById("f-user");
+    const fEst   = document.getElementById("f-est");
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+
+    let t=null;
+    function applyFilters(){
+      const vDoc=norm(fDoc?.value), vFecha=norm(fFecha?.value),
+            vUser=norm(fUser?.value), vEst=norm(fEst?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
+        const ok =
+          (!vDoc   || txt(0).includes(vDoc))   &&
+          (!vFecha || txt(1).includes(vFecha)) &&
+          (!vUser  || txt(2).includes(vUser))  &&
+          (!vEst   || txt(3).includes(vEst));
+        tr.style.display = ok ? "" : "none";
+      });
+      currentPage=1;
+      applyPagination();
+    }
+    function debounced(){ clearTimeout(t); t=setTimeout(applyFilters, 180); }
+    [fDoc,fFecha,fUser,fEst].forEach(inp=>{ inp?.addEventListener("input", debounced); });
+    applyFilters();
+  }
+
+  // --- Doble-click y teclado (Enter / ← ↑ ↓ →) SOLO para consultar (no cambiamos tu flujo)
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr[data-id]");
+    if(!row) return;
+    row.click(); // dispara tu selección original
+    const id = row.getAttribute("data-id");
+    if(!id) return;
+    document.getElementById("btnConsultarReporte")?.click();
+  });
+
+  document.addEventListener("keydown",(ev)=>{
+    const filas = getDataRows().filter(r=>!r.classList.contains('hidden-by-pagination'));
+    if(!filas.length) return;
+
+    // mover selección con flechas
+    if(ev.key==="ArrowUp" || ev.key==="ArrowDown"){
+      let idx = filas.findIndex(r=>r.classList.contains('table-active'));
+      if(idx===-1) idx = 0;
+      else idx += (ev.key==="ArrowDown" ? 1 : -1);
+      idx = Math.max(0, Math.min(filas.length-1, idx));
+      filas.forEach(r=>r.classList.remove("table-active","table-success"));
+      filas[idx].classList.add("table-active","table-success");
+      selectedId = filas[idx].getAttribute("data-id");
+      const btn = document.getElementById("btnConsultarReporte");
+      if(btn){ btn.disabled = !selectedId; if(selectedId) btn.dataset.id = selectedId; }
+      filas[idx].scrollIntoView({block:'nearest'});
+    }
+
+    // Enter => consultar
+    if(ev.key==='Enter'){
+      const btn = document.getElementById("btnConsultarReporte");
+      if(btn && !btn.disabled){ btn.click(); ev.preventDefault(); }
+    }
+  });
+
+  // --- Boot del diseño/UX
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 });
 </script>
 {% endblock %}
+
+
+
+
+

@@ -1,51 +1,76 @@
 <form id="formReporteVencimiento">
   {% csrf_token %}
+
   <div class="modal-header bg-success text-white">
-    <h5 class="modal-title">
-      <i class="bi bi-calendar-x"></i> Crear Reporte de Vencimiento
+    <h5 class="modal-title d-flex align-items-center gap-2">
+      <i class="bi bi-calendar-x-fill"></i>
+      <span>Crear Reporte de Vencimiento</span>
+      <span class="badge bg-light text-success ms-2">SAIF</span>
     </h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
-  <div class="modal-body">
+  <div class="modal-body p-3 p-md-4 saif-modal-body">
     <!-- DATOS PRINCIPALES -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label fw-bold">Nombre del Reporte</label>
-        <input type="text" class="form-control" id="id_documento"
-               value="Reporte Vencimiento - {{ today|date:'d/m/Y' }}">
+    <div class="saif-section mb-4">
+      <div class="saif-section__title">
+        <i class="bi bi-clipboard2-check-fill me-2"></i> Datos del reporte
       </div>
-      <div class="col-md-6">
-        <label class="form-label fw-bold">Usuario</label>
-        <input type="text" class="form-control" value="{{ request.user }}" disabled>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <label class="form-label saif-label">Nombre del Reporte</label>
+          <div class="input-group">
+            <span class="input-group-text saif-ig"><i class="bi bi-file-earmark-text"></i></span>
+            <input type="text" class="form-control saif-input" id="id_documento"
+                   value="Reporte Vencimiento - {{ today|date:'d/m/Y' }}" />
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label saif-label">Usuario</label>
+          <div class="input-group">
+            <span class="input-group-text saif-ig"><i class="bi bi-person-badge"></i></span>
+            <input type="text" class="form-control saif-input" value="{{ request.user }}" disabled />
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- BUSCAR PRODUCTO Y LOTE -->
-    <div class="card border-success mb-3">
+    <div class="card border-success shadow-sm mb-4 saif-card">
       <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-search"></i> Buscar Producto con Lote Vencido</span>
+        <span class="fw-semibold"><i class="bi bi-search me-2"></i> Buscar Producto con Lote Vencido</span>
+        <span class="badge bg-light text-success">Vencimientos</span>
       </div>
       <div class="card-body">
-        <div class="row g-2">
+        <div class="row g-2 align-items-end">
           <div class="col-md-8">
-            <input id="productoInput" class="form-control" placeholder="Seleccione producto..." readonly>
-            <input id="productoIdInput" type="hidden">
+            <label class="form-label saif-label">Producto</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-capsule-pill"></i></span>
+              <input id="productoInput" class="form-control saif-input" placeholder="Seleccione producto..." readonly>
+              <input id="productoIdInput" type="hidden">
+            </div>
           </div>
           <div class="col-md-4">
-            <button type="button" id="btnBuscarProducto" class="btn btn-outline-success w-100">
+            <button type="button" id="btnBuscarProducto" class="btn btn-outline-success w-100 saif-btn-outline">
               <i class="bi bi-search"></i> Buscar
             </button>
           </div>
         </div>
 
-        <div class="row g-2 mt-2">
+        <div class="row g-2 align-items-end mt-2">
           <div class="col-md-8">
-            <input id="loteInput" class="form-control" placeholder="Seleccione lote vencido..." readonly>
-            <input id="loteIdInput" type="hidden">
+            <label class="form-label saif-label">Lote vencido</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-box-seam"></i></span>
+              <input id="loteInput" class="form-control saif-input" placeholder="Seleccione lote vencido..." readonly>
+              <input id="loteIdInput" type="hidden">
+            </div>
           </div>
           <div class="col-md-4">
-            <button type="button" id="btnBuscarLote" class="btn btn-outline-success w-100">
+            <button type="button" id="btnBuscarLote" class="btn btn-outline-success w-100 saif-btn-outline">
               <i class="bi bi-collection"></i> Lotes
             </button>
           </div>
@@ -54,35 +79,97 @@
     </div>
 
     <!-- DETALLES AGREGADOS -->
-    <div class="table-responsive">
-      <table class="table table-hover align-middle" id="detalleTable">
-        <thead class="table-success">
-          <tr>
-            <th>Producto</th>
-            <th>Lote</th>
-            <th>Cantidad Retirada</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="4" class="text-muted">Sin productos agregados</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="saif-section mb-3">
+      <div class="saif-section__title">
+        <i class="bi bi-list-check me-2"></i> Detalles agregados
+      </div>
+
+      <div class="table-responsive mt-2">
+        <table class="table table-hover align-middle mb-2 saif-table" id="detalleTable">
+          <thead class="table-success">
+            <tr>
+              <th class="text-center">Producto</th>
+              <th class="text-center">Lote</th>
+              <th class="text-center">Cantidad Retirada</th>
+              <th class="text-center">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="text-muted text-center py-3">
+                <i class="bi bi-inbox me-1"></i> Sin productos agregados
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-success py-2 px-3 mb-0 saif-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Selecciona un producto y luego su lote vencido para añadirlo aquí.
+      </div>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-bold">Observaciones</label>
-      <textarea id="id_observaciones" class="form-control" rows="3"
+    <div class="mb-2">
+      <label class="form-label saif-label">Observaciones</label>
+      <textarea id="id_observaciones" class="form-control saif-input" rows="3"
                 placeholder="Notas adicionales sobre el retiro..."></textarea>
     </div>
   </div>
 
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    <button type="submit" class="btn btn-success">
+  <div class="modal-footer d-flex justify-content-between">
+    <button type="button" class="btn btn-light border-success text-success saif-btn-light" data-bs-dismiss="modal">
+      <i class="bi bi-x-circle"></i> Cancelar
+    </button>
+    <button type="submit" class="btn btn-success shadow-sm">
       <i class="bi bi-check-circle"></i> Guardar Reporte
     </button>
   </div>
 </form>
+
+<!-- estilos locales SAIF (verdes) para el modal -->
+<style>
+  .saif-modal-body { background: #f7fcf8; }
+  .saif-label { font-weight: 600; color: #166534; } /* green-800 */
+  .saif-card { border-radius: .75rem; overflow: hidden; }
+  .saif-section__title{
+    font-weight: 700; color:#14532d; display:flex; align-items:center;
+    background:#e8f5ec; border:1px solid #d7ebe0; padding:.5rem .75rem; border-radius:.5rem;
+  }
+  .saif-input{
+    border:1px solid #cfe9d7;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .saif-input:focus{
+    border-color:#22c55e;
+    box-shadow: 0 0 0 .15rem rgba(34,197,94,.15);
+  }
+  .saif-ig{
+    background:#f0fdf4; color:#166534; border:1px solid #cfe9d7;
+  }
+  .saif-btn-outline{
+    border-width:1px;
+  }
+  .saif-btn-outline:hover{
+    background:#22c55e; color:#fff; border-color:#22c55e;
+  }
+  .saif-btn-light{
+    background:#f8fff9;
+  }
+  .saif-table thead th{
+    background:#e8f5ec !important;
+    border-bottom:1px solid #d7ebe0 !important;
+    color:#065f46;
+  }
+  .saif-table tbody tr:hover{
+    background:#f3fbf6;
+  }
+  .saif-hint{
+    border:1px solid #cfe9d7;
+    background:#f0fdf4;
+    color:#166534;
+  }
+
+  /* Bordes y radios consistentes */
+  .form-control, .input-group-text, .btn { border-radius: .6rem; }
+</style>

@@ -1,44 +1,119 @@
 <div class="modal fade" id="modalAgotamiento" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content saif-modal">
+      <!-- HEADER -->
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="bi bi-droplet-half"></i> Productos Próximos a Agotarse</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <i class="bi bi-archive"></i>
+          <span>Productos Próximos a Agotarse</span>
+          <span class="badge bg-light text-dark ms-2" id="agTotalBadge">0 ítems</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body">
+
+      <!-- BODY -->
+      <div class="modal-body p-3 p-md-4">
         {% if productos %}
-        <table class="table table-hover text-center">
-          <thead class="table-primary">
-            <tr>
-              <th>Código</th>
-              <th>Nombre</th>
-              <th>Disponible</th>
-              <th>Mínimo</th>
-              <th>Margen (%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in productos %}
-            <tr>
-              <td>{{ p.codigo_producto }}</td>
-              <td>{{ p.nombre }}</td>
-              <td>{{ p.stock_total|default:0 }}</td>
-              <td>{{ p.stock_minimo }}</td>
-              <td>
-                {% if p.margen_porcentaje %}
-                  {{ p.margen_porcentaje }}%
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <!-- Filtros fuera de la tabla -->
+        <div class="saif-filter-card border rounded-3 p-3 mb-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-funnel-fill text-success"></i>
+            <span class="fw-semibold text-success">Filtros del reporte</span>
+          </div>
+
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label saif-label">Código</label>
+              <input id="ag-q-codigo" class="form-control saif-input" placeholder="Buscar código…">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label saif-label">Nombre</label>
+              <input id="ag-q-nombre" class="form-control saif-input" placeholder="Buscar nombre…">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label saif-label">Margen máximo (%)</label>
+              <input id="ag-q-margen" class="form-control saif-input" placeholder="Ej: 10, 20…">
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end mt-2">
+            <button id="ag-btn-apply" class="btn btn-success">
+              <i class="bi bi-sliders"></i> Aplicar
+            </button>
+            <button id="ag-btn-clear" class="btn btn-light border-success text-success">
+              <i class="bi bi-eraser"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-container">
+          <table class="table table-hover align-middle text-center" id="tablaAgotamiento">
+            <thead class="table-primary">
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Disponible</th>
+                <th>Mínimo</th>
+                <th>Margen (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in productos %}
+              <tr>
+                <td class="text-truncate" title="{{ p.codigo_producto }}">{{ p.codigo_producto }}</td>
+                <td class="text-truncate" title="{{ p.nombre }}">{{ p.nombre }}</td>
+                <td>{{ p.stock_total|default:0 }}</td>
+                <td>{{ p.stock_minimo }}</td>
+                <td>
+                  {% if p.margen_porcentaje %}
+                    {{ p.margen_porcentaje }}%
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
         {% else %}
-        <p class="text-muted text-center mb-0">No hay productos próximos a agotarse.</p>
+          <p class="text-muted text-center mb-0">
+            <i class="bi bi-inbox me-1"></i> No hay productos próximos a agotarse.
+          </p>
         {% endif %}
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer justify-content-between">
+        <span class="small text-success fw-semibold">
+          <i class="bi bi-shield-check me-1"></i> Reporte SAIF
+        </span>
+        <button type="button" class="btn btn-light border-success text-success rounded-pill px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  #modalAgotamiento .saif-modal{ border-radius:.9rem; overflow:hidden; }
+  #modalAgotamiento .table-container{ overflow-x:auto; width:100%; }
+  #modalAgotamiento .saif-filter-card{ background:#f7fcf8; border-color:#cfe9d7 !important; }
+  #modalAgotamiento .saif-label{ font-weight:600; color:#166534; }
+  #modalAgotamiento .saif-input{ border:1px solid #cfe9d7; }
+  #modalAgotamiento .saif-input:focus{ border-color:#22c55e; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+
+  #tablaAgotamiento{
+    table-layout:fixed; width:100%; min-width:860px;
+    border-collapse:separate; border-spacing:0;
+    outline:1px solid #e5e7eb; outline-offset:-1px; border-radius:.6rem; margin-bottom:0;
+  }
+  #tablaAgotamiento th,#tablaAgotamiento td{
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+    padding:.6rem; font-size:.9rem; background-clip:padding-box; border:1px solid #eef2f4;
+  }
+  #tablaAgotamiento thead th{ background:#e7f1ff !important; color:#0a3a6b; border-bottom:1px solid #cfe2ff !important; }
+  #tablaAgotamiento tbody tr:hover{ background:#f7fbff; }
+</style>

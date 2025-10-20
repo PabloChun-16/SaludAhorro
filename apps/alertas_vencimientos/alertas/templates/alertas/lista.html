@@ -9,64 +9,81 @@
 <section class="p-3">
   <div class="saif-card shadow-lg rounded-3 overflow-hidden">
     <!-- HEADER -->
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-danger text-white px-3 py-2">
-      <h3 class="mb-0 fs-6">
-        <i class="bi bi-exclamation-triangle me-2"></i> Alertas de Inventario
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6 d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>Alertas de Inventario</span>
       </h3>
-      <span class="badge bg-light text-danger px-2 py-1 fs-7">SAIF</span>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
     <!-- BODY -->
-    <div class="p-4">
-      <div class="row g-3">
-        <!-- Stock Bajo -->
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+    <div class="p-4 bg-light">
+      <div class="row g-4 justify-content-center">
+        <!-- STOCK BAJO -->
+        <div class="col-md-3 col-sm-6">
+          <div class="card alert-card border-success text-center shadow-sm h-100">
             <div class="card-body">
-              <h5 class="fw-bold text-danger">Stock Bajo</h5>
-              <h2 class="fw-bolder">{{ stock_bajo }}</h2>
-
-              <button class="btn btn-outline-primary btn-sm mt-2"
-        data-modal="#modalStockBajo">Ver Detalle</button>
-
+              <div class="icon-wrapper text-success mx-auto mb-2">
+                <i class="bi bi-box-seam fs-3"></i>
               </div>
-          </div>
-        </div>
-
-        <!-- Próximos a Vencer -->
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
-            <div class="card-body">
-              <h5 class="fw-bold text-warning">Próximos a Vencer</h5>
-              <h2 class="fw-bolder">{{ proximos_vencer }}</h2>
-
-                <button class="btn btn-outline-primary btn-sm mt-2"
-        data-modal="#modalProximosVencer">Ver Detalle</button>
-
+              <h6 class="fw-bold text-success mb-1">Stock Bajo</h6>
+              <h3 class="fw-bolder text-dark mb-3">{{ stock_bajo }}</h3>
+              <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                      data-modal="#modalStockBajo">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Vencidos -->
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+        <!-- PRÓXIMOS A VENCER -->
+        <div class="col-md-3 col-sm-6">
+          <div class="card alert-card border-warning text-center shadow-sm h-100">
             <div class="card-body">
-              <h5 class="fw-bold text-secondary">Vencidos</h5>
-              <h2 class="fw-bolder">{{ vencidos }}</h2>
-              <button class="btn btn-outline-primary btn-sm mt-2"
-        data-modal="#modalVencidos">Ver Detalle</button>
+              <div class="icon-wrapper text-warning mx-auto mb-2">
+                <i class="bi bi-hourglass-split fs-3"></i>
+              </div>
+              <h6 class="fw-bold text-warning mb-1">Próximos a Vencer</h6>
+              <h3 class="fw-bolder text-dark mb-3">{{ proximos_vencer }}</h3>
+              <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                      data-modal="#modalProximosVencer">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Agotamiento -->
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm h-100 text-center alert-card bg-light">
+        <!-- VENCIDOS -->
+        <div class="col-md-3 col-sm-6">
+          <div class="card alert-card border-secondary text-center shadow-sm h-100">
             <div class="card-body">
-              <h5 class="fw-bold text-primary">Próximos a Agotarse</h5>
-              <h2 class="fw-bolder">{{ agotamiento }}</h2>
-                    <button class="btn btn-outline-primary btn-sm mt-2"
-              data-modal="#modalAgotamiento">Ver Detalle</button>
+              <div class="icon-wrapper text-secondary mx-auto mb-2">
+                <i class="bi bi-calendar-x fs-3"></i>
+              </div>
+              <h6 class="fw-bold text-secondary mb-1">Vencidos</h6>
+              <h3 class="fw-bolder text-dark mb-3">{{ vencidos }}</h3>
+              <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                      data-modal="#modalVencidos">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGOTAMIENTO -->
+        <div class="col-md-3 col-sm-6">
+          <div class="card alert-card border-info text-center shadow-sm h-100">
+            <div class="card-body">
+              <div class="icon-wrapper text-info mx-auto mb-2">
+                <i class="bi bi-archive fs-3"></i>
+              </div>
+              <h6 class="fw-bold text-info mb-1">Próximos a Agotarse</h6>
+              <h3 class="fw-bolder text-dark mb-3">{{ agotamiento }}</h3>
+              <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                      data-modal="#modalAgotamiento">
+                <i class="bi bi-eye"></i> Ver Detalle
+              </button>
             </div>
           </div>
         </div>
@@ -74,41 +91,365 @@
     </div>
   </div>
 
-  <!-- Modal placeholder -->
-<div id="modalContainer"></div>
-
-
+  <!-- Modal Placeholder -->
+  <div id="modalContainer"></div>
 </section>
+
+<!-- === ESTILO BOOTSTRAP SAIF === -->
+<style>
+  .alert-card {
+    border-radius: 1rem;
+    background: #fff;
+    transition: all 0.2s ease-in-out;
+  }
+  .alert-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(25, 135, 84, 0.15);
+  }
+
+  .icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(25, 135, 84, 0.05);
+    border: 1px solid rgba(25, 135, 84, 0.15);
+  }
+
+  .btn-outline-success {
+    border: 1px solid #198754;
+    color: #198754;
+    transition: all 0.2s ease-in-out;
+  }
+  .btn-outline-success:hover {
+    background-color: #198754;
+    color: white;
+  }
+
+  h6 { letter-spacing: 0.3px; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// ====== Utilidades globales SAIF (solo una vez) ======
+window.SAIF = window.SAIF || {};
+
+// Normaliza texto (minúsculas + sin acentos) — compatible con todos los navegadores
+SAIF.normalize = function (str) {
+  try {
+    return (str || "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  } catch (e) {
+    return (str || "").toString().toLowerCase().trim();
+  }
+};
+
+/* =========================
+   Modal: STOCK BAJO
+   (Código + Nombre)
+========================= */
+SAIF.initStockBajo = function (modalEl) {
+  if (!modalEl) return;
+  const table = modalEl.querySelector("#tablaStockBajo");
+  const tbody = table?.querySelector("tbody");
+  const totalBadge = modalEl.querySelector("#sbTotalBadge");
+  const qCod = modalEl.querySelector("#sb-q-codigo");
+  const qNom = modalEl.querySelector("#sb-q-nombre");
+  const btnApply = modalEl.querySelector("#sb-btn-apply");
+  const btnClear = modalEl.querySelector("#sb-btn-clear");
+  if (!tbody || !qCod || !qNom) return;
+
+  function apply() {
+    const vCod = SAIF.normalize(qCod.value);
+    const vNom = SAIF.normalize(qNom.value);
+    let count = 0;
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      const tds = tr.children;
+      const cod = SAIF.normalize(tds[0]?.textContent);
+      const nom = SAIF.normalize(tds[1]?.textContent);
+      const ok = (!vCod || cod.includes(vCod)) && (!vNom || nom.includes(vNom));
+      tr.classList.toggle("d-none", !ok);
+      if (ok) count++;
+    });
+
+    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+  }
+
+  function clearAll(e) {
+    e?.preventDefault();
+    qCod.value = "";
+    qNom.value = "";
+    apply();
+  }
+
+  // Debounce suave al tipear
+  let t; const debounced = () => { clearTimeout(t); t = setTimeout(apply, 120); };
+
+  qCod.addEventListener("input", debounced);
+  qNom.addEventListener("input", debounced);
+  btnApply?.addEventListener("click", (e) => { e.preventDefault(); apply(); });
+  btnClear?.addEventListener("click", clearAll);
+
+  // tooltips por overflow
+  table.querySelectorAll("td, th").forEach((el) => {
+    if (el.scrollWidth > el.clientWidth) el.setAttribute("title", el.textContent.trim());
+    else el.removeAttribute("title");
+  });
+
+  apply(); // primera pasada
+};
+
+/* =========================
+   Modal: VENCIDOS
+   (Producto + Lote)
+========================= */
+SAIF.initVencidos = function (modalEl) {
+  if (!modalEl) return;
+  const table = modalEl.querySelector("#tablaVencidos");
+  const tbody = table?.querySelector("tbody");
+  const totalBadge = modalEl.querySelector("#vvTotalBadge");
+  const qProd = modalEl.querySelector("#vv-q-producto");
+  const qLote = modalEl.querySelector("#vv-q-lote");
+  const btnApply = modalEl.querySelector("#vv-btn-apply");
+  const btnClear = modalEl.querySelector("#vv-btn-clear");
+  if (!tbody || !qProd || !qLote) return;
+
+  function apply() {
+    const vProd = SAIF.normalize(qProd.value);
+    const vLote = SAIF.normalize(qLote.value);
+    let count = 0;
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      const tds = tr.children;
+      const prod = SAIF.normalize(tds[0]?.textContent);
+      const lote = SAIF.normalize(tds[1]?.textContent);
+      const ok = (!vProd || prod.includes(vProd)) && (!vLote || lote.includes(vLote));
+      tr.classList.toggle("d-none", !ok);
+      if (ok) count++;
+    });
+
+    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+  }
+
+  function clearAll(e) {
+    e?.preventDefault();
+    qProd.value = "";
+    qLote.value = "";
+    apply();
+  }
+
+  let t; const debounced = () => { clearTimeout(t); t = setTimeout(apply, 120); };
+
+  qProd.addEventListener("input", debounced);
+  qLote.addEventListener("input", debounced);
+  btnApply?.addEventListener("click", (e) => { e.preventDefault(); apply(); });
+  btnClear?.addEventListener("click", clearAll);
+
+  // tooltips por overflow
+  table.querySelectorAll("td, th").forEach((el) => {
+    if (el.scrollWidth > el.clientWidth) el.setAttribute("title", el.textContent.trim());
+    else el.removeAttribute("title");
+  });
+
+  apply(); // primera pasada
+};
+
+/* =========================
+   Modal: PRÓXIMOS A VENCER
+   (Producto + Lote + Días Restantes <=)
+========================= */
+SAIF.initProximosVencer = function (modalEl) {
+  if (!modalEl) return;
+  const table = modalEl.querySelector("#tablaProximosVencer");
+  const tbody = table?.querySelector("tbody");
+  const totalBadge = modalEl.querySelector("#pvTotalBadge");
+  const qProd = modalEl.querySelector("#pv-q-producto");
+  const qLote = modalEl.querySelector("#pv-q-lote");
+  const qDias = modalEl.querySelector("#pv-q-dias");
+  const btnApply = modalEl.querySelector("#pv-btn-apply");
+  const btnClear = modalEl.querySelector("#pv-btn-clear");
+  if (!tbody || !qProd || !qLote) return;
+
+  function apply() {
+    const vProd = SAIF.normalize(qProd.value);
+    const vLote = SAIF.normalize(qLote.value);
+    const vDias = (qDias.value || "").trim();
+    let count = 0;
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      const tds = tr.children;
+      const prod = SAIF.normalize(tds[0]?.textContent);
+      const lote = SAIF.normalize(tds[1]?.textContent);
+      const dias = parseInt(tds[4]?.textContent) || 0;
+
+      const ok =
+        (!vProd || prod.includes(vProd)) &&
+        (!vLote || lote.includes(vLote)) &&
+        (!vDias || dias <= parseInt(vDias));
+
+      tr.classList.toggle("d-none", !ok);
+      if (ok) count++;
+    });
+
+    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+  }
+
+  function clearAll(e) {
+    e?.preventDefault();
+    qProd.value = "";
+    qLote.value = "";
+    qDias.value = "";
+    apply();
+  }
+
+  let t; const debounced = () => { clearTimeout(t); t = setTimeout(apply, 120); };
+
+  qProd.addEventListener("input", debounced);
+  qLote.addEventListener("input", debounced);
+  qDias.addEventListener("input", debounced);
+  btnApply?.addEventListener("click", (e) => { e.preventDefault(); apply(); });
+  btnClear?.addEventListener("click", clearAll);
+
+  // tooltips por overflow
+  table.querySelectorAll("td, th").forEach((el) => {
+    if (el.scrollWidth > el.clientWidth) el.setAttribute("title", el.textContent.trim());
+    else el.removeAttribute("title");
+  });
+
+  apply(); // primera pasada
+};
+
+/* =========================
+   Modal: AGOTAMIENTO
+   (Código + Nombre + Margen % <=)
+========================= */
+SAIF.initAgotamiento = function (modalEl) {
+  if (!modalEl) return;
+  const table = modalEl.querySelector("#tablaAgotamiento");
+  const tbody = table?.querySelector("tbody");
+  const totalBadge = modalEl.querySelector("#agTotalBadge");
+  const qCod = modalEl.querySelector("#ag-q-codigo");
+  const qNom = modalEl.querySelector("#ag-q-nombre");
+  const qMargen = modalEl.querySelector("#ag-q-margen");
+  const btnApply = modalEl.querySelector("#ag-btn-apply");
+  const btnClear = modalEl.querySelector("#ag-btn-clear");
+  if (!tbody || !qCod || !qNom) return;
+
+  function parsePerc(v) {
+    if (v == null) return NaN;
+    const s = (""+v).replace("%","").trim();
+    const n = parseFloat(s);
+    return isNaN(n) ? NaN : n;
+  }
+
+  function apply() {
+    const vCod = SAIF.normalize(qCod.value);
+    const vNom = SAIF.normalize(qNom.value);
+    const vMargen = parsePerc(qMargen.value);
+    let count = 0;
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      const tds = tr.children;
+      const cod = SAIF.normalize(tds[0]?.textContent);
+      const nom = SAIF.normalize(tds[1]?.textContent);
+      const margenCell = parsePerc(tds[4]?.textContent);
+      const ok =
+        (!vCod || cod.includes(vCod)) &&
+        (!vNom || nom.includes(vNom)) &&
+        (isNaN(vMargen) || (!isNaN(margenCell) && margenCell <= vMargen));
+
+      tr.classList.toggle("d-none", !ok);
+      if (ok) count++;
+    });
+
+    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+  }
+
+  function clearAll(e) {
+    e?.preventDefault();
+    qCod.value = "";
+    qNom.value = "";
+    qMargen.value = "";
+    apply();
+  }
+
+  let t; const debounced = () => { clearTimeout(t); t = setTimeout(apply, 120); };
+
+  qCod.addEventListener("input", debounced);
+  qNom.addEventListener("input", debounced);
+  qMargen.addEventListener("input", debounced);
+  btnApply?.addEventListener("click", (e) => { e.preventDefault(); apply(); });
+  btnClear?.addEventListener("click", clearAll);
+
+  // tooltips por overflow
+  table.querySelectorAll("td, th").forEach((el) => {
+    if (el.scrollWidth > el.clientWidth) el.setAttribute("title", el.textContent.trim());
+    else el.removeAttribute("title");
+  });
+
+  apply(); // primera pasada
+};
+
 document.addEventListener("DOMContentLoaded", function () {
-  const modals = [
-    { selector: '[data-modal="#modalStockBajo"]',       url: "{% url 'alertas_vencimientos:alertas:alertas_stock_bajo' %}",       id: "#modalStockBajo" },
-    { selector: '[data-modal="#modalProximosVencer"]',  url: "{% url 'alertas_vencimientos:alertas:alertas_proximos_vencer' %}",  id: "#modalProximosVencer" },
-    { selector: '[data-modal="#modalVencidos"]',        url: "{% url 'alertas_vencimientos:alertas:alertas_vencidos' %}",         id: "#modalVencidos" },
-    { selector: '[data-modal="#modalAgotamiento"]',     url: "{% url 'alertas_vencimientos:alertas:alertas_agotamiento' %}",      id: "#modalAgotamiento" },
+  // ====== Config de modales (PADRE) ======
+  const modalDefs = [
+    {
+      selector: '[data-modal="#modalStockBajo"]',
+      url: "{% url 'alertas_vencimientos:alertas:alertas_stock_bajo' %}",
+      id: "#modalStockBajo",
+      init: (el) => SAIF.initStockBajo(el),
+    },
+    {
+      selector: '[data-modal="#modalProximosVencer"]',
+      url: "{% url 'alertas_vencimientos:alertas:alertas_proximos_vencer' %}",
+      id: "#modalProximosVencer",
+      init: (el) => SAIF.initProximosVencer(el),
+    },
+    {
+      selector: '[data-modal="#modalVencidos"]',
+      url: "{% url 'alertas_vencimientos:alertas:alertas_vencidos' %}",
+      id: "#modalVencidos",
+      init: (el) => SAIF.initVencidos(el),
+    },
+    {
+      selector: '[data-modal="#modalAgotamiento"]',
+      url: "{% url 'alertas_vencimientos:alertas:alertas_agotamiento' %}",
+      id: "#modalAgotamiento",
+      init: (el) => SAIF.initAgotamiento(el),
+    },
   ];
 
   const container = document.querySelector("#modalContainer");
 
-  modals.forEach(({selector, url, id}) => {
-    const btn = document.querySelector(selector);
-    if (!btn) return;
+  modalDefs.forEach(({ selector, url, id, init }) => {
+    // Soporta múltiples botones para el mismo modal
+    document.querySelectorAll(selector).forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+          .then((r) => r.text())
+          .then((html) => {
+            container.innerHTML = html;
+            const el = container.querySelector(id);
 
-    btn.addEventListener("click", function (e) {
-      e.preventDefault(); // 👈 evita que Bootstrap intente abrir nada
-      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-        .then(r => r.text())
-        .then(html => {
-          container.innerHTML = html;
-          const el = container.querySelector(id);
-          new bootstrap.Modal(el).show();
-        })
-        .catch(() => {
-          container.innerHTML = '<div class="p-4 text-danger text-center">Error cargando el detalle.</div>';
-        });
+            // Inicializamos los filtros ANTES de abrir el modal
+            if (typeof init === "function") init(el);
+
+            new bootstrap.Modal(el).show();
+          })
+          .catch(() => {
+            container.innerHTML =
+              '<div class="p-4 text-danger text-center">Error cargando el detalle.</div>';
+          });
+      });
     });
   });
 });
