@@ -103,10 +103,26 @@
 
         <div class="modal-body bg-slate-50 py-4">
           <div class="grid md:grid-cols-2 gap-4">
-            <input type="text" name="referencia_factura" class="form-control rounded-lg" placeholder="Referencia Factura" required>
-            <input type="text" name="referente_receta"   class="form-control rounded-lg" placeholder="Referente Receta" required>
+            <!-- Factura: readonly + hidden + buscador -->
+            <div class="md:col-span-2">
+              <label class="form-label fw-semibold mb-1">Referencia factura</label>
+              <div class="input-group">
+                <input id="crearFacturaTxt" type="text" class="form-control rounded-start" placeholder="Seleccione la factura desde el buscador" readonly>
+                <input id="crearFacturaVal" type="hidden" name="referencia_factura">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalBuscarFactura"
+                        data-parent="crear">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <small class="text-muted">La selección de factura asigna automáticamente el usuario de venta (y puede sugerir el producto).</small>
+            </div>
 
-            <!-- Producto: readonly + hidden + botón buscar -->
+            <input type="text" name="referente_receta" class="form-control rounded-lg" placeholder="Referente Receta" required>
+
+            <!-- Producto: readonly + hidden + botón buscar (puedes permitir cambiarlo manualmente) -->
             <div class="md:col-span-2">
               <label class="form-label fw-semibold mb-1">Producto</label>
               <div class="input-group">
@@ -120,15 +136,14 @@
                   <i class="bi bi-search"></i>
                 </button>
               </div>
-              <small class="text-muted">Usa el buscador para evitar errores.</small>
             </div>
 
-            <select name="id_usuario_venta" class="form-control rounded-lg" required>
-              <option value="">Seleccione un usuario</option>
-              {% for usuario in usuarios %}
-                <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-              {% endfor %}
-            </select>
+            <!-- Usuario de la venta: hidden + display readonly (se llena al elegir factura) -->
+            <div class="md:col-span-2">
+              <label class="form-label fw-semibold mb-1">Usuario de la venta</label>
+              <input id="crearUsuarioVentaTxt" type="text" class="form-control" placeholder="Se autocompleta al elegir la factura" readonly>
+              <input id="crearUsuarioVentaId" type="hidden" name="id_usuario_venta">
+            </div>
           </div>
         </div>
 
@@ -190,10 +205,25 @@
         </div>
 
         <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
-          <input type="text" name="referencia_factura" id="editFactura"   class="form-control rounded-lg" placeholder="Referencia Factura">
-          <input type="text" name="referente_receta"   id="editReferente" class="form-control rounded-lg" placeholder="Referente Receta">
+          <!-- Factura: readonly + buscador -->
+          <div class="md:col-span-2">
+            <label class="form-label fw-semibold mb-1">Referencia factura</label>
+            <div class="input-group">
+              <input id="editFacturaTxt" type="text" class="form-control rounded-start" placeholder="Seleccione la factura desde el buscador" readonly>
+              <input id="editFacturaVal" type="hidden" name="referencia_factura">
+              <button class="btn btn-outline-secondary"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBuscarFactura"
+                      data-parent="editar">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
 
-          <!-- Producto: readonly + hidden + botón buscar -->
+          <input type="text" name="referente_receta" id="editReferente" class="form-control rounded-lg" placeholder="Referente Receta">
+
+          <!-- Producto -->
           <div class="md:col-span-2">
             <label class="form-label fw-semibold mb-1">Producto</label>
             <div class="input-group">
@@ -209,12 +239,12 @@
             </div>
           </div>
 
-          <select name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg" required>
-            <option value="">Seleccione un usuario</option>
-            {% for usuario in usuarios %}
-              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-            {% endfor %}
-          </select>
+          <!-- Usuario venta (hidden + display) -->
+          <div class="md:col-span-2">
+            <label class="form-label fw-semibold mb-1">Usuario de la venta</label>
+            <input id="editUsuarioTxt" type="text" class="form-control" readonly>
+            <input id="editUsuarioId" type="hidden" name="id_usuario_venta">
+          </div>
         </div>
 
         <div class="modal-footer bg-white">
@@ -290,6 +320,40 @@
               </tr>
             </thead>
             <tbody id="tablaBuscarProductos"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================== MODAL: BUSCAR FACTURA ================== -->
+<div class="modal fade" id="modalBuscarFactura" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-search me-2"></i>Buscar factura</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <input id="searchFactura" type="text" class="form-control" placeholder="Número de factura, producto, usuario...">
+        </div>
+        <div class="table-responsive" style="max-height:50vh;overflow:auto">
+          <table class="table table-hover table-sm">
+            <thead class="table-success">
+              <tr>
+                <th>Factura</th>
+                <th>Usuario venta</th>
+                <th>Producto</th>
+                <th>Fecha</th>
+                <th>Elegir</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarFacturas"></tbody>
           </table>
         </div>
       </div>
@@ -402,11 +466,18 @@ document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("btnEditar").addEventListener("click",()=>{
     if(!selectedRow){ alert("Selecciona una receta primero."); return; }
     const id = selectedRow.dataset.id;
-    document.getElementById("editFactura").value    = selectedRow.dataset.factura || "";
-    document.getElementById("editReferente").value  = selectedRow.dataset.referente || "";
-    document.getElementById("editProductoId").value = selectedRow.dataset.productoId || "";
-    document.getElementById("editProductoTxt").value= selectedRow.dataset.productoNombre || "";
-    document.getElementById("editUsuario").value    = selectedRow.dataset.usuarioId  || "";
+
+    // Factura y usuario venta (display + hidden)
+    document.getElementById("editFacturaTxt").value  = selectedRow.dataset.factura || "";
+    document.getElementById("editFacturaVal").value  = selectedRow.dataset.factura || "";
+    document.getElementById("editUsuarioTxt").value  = selectedRow.dataset.usuarioNombre || "";
+    document.getElementById("editUsuarioId").value   = selectedRow.dataset.usuarioId || "";
+
+    // Referente y producto
+    document.getElementById("editReferente").value   = selectedRow.dataset.referente || "";
+    document.getElementById("editProductoId").value  = selectedRow.dataset.productoId || "";
+    document.getElementById("editProductoTxt").value = selectedRow.dataset.productoNombre || "";
+
     document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
     new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
   });
@@ -546,56 +617,54 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   /* ====== Buscador de productos (modal) ====== */
-  const modalBuscarEl = document.getElementById("modalBuscarProducto");
-  const modalCrearEl  = document.getElementById("crearRecetaModal");
-  const modalEditarEl = document.getElementById("editarRecetaModal");
+  const modalBuscarProd = document.getElementById("modalBuscarProducto");
+  const modalCrear      = document.getElementById("crearRecetaModal");
+  const modalEditar     = document.getElementById("editarRecetaModal");
 
-  // Guardar desde qué modal se abrió el buscador
+  // Contexto de origen para reabrir el modal principal
   let parentContext = null;
-  document.querySelectorAll('[data-bs-target="#modalBuscarProducto"]').forEach(btn=>{
+  document.querySelectorAll('[data-bs-target="#modalBuscarProducto"],[data-bs-target="#modalBuscarFactura"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       parentContext = btn.getAttribute('data-parent') || null;
     });
   });
 
-  const searchInput = document.getElementById("searchProducto");
-  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+  const searchProducto     = document.getElementById("searchProducto");
+  const tbodyBuscarProd    = document.getElementById("tablaBuscarProductos");
 
-  if(modalBuscarEl){
-    modalBuscarEl.addEventListener("shown.bs.modal", () => {
-      if (searchInput){ searchInput.value = ""; searchInput.focus(); }
-      if (tbodyResultados){ tbodyResultados.innerHTML = ""; }
+  if(modalBuscarProd){
+    modalBuscarProd.addEventListener("shown.bs.modal", () => {
+      if (searchProducto){ searchProducto.value = ""; searchProducto.focus(); }
+      if (tbodyBuscarProd){ tbodyBuscarProd.innerHTML = ""; }
     });
-
-    // Al cerrar el buscador, reabrir el modal padre correspondiente
-    modalBuscarEl.addEventListener("hidden.bs.modal", () => {
-      if (parentContext === 'crear' && modalCrearEl){
-        bootstrap.Modal.getOrCreateInstance(modalCrearEl).show();
-      } else if (parentContext === 'editar' && modalEditarEl){
-        bootstrap.Modal.getOrCreateInstance(modalEditarEl).show();
+    modalBuscarProd.addEventListener("hidden.bs.modal", () => {
+      if (parentContext === 'crear' && modalCrear){
+        bootstrap.Modal.getOrCreateInstance(modalCrear).show();
+      } else if (parentContext === 'editar' && modalEditar){
+        bootstrap.Modal.getOrCreateInstance(modalEditar).show();
       }
     });
   }
 
-  function setProductoSeleccionadoGlobal({id, texto}){
+  function setProductoSeleccionado({id, texto}){
     if (parentContext === 'editar'){
       document.getElementById("editProductoId").value  = id || "";
       document.getElementById("editProductoTxt").value = texto || "";
-    } else { // por defecto crear
+    } else {
       document.getElementById("crearProductoId").value  = id || "";
       document.getElementById("crearProductoTxt").value = texto || "";
     }
   }
 
-  if (searchInput){
-    searchInput.oninput = function(){
+  if (searchProducto){
+    searchProducto.oninput = function(){
       const term = this.value || "";
       fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
         .then(r => r.json())
         .then(data => {
-          tbodyResultados.innerHTML = "";
+          tbodyBuscarProd.innerHTML = "";
           if (!Array.isArray(data) || data.length===0){
-            tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>`;
+            tbodyBuscarProd.innerHTML = `<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>`;
             return;
           }
           data.forEach(p => {
@@ -612,18 +681,99 @@ document.addEventListener("DOMContentLoaded", function(){
               <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
             `;
             tr.querySelector("button").addEventListener("click", () => {
-              setProductoSeleccionadoGlobal({
+              setProductoSeleccionado({
                 id: p.id,
                 texto: `${p.codigo ?? ""} - ${p.nombre ?? ""}`.trim()
               });
-              // Cerrar buscador; el handler 'hidden' reabre el padre
-              bootstrap.Modal.getInstance(modalBuscarEl).hide();
+              bootstrap.Modal.getInstance(modalBuscarProd).hide();
             });
-            tbodyResultados.appendChild(tr);
+            tbodyBuscarProd.appendChild(tr);
           });
         })
         .catch(() => {
-          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+          tbodyBuscarProd.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+        });
+    };
+  }
+
+  /* ====== Buscador de facturas (modal) ====== */
+  const modalBuscarFac  = document.getElementById("modalBuscarFactura");
+  const searchFactura   = document.getElementById("searchFactura");
+  const tbodyBuscarFac  = document.getElementById("tablaBuscarFacturas");
+
+  if(modalBuscarFac){
+    modalBuscarFac.addEventListener("shown.bs.modal", () => {
+      if (searchFactura){ searchFactura.value = ""; searchFactura.focus(); }
+      if (tbodyBuscarFac){ tbodyBuscarFac.innerHTML = ""; }
+    });
+    modalBuscarFac.addEventListener("hidden.bs.modal", () => {
+      if (parentContext === 'crear' && modalCrear){
+        bootstrap.Modal.getOrCreateInstance(modalCrear).show();
+      } else if (parentContext === 'editar' && modalEditar){
+        bootstrap.Modal.getOrCreateInstance(modalEditar).show();
+      }
+    });
+  }
+
+  function setFacturaSeleccionada({factura, usuarioId, usuarioNombre, productoId, productoNombre}){
+    if (parentContext === 'editar'){
+      document.getElementById("editFacturaTxt").value  = factura || "";
+      document.getElementById("editFacturaVal").value  = factura || "";
+      document.getElementById("editUsuarioTxt").value  = usuarioNombre || "";
+      document.getElementById("editUsuarioId").value   = usuarioId || "";
+      // opcional: sugerir producto
+      if(productoId){
+        document.getElementById("editProductoId").value  = productoId;
+        document.getElementById("editProductoTxt").value = productoNombre || "";
+      }
+    } else {
+      document.getElementById("crearFacturaTxt").value  = factura || "";
+      document.getElementById("crearFacturaVal").value  = factura || "";
+      document.getElementById("crearUsuarioVentaTxt").value = usuarioNombre || "";
+      document.getElementById("crearUsuarioVentaId").value  = usuarioId || "";
+      if(productoId){
+        document.getElementById("crearProductoId").value  = productoId;
+        document.getElementById("crearProductoTxt").value = productoNombre || "";
+      }
+    }
+  }
+
+  if (searchFactura){
+    searchFactura.oninput = function(){
+      const term = this.value || "";
+      // Endpoint equivalente al buscador de productos
+      fetch("{% url 'recetas:search_facturas' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyBuscarFac.innerHTML = "";
+          if (!Array.isArray(data) || data.length===0){
+            tbodyBuscarFac.innerHTML = `<tr><td colspan="5" class="text-muted">Sin resultados.</td></tr>`;
+            return;
+          }
+          data.forEach(f => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${f.factura ?? ""}</td>
+              <td>${f.usuario_nombre ?? ""}</td>
+              <td>${f.producto_nombre ?? ""}</td>
+              <td>${f.fecha ?? ""}</td>
+              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              setFacturaSeleccionada({
+                factura: f.factura,
+                usuarioId: f.usuario_id,
+                usuarioNombre: f.usuario_nombre,
+                productoId: f.producto_id,
+                productoNombre: f.producto_nombre
+              });
+              bootstrap.Modal.getInstance(modalBuscarFac).hide();
+            });
+            tbodyBuscarFac.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tbodyBuscarFac.innerHTML = `<tr><td colspan="5" class="text-danger">Error buscando facturas.</td></tr>`;
         });
     };
   }

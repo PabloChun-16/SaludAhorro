@@ -36,20 +36,45 @@
         </thead>
         <tbody>
           {% for envio in envios %}
-          <tr class="fila-envio"
-              data-id="{{ envio.id }}"
-              data-reporte="{{ envio.nombre_reporte }}"
-              data-usuario="{{ envio.id_usuario.nombre }}"
-              data-usuario-id="{{ envio.id_usuario.id }}"
-              data-estado="{{ envio.id_estado_envio.nombre_estado }}"
-              data-estado-id="{{ envio.id_estado_envio.id }}"
-              data-fecha="{{ envio.fecha_envio|date:'Y-m-d' }}"
-              data-fecha-iso="{{ envio.fecha_envio|date:'Y-m-d\\TH:i' }}">
-            <td class="text-truncate">{{ envio.nombre_reporte }}</td>
-            <td class="text-truncate">{{ envio.id_usuario.nombre }}</td>
-            <td class="text-truncate">{{ envio.id_estado_envio.nombre_estado }}</td>
-            <td class="text-truncate">{{ envio.fecha_envio|date:"d/m/Y H:i" }}</td>
-          </tr>
+     <tr class="fila-envio"
+    data-id="{{ envio.id }}"
+    data-reporte="{{ envio.nombre_reporte }}"
+    {% if envio.id_usuario %}
+      data-usuario="{{ envio.id_usuario.nombre }}"
+      data-usuario-id="{{ envio.id_usuario.id }}"
+    {% else %}
+      data-usuario=""
+      data-usuario-id=""
+    {% endif %}
+    {% if envio.id_estado_envio %}
+      data-estado="{{ envio.id_estado_envio.nombre_estado }}"
+      data-estado-id="{{ envio.id_estado_envio.id }}"
+    {% else %}
+      data-estado=""
+      data-estado-id=""
+    {% endif %}
+    data-fecha="{{ envio.fecha_envio|date:'Y-m-d' }}"
+    data-fecha-iso="{{ envio.fecha_envio|date:'Y-m-d\\TH:i' }}">
+  <td class="text-truncate">{{ envio.nombre_reporte }}</td>
+  <td class="text-truncate">
+    {% if envio.id_usuario %}
+      {{ envio.id_usuario.nombre }}
+    {% else %}
+      —
+    {% endif %}
+  </td>
+  <td class="text-truncate">
+    {% if envio.id_estado_envio %}
+      {{ envio.id_estado_envio.nombre_estado }}
+    {% else %}
+      —
+    {% endif %}
+  </td>
+  <td class="text-truncate">{{ envio.fecha_envio|date:"d/m/Y H:i" }}</td>
+</tr>
+
+
+
           {% empty %}
           <tr>
             <td colspan="4" class="py-5 text-muted" data-empty-row>
@@ -84,7 +109,7 @@
   </div>
 </section>
 
-<!-- ================= CSRF oculto (por si hace falta en futuros fetch) ================= -->
+<!-- ================= CSRF oculto ================= -->
 <form style="display:none">{% csrf_token %}</form>
 
 <!-- ============================= MODAL CREAR ENVÍO ============================= -->
@@ -109,19 +134,15 @@
           <div class="grid md:grid-cols-2 gap-4 mb-3">
             <input type="text" name="nombre_reporte" class="form-control rounded-lg" placeholder="Nombre del reporte" required>
 
-            <select name="id_estado_envio" class="form-control rounded-lg" required>
-              <option value="">Seleccione un estado</option>
-              {% for estado in estados %}
-              <option value="{{ estado.id }}">{{ estado.nombre_estado }}</option>
-              {% endfor %}
-            </select>
-
-            <select name="id_usuario" class="form-control rounded-lg" required>
-              <option value="">Seleccione un usuario</option>
-              {% for usuario in usuarios %}
-              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-              {% endfor %}
-            </select>
+            <!-- Chips informativos (estado/usuario automáticos) -->
+            <div class="md:col-span-2 d-flex flex-wrap gap-2">
+              <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+                Estado: Enviado (automático)
+              </span>
+              <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                Usuario: se toma del usuario de la <b>primera receta</b> seleccionada
+              </span>
+            </div>
           </div>
 
           <div class="border rounded-3 p-3 bg-white">
@@ -187,11 +208,35 @@
       </div>
 
       <div class="modal-body py-3 bg-slate-50">
-        <div class="kv-grid">
+        <div class="kv-grid mb-3">
           <div class="kv"><div class="kv__key">Reporte</div><div class="kv__val" id="detalleReporte">—</div></div>
           <div class="kv"><div class="kv__key">Usuario</div><div class="kv__val" id="detalleUsuario">—</div></div>
           <div class="kv"><div class="kv__key">Estado</div><div class="kv__val" id="detalleEstado">—</div></div>
           <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
+        </div>
+
+        <!-- Lista de recetas del envío (opcional: si luego agregas endpoint JSON, aquí puedes llenarlo por fetch) -->
+        <div class="border rounded-3 p-3 bg-white">
+          <h6 class="fw-bold text-emerald-700 mb-2">
+            <i class="bi bi-journal-text me-2"></i>Recetas asociadas
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm" id="tablaRecetasDelEnvio">
+              <thead class="table-light">
+                <tr>
+                  <th>Factura</th>
+                  <th>Referente</th>
+                  <th>Producto</th>
+                  <th>Usuario Venta</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- (Opcional) puedes poblar por fetch si expones un endpoint JSON -->
+              </tbody>
+            </table>
+          </div>
+          <small class="text-muted">Si creaste el envío aquí, verás todas las recetas que seleccionaste.</small>
         </div>
       </div>
 
@@ -222,19 +267,17 @@
 
         <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
           <input type="text" name="nombre_reporte" id="editReporte" class="form-control rounded-lg" placeholder="Nombre del reporte">
-          <select name="id_estado_envio" id="editEstado" class="form-control rounded-lg" required>
-            <option value="">Seleccione estado</option>
-            {% for estado in estados %}
-              <option value="{{ estado.id }}">{{ estado.nombre_estado }}</option>
-            {% endfor %}
-          </select>
-          <select name="id_usuario" id="editUsuario" class="form-control rounded-lg" required>
-            <option value="">Seleccione usuario</option>
-            {% for usuario in usuarios %}
-              <option value="{{ usuario.id }}">{{ usuario.nombre }}</option>
-            {% endfor %}
-          </select>
           <input type="datetime-local" name="fecha_envio" id="editFecha" class="form-control rounded-lg">
+
+          <!-- Info de que estado/usuario no se editan aquí -->
+          <div class="md:col-span-2 d-flex flex-wrap gap-2">
+            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
+              Estado: Enviado (no editable)
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+              Usuario: asignado automáticamente (no editable)
+            </span>
+          </div>
         </div>
 
         <div class="modal-footer bg-white">
@@ -341,7 +384,7 @@
   </div>
 </div>
 
-<!-- ============================= ESTILOS (tabla tipo Productos) ============================= -->
+<!-- ============================= ESTILOS ============================= -->
 <style>
 .table-container{overflow-x:auto;width:100%;scroll-padding-top:90px}
 #tablaEnvios{table-layout:fixed;width:100%;min-width:900px;border-collapse:separate;border-spacing:0;outline:1px solid #e3e6ea;outline-offset:-1px;border-radius:.5rem;margin-bottom:0}
@@ -368,7 +411,7 @@ thead.sticky-top tr.filter-row th{position:sticky;top:42px;z-index:10;background
 .kv__val{color:#0f172a}
 </style>
 
-<!-- ============================= SCRIPT (lógica como Productos) ============================= -->
+<!-- ============================= SCRIPT ============================= -->
 <script>
 document.addEventListener("DOMContentLoaded",function(){
   const table=document.getElementById("tablaEnvios");
@@ -421,19 +464,19 @@ document.addEventListener("DOMContentLoaded",function(){
     document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario || "—";
     document.getElementById("detalleEstado").textContent  = selectedRow.dataset.estado  || "—";
     document.getElementById("detalleFecha").textContent   = selectedRow.dataset.fecha   || "—";
+
+    // Limpia tabla de recetas asociadas (si más adelante agregas fetch JSON, rellénala aquí)
+    const recetasBody = document.querySelector("#tablaRecetasDelEnvio tbody");
+    if (recetasBody) recetasBody.innerHTML = "";
+
     new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
   });
 
-  // ====== Editar (usa IDs y fecha ISO) ======
+  // ====== Editar (solo nombre + fecha) ======
   document.getElementById("btnEditar").addEventListener("click",function(){
     if(!selectedRow){ alert("Selecciona un envío primero."); return; }
     const id=selectedRow.dataset.id;
     document.getElementById("editReporte").value = selectedRow.dataset.reporte || "";
-
-    const selEstado=document.getElementById("editEstado");
-    const selUsuario=document.getElementById("editUsuario");
-    if(selEstado) selEstado.value = selectedRow.dataset.estadoId || "";
-    if(selUsuario) selUsuario.value = selectedRow.dataset.usuarioId || "";
 
     const iso = selectedRow.dataset.fechaIso || "";
     document.getElementById("editFecha").value = iso;
@@ -575,14 +618,12 @@ document.addEventListener("DOMContentLoaded",function(){
   const modalCrearEl  = document.getElementById("crearEnvioModal");
   let parentContext = null; // desde dónde abrí el buscador
 
-  // Captura el contexto (crear/editar) del botón que abrió el buscador
   document.querySelectorAll('[data-bs-target="#modalBuscarReceta"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       parentContext = btn.getAttribute('data-parent') || null;
     });
   });
 
-  // Al cerrar el buscador, reabrir el modal padre (como en productos)
   if(modalBuscarEl){
     modalBuscarEl.addEventListener("hidden.bs.modal", ()=>{
       if(parentContext === 'crear' && modalCrearEl){
@@ -648,7 +689,7 @@ document.addEventListener("DOMContentLoaded",function(){
     if(!crearEnvioAlert) return;
     crearEnvioAlert.textContent = "";
     crearEnvioAlert.classList.add("d-none");
-  }
+    }
 
   function yaExiste(id){
     return !!selBody.querySelector(`tr[data-id="${id}"]`);

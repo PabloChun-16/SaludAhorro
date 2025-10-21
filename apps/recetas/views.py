@@ -2,6 +2,7 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.db.models import Q
 
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -13,7 +14,7 @@ from .models import (
     EstadoEnvioReceta,
     RecetaMedica,
     EnvioReceta,
-    DetalleEnvioReceta,
+    DetalleEnvioReceta,   # del MODELO
     Producto,
     Usuario,
 )
@@ -35,7 +36,7 @@ def index(request):
 @login_required
 def registrar_receta(request):
     """
-    Vista principal que renderiza tu HTML 'todo-en-uno' con tabla y modales.
+    Vista principal que renderiza el HTML con tabla, filtros y modales de Recetas.
     """
     recetas = (
         RecetaMedica.objects
@@ -56,7 +57,7 @@ def registrar_receta(request):
 @login_required
 def lista_recetas(request):
     """
-    Lista aparte (si la necesitas).
+    Lista “aparte” (si la usas para dashboard/reportes).
     """
     recetas = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").all()
     recetas_json = [
@@ -79,7 +80,7 @@ def lista_recetas(request):
 @login_required
 def crear_receta(request):
     """
-    El modal 'Crear' hace POST a esta ruta.
+    Modal 'Crear' -> POST a esta ruta.
     """
     if request.method == "POST":
         form = RecetaForm(request.POST)
@@ -91,7 +92,7 @@ def crear_receta(request):
 @login_required
 def editar_receta(request, pk):
     """
-    El modal 'Editar' envía POST a /recetas/<pk>/editar/
+    Modal 'Editar' -> POST a /recetas/<pk>/editar/
     """
     receta = get_object_or_404(RecetaMedica, pk=pk)
     if request.method == "POST":
@@ -104,7 +105,7 @@ def editar_receta(request, pk):
 @login_required
 def eliminar_receta(request, pk):
     """
-    El modal 'Eliminar' envía POST a /recetas/<pk>/eliminar/
+    Modal 'Eliminar' -> POST a /recetas/<pk>/eliminar/
     """
     if request.method == "POST":
         receta = get_object_or_404(RecetaMedica, pk=pk)
@@ -114,6 +115,9 @@ def eliminar_receta(request, pk):
 
 @login_required
 def detalle_receta(request, pk):
+    """
+    Vista dedicada (si alguna vez navegas fuera del modal).
+    """
     receta = get_object_or_404(
         RecetaMedica.objects.select_related("id_producto", "id_usuario_venta"),
         pk=pk
@@ -123,6 +127,9 @@ def detalle_receta(request, pk):
 
 @login_required
 def consultar_receta(request, receta_id):
+    """
+    Endpoint alternativo para consultar receta (si decides cargar por fetch/iframe).
+    """
     receta = get_object_or_404(
         RecetaMedica.objects.select_related("id_producto", "id_usuario_venta"),
         pk=receta_id
@@ -132,6 +139,9 @@ def consultar_receta(request, receta_id):
 
 @login_required
 def exportar_recetas_pdf(request):
+    """
+    Reporte PDF estilo SAIF (Recetas).
+    """
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = 'attachment; filename="reporte_recetas.pdf"'
 
@@ -161,7 +171,7 @@ def exportar_recetas_pdf(request):
 
     table = Table(data, repeatRows=1)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.0, 0.494, 0.224)),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.Color(0.0, 0.494, 0.224)),  # verde SAIF
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -177,68 +187,157 @@ def exportar_recetas_pdf(request):
 
 
 # ================================
+#     BUSCADOR DE FACTURAS (AJAX)
+# ================================
+
+@login_required
+def search_facturas(request):
+    """
+    JSON para el modal de búsqueda de facturas.
+    Deduplica por referencia_factura y devuelve algunos metadatos útiles.
+    """
+    term = (request.GET.get("term") or "").strip()
+
+    qs = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta")
+    if term:
+        qs = qs.filter(
+            Q(referencia_factura__icontains=term) |
+            Q(id_producto__nombre__icontains=term) |
+            Q(id_usuario_venta__nombre__icontains=term)
+        )
+    qs = qs.order_by("-fecha_venta")
+
+    seen = set()
+    results = []
+    for r in qs[:200]:
+        fac = (r.referencia_factura or "").strip()
+        if not fac or fac in seen:
+            continue
+        seen.add(fac)
+        results.append({
+            "factura": fac,
+            "usuario_id": r.id_usuario_venta_id if r.id_usuario_venta_id else None,
+            "usuario_nombre": r.id_usuario_venta.nombre if r.id_usuario_venta else "",
+            "producto_id": r.id_producto_id if r.id_producto_id else None,
+            "producto_nombre": r.id_producto.nombre if r.id_producto else "",
+            "fecha": r.fecha_venta.strftime("%d/%m/%Y %H:%M") if r.fecha_venta else "",
+        })
+        if len(results) >= 30:
+            break
+
+    return JsonResponse(results, safe=False)
+
+
+# ================================
 #            ENVÍOS
 # ================================
 
 @login_required
 def registrar_envio(request):
+    """
+    Pantalla principal de Envíos: Tabla de envíos + modal crear/editar/consultar.
+    """
     envios = (
         EnvioReceta.objects
         .select_related("id_usuario", "id_estado_envio")
         .order_by("-fecha_envio")
     )
+    # Para buscadores en el modal (recetas)
+    recetas = (
+        RecetaMedica.objects
+        .select_related("id_producto", "id_usuario_venta")
+        .order_by("-fecha_venta")
+    )
     return render(request, "recetas/registrar_envio.html", {
         "envios": envios,
-        "usuarios": Usuario.objects.all(),
-        "estados": EstadoEnvioReceta.objects.all(),
-        # Para el modal de búsqueda local:
-        "recetas": RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").all(),
+        "usuarios": Usuario.objects.all(),                 # si decides mostrar en algún lado
+        "estados": EstadoEnvioReceta.objects.all(),        # idem
+        "recetas": recetas,
     })
 
 
 @login_required
 def crear_envio(request):
-    if request.method == "POST":
-        envio = EnvioReceta.objects.create(
-            fecha_envio=timezone.now(),
-            nombre_reporte=request.POST.get("nombre_reporte"),
-            id_estado_envio_id=request.POST.get("id_estado_envio"),
-            id_usuario_id=request.POST.get("id_usuario"),
-        )
-
-        # Detalle (IDs enviados como recetas[])
-        recetas_ids = request.POST.getlist("recetas[]")
-        for rid in recetas_ids:
-            if rid:
-                DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
-
-        # Regresar a la pantalla principal de envíos
+    """
+    Crea Envío con:
+      - estado forzado a "Enviado"
+      - usuario asignado automáticamente (del primer detalle/receta seleccionada, si hay)
+    y luego crea los DetalleEnvioReceta en base a recetas[] del POST.
+    """
+    if request.method != "POST":
         return redirect("recetas:registrar_envio")
 
-    # Si entran por GET, redirige a registrar envíos
+    nombre_reporte = request.POST.get("nombre_reporte", "").strip()
+    recetas_ids = [rid for rid in request.POST.getlist("recetas[]") if rid]
+
+    # 1) Estado "Enviado"
+    estado_enviado, _ = EstadoEnvioReceta.objects.get_or_create(
+        nombre_estado="Enviado"
+    )
+
+    # 2) Usuario del envío (automático)
+    usuario_envio = None
+    if recetas_ids:
+        # Tomamos el usuario de la primera receta seleccionada
+        r0 = RecetaMedica.objects.select_related("id_usuario_venta").filter(pk=recetas_ids[0]).first()
+        if r0 and r0.id_usuario_venta_id:
+            usuario_envio = r0.id_usuario_venta
+
+    # Si quisieras mapear al usuario logueado, aquí es el lugar:
+    # try:
+    #     usuario_envio = Usuario.objects.get(<tu lógica con request.user>)
+    # except Usuario.DoesNotExist:
+    #     pass
+
+    envio = EnvioReceta.objects.create(
+        fecha_envio=timezone.now(),
+        nombre_reporte=nombre_reporte,
+        id_estado_envio=estado_enviado,
+        id_usuario=usuario_envio,
+    )
+
+    # 3) Detalle
+    for rid in recetas_ids:
+        DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
+
+    # Tras crear, llevo al listado/tabla de envíos
     return redirect("recetas:registrar_envio")
 
 
 @login_required
 def editar_envio(request, pk):
+    """
+    Edita encabezado de Envío.
+    - Mantiene el estado en "Enviado" (lo fuerza).
+    - Usuario del envío no se edita manualmente (se ignoran campos si vienen del form).
+    - Si envías fecha_envio en el form, se actualiza.
+    """
     envio = get_object_or_404(EnvioReceta, pk=pk)
+
     if request.method == "POST":
-        envio.nombre_reporte = request.POST.get("nombre_reporte")
-        envio.id_estado_envio_id = request.POST.get("id_estado_envio")
-        envio.id_usuario_id = request.POST.get("id_usuario")
+        envio.nombre_reporte = (request.POST.get("nombre_reporte") or "").strip()
+
+        # Forzar estado "Enviado"
+        estado_enviado, _ = EstadoEnvioReceta.objects.get_or_create(nombre_estado="Enviado")
+        envio.id_estado_envio = estado_enviado
+
+        # Ignorar cambios manuales de usuario; si quisieras recalcular por detalle, hazlo aquí.
+
         fecha_envio = request.POST.get("fecha_envio")
         if fecha_envio:
-            # Si viene como 'YYYY-MM-DDTHH:MM', Django lo parsea al asignar si es DateTimeField; si no, conviene parsear.
-            try:
-                envio.fecha_envio = datetime.fromisoformat(fecha_envio)
-            except Exception:
-                envio.fecha_envio = envio.fecha_envio  # deja como estaba si falla el parseo
+            # Django convierte str a datetime si field es DateTimeField con USE_TZ; de lo contrario haz parse
+            envio.fecha_envio = fecha_envio
+
         envio.save()
+
     return redirect("recetas:registrar_envio")
 
 
 @login_required
 def eliminar_envio(request, pk):
+    """
+    Elimina Envío (encabezado + detalles por cascade si el modelo lo define).
+    """
     if request.method == "POST":
         envio = get_object_or_404(EnvioReceta, pk=pk)
         envio.delete()
@@ -247,6 +346,10 @@ def eliminar_envio(request, pk):
 
 @login_required
 def lista_envios(request):
+    """
+    Lista detallada (para reporte o vista dedicada) usando DetalleEnvioReceta,
+    de modo que aparezcan TODAS las recetas asociadas a cada envío.
+    """
     detalles = (
         DetalleEnvioReceta.objects
         .select_related(
@@ -257,13 +360,16 @@ def lista_envios(request):
             "id_receta__id_producto",
             "id_receta__id_usuario_venta",
         )
-        .all()
+        .order_by("-id_envio__fecha_envio", "id_envio_id", "id_receta_id")
     )
     return render(request, "recetas/lista_envios.html", {"detalles": detalles})
 
 
 @login_required
 def exportar_envios_pdf(request):
+    """
+    Reporte PDF detallado de Envíos (incluye recetas por envío).
+    """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -274,7 +380,7 @@ def exportar_envios_pdf(request):
     elementos.append(Paragraph(datetime.now().strftime("%d/%m/%Y %H:%M"), styles["Normal"]))
     elementos.append(Spacer(1, 20))
 
-    data = [["Reporte", "Estado", "Usuario", "Fecha", "Receta", "Producto"]]
+    data = [["Reporte", "Estado", "Usuario Envío", "Fecha Envío", "Factura Receta", "Producto"]]
 
     detalles = DetalleEnvioReceta.objects.select_related(
         "id_envio", "id_envio__id_estado_envio", "id_envio__id_usuario",
