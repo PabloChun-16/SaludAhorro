@@ -91,67 +91,73 @@
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_receta' %}">
         {% csrf_token %}
-        <div class="modal-header bg-emerald-700 text-white">
-          <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-            <h5 class="modal-title fw-bold mb-0">Nueva Receta</h5>
-            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+        <div class="modal-header">
+          <div class="saif-modal-title">
+            <span class="saif-modal-icon"><i class="bi bi-journal-medical"></i></span>
+            <span>Nueva Receta</span>
           </div>
+          <span class="saif-badge">SAIF</span>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <div class="modal-body bg-slate-50 py-4">
-          <div class="grid md:grid-cols-2 gap-4">
-            <!-- Factura: readonly + hidden + buscador -->
-            <div class="md:col-span-2">
-              <label class="form-label fw-semibold mb-1">Referencia factura</label>
-              <div class="input-group">
-                <input id="crearFacturaTxt" type="text" class="form-control rounded-start" placeholder="Seleccione la factura desde el buscador" readonly>
-                <input id="crearFacturaVal" type="hidden" name="referencia_factura">
-                <button class="btn btn-outline-secondary"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalBuscarFactura"
-                        data-parent="crear">
-                  <i class="bi bi-search"></i>
-                </button>
-              </div>
-              <small class="text-muted">La selección de factura asigna automáticamente el usuario de venta (y puede sugerir el producto).</small>
+        <div class="modal-body saif-modal-body">
+          <div class="saif-section mb-4">
+            <div class="saif-section__title">
+              <i class="bi bi-file-earmark-medical"></i> Datos de la receta
             </div>
-
-            <input type="text" name="referente_receta" class="form-control rounded-lg" placeholder="Referente Receta" required>
-
-            <!-- Producto: readonly + hidden + botón buscar (puedes permitir cambiarlo manualmente) -->
-            <div class="md:col-span-2">
-              <label class="form-label fw-semibold mb-1">Producto</label>
-              <div class="input-group">
-                <input id="crearProductoTxt" type="text" class="form-control rounded-start" placeholder="Seleccione desde el buscador" readonly>
-                <input id="crearProductoId" type="hidden" name="id_producto">
-                <button class="btn btn-outline-secondary"
-                        type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalBuscarProducto"
-                        data-parent="crear">
-                  <i class="bi bi-search"></i>
-                </button>
+            <div class="row g-3 mt-1">
+              <div class="col-12">
+                <label class="form-label">Referencia factura</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-receipt"></i></span>
+                  <input id="crearFacturaTxt" type="text" class="form-control saif-input" placeholder="Seleccione la factura desde el buscador" readonly>
+                  <input id="crearFacturaVal" type="hidden" name="referencia_factura">
+                  <button class="btn btn-outline-success saif-btn-outline"
+                          type="button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalBuscarFactura"
+                          data-parent="crear">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+                <div class="form-text">La seleccion de factura asigna usuario de venta y puede sugerir producto.</div>
               </div>
-            </div>
-
-            <!-- Usuario de la venta: hidden + display readonly (se llena al elegir factura) -->
-            <div class="md:col-span-2">
-              <label class="form-label fw-semibold mb-1">Usuario de la venta</label>
-              <input id="crearUsuarioVentaTxt" type="text" class="form-control" placeholder="Se autocompleta al elegir la factura" readonly>
-              <input id="crearUsuarioVentaId" type="hidden" name="id_usuario_venta">
+              <div class="col-md-6">
+                <label class="form-label">Referente receta</label>
+                <input type="text" name="referente_receta" class="form-control saif-input" placeholder="Referente Receta" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Producto</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-capsule-pill"></i></span>
+                  <input id="crearProductoTxt" type="text" class="form-control saif-input" placeholder="Seleccione desde el buscador" readonly>
+                  <input id="crearProductoId" type="hidden" name="id_producto">
+                  <button class="btn btn-outline-success saif-btn-outline"
+                          type="button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalBuscarProducto"
+                          data-parent="crear">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Usuario de la venta</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-person-badge"></i></span>
+                  <input id="crearUsuarioVentaTxt" type="text" class="form-control saif-input" placeholder="Se autocompleta al elegir la factura" readonly>
+                  <input id="crearUsuarioVentaId" type="hidden" name="id_usuario_venta">
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="modal-footer bg-white">
-          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+        <div class="modal-footer">
+          <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
           </button>
-          <button class="btn btn-success rounded-pill px-4">
+          <button class="btn btn-success">
             <i class="bi bi-check2-circle"></i> Guardar
           </button>
         </div>
@@ -184,7 +190,7 @@
         </div>
       </div>
 
-      <div class="modal-footer bg-white">
+      <div class="modal-footer">
         <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>

@@ -51,7 +51,7 @@
     <div class="modal-content saif-modal">
 
       <!-- Header SAIF -->
-      <div class="modal-header py-3 bg-success text-white">
+      <div class="modal-header">
         <div class="d-flex align-items-center gap-2">
           <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
                class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
@@ -84,7 +84,7 @@
 
       <!-- Footer -->
       <div class="modal-footer d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary" id="btnCerrarLote" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-light saif-btn-light" id="btnCerrarLote" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cancelar
         </button>
         <button type="button" class="btn btn-success" data-bs-target="#modalCrearLote" data-bs-toggle="modal">
@@ -102,43 +102,42 @@
     <div class="modal-content saif-modal">
 
       <!-- Header SAIF -->
-      <div class="modal-header py-3 bg-success text-white">
-        <div class="d-flex align-items-center gap-2">
-          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-               class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-          <h5 class="modal-title mb-0 fw-bold">Crear Lote</h5>
-          <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-box-seam"></i></span>
+          <span>Crear Lote</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <!-- Body -->
-      <div class="modal-body">
+      <div class="modal-body saif-modal-body">
         <form id="formCrearLote" autocomplete="off">
           {% csrf_token %}
           <input type="hidden" id="productoIdHidden">
 
           <div class="mb-3">
-            <label for="numeroLote" class="form-label fw-semibold">Número de Lote</label>
+            <label for="numeroLote" class="form-label">Numero de Lote</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-              <input type="text" id="numeroLote" class="form-control" required>
+              <span class="input-group-text saif-ig"><i class="bi bi-upc-scan"></i></span>
+              <input type="text" id="numeroLote" class="form-control saif-input" required>
             </div>
           </div>
 
           <div class="mb-3">
-            <label for="fechaCaducidad" class="form-label fw-semibold">Fecha de Caducidad</label>
+            <label for="fechaCaducidad" class="form-label">Fecha de Caducidad</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-              <input type="date" id="fechaCaducidad" class="form-control">
+              <span class="input-group-text saif-ig"><i class="bi bi-calendar-event"></i></span>
+              <input type="date" id="fechaCaducidad" class="form-control saif-input">
             </div>
           </div>
 
           <div class="mb-3">
-            <label for="ubicacionAlmacen" class="form-label fw-semibold">Ubicación en Almacén</label>
+            <label for="ubicacionAlmacen" class="form-label">Ubicacion en Almacen</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-              <input type="text" id="ubicacionAlmacen" class="form-control" placeholder="Ej. Estante A - Nivel 3">
+              <span class="input-group-text saif-ig"><i class="bi bi-geo-alt"></i></span>
+              <input type="text" id="ubicacionAlmacen" class="form-control saif-input" placeholder="Ej. Estante A - Nivel 3">
             </div>
           </div>
         </form>
@@ -146,7 +145,7 @@
 
       <!-- Footer -->
       <div class="modal-footer">
-        <button type="button" id="btnCancelarLote" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        <button type="button" id="btnCancelarLote" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cancelar
         </button>
         <button type="button" id="btnGuardarLote" class="btn btn-success">

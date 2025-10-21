@@ -164,74 +164,85 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 <!-- ====== MODAL: CREAR (todo aquí) ====== -->
 <div class="modal fade" id="modalSolicitud" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-emerald-700 text-white py-3">
-        <div class="d-flex align-items-center gap-3">
-          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-          <h5 class="modal-title mb-0 fw-bold">Crear Solicitud</h5>
-          <span class="badge bg-light text-emerald-700">SAIF</span>
+      <div class="modal-content saif-modal">
+        <div class="modal-header">
+          <div class="saif-modal-title">
+            <span class="saif-modal-icon"><i class="bi bi-inboxes"></i></span>
+            <span>Crear Solicitud</span>
+          </div>
+          <span class="saif-badge">SAIF</span>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
 
-      <div class="modal-body">
-        <div id="formAlertSolicitud" class="alert alert-danger d-none"></div>
+        <div class="modal-body saif-modal-body">
+          <div id="formAlertSolicitud" class="alert alert-danger d-none"></div>
 
         <form id="form-solicitud">
-          <div class="row g-3 mb-3">
-            <div class="col-md-8">
-              <label class="form-label fw-semibold">Documento</label>
-              <input id="documentoInput" type="text" class="form-control" placeholder="Ej. RQ-0001" required>
+          <div class="saif-section mb-4">
+            <div class="saif-section__title">
+              <i class="bi bi-clipboard2-check"></i> Datos de la solicitud
+            </div>
+            <div class="row g-3 mt-1">
+              <div class="col-md-8">
+                <label class="form-label">Documento</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-file-earmark-text"></i></span>
+                  <input id="documentoInput" type="text" class="form-control saif-input" placeholder="Ej. RQ-0001" required>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="border rounded-3 p-3 bg-light mb-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-box-seam me-2"></i>Detalle de Productos</h6>
-
-            <div class="mb-2">
+          <div class="saif-section mb-3">
+            <div class="saif-section__title">
+              <i class="bi bi-box-seam"></i> Detalle de productos
+            </div>
+            <div class="mb-2 mt-2">
               <label class="form-label">Producto</label>
               <div class="input-group">
-                <input id="productoInput" type="text" class="form-control" placeholder="Código o nombre..." readonly>
+                <span class="input-group-text saif-ig"><i class="bi bi-capsule-pill"></i></span>
+                <input id="productoInput" type="text" class="form-control saif-input" placeholder="Codigo o nombre..." readonly>
                 <input id="productoIdInput" type="hidden">
-                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalBuscarProducto">
+                <button class="btn btn-outline-success saif-btn-outline" type="button" data-bs-toggle="modal" data-bs-target="#modalBuscarProducto">
                   <i class="bi bi-search"></i>
                 </button>
               </div>
-              <small class="text-muted">Selecciona desde el buscador para evitar errores.</small>
+              <div class="form-text">Selecciona desde el buscador para evitar errores.</div>
             </div>
-
             <div class="row g-2 align-items-end">
-              <div class="col-3">
+              <div class="col-sm-4 col-lg-3">
                 <label class="form-label">Cantidad</label>
-                <input id="cantidadInput" type="number" class="form-control" min="1" value="1">
-              </div>
-              <div class="col-3">
-                <label class="form-label d-block">Urgente</label>
-                <div class="form-check form-switch">
-                  <input id="urgenteInput" class="form-check-input" type="checkbox">
-                  <label class="form-check-label">Sí</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-hash"></i></span>
+                  <input id="cantidadInput" type="number" class="form-control saif-input" min="1" value="1">
                 </div>
               </div>
-              <div class="col-6">
-                <label class="form-label">Observaciones</label>
-                <input id="obsInput" type="text" class="form-control" placeholder="Opcional">
+              <div class="col-sm-4 col-lg-3">
+                <label class="form-label d-block">Urgente</label>
+                <div class="form-check form-switch ps-0">
+                  <input id="urgenteInput" class="form-check-input ms-2" type="checkbox">
+                  <label class="form-check-label ms-2">Si</label>
+                </div>
               </div>
-              <div class="col-12 mt-2">
-                <button type="button" class="btn btn-success" id="btnAddDetalle">
-                  <i class="bi bi-plus-circle"></i> Añadir
+              <div class="col-sm-4 col-lg-6">
+                <label class="form-label">Observaciones</label>
+                <input id="obsInput" type="text" class="form-control saif-input" placeholder="Opcional">
+              </div>
+              <div class="col-12 mt-3">
+                <button type="button" class="btn btn-success w-100" id="btnAddDetalle">
+                  <i class="bi bi-plus-circle"></i> Anadir
                 </button>
               </div>
             </div>
-
             <div class="table-responsive mt-3">
-              <table class="table table-sm">
-                <thead class="table-success">
+              <table class="table table-hover align-middle saif-table">
+                <thead>
                   <tr>
                     <th class="text-start">Producto</th>
                     <th>Cantidad</th>
                     <th>Urgente</th>
                     <th class="text-start">Observaciones</th>
-                    <th>Acción</th>
+                    <th>Accion</th>
                   </tr>
                 </thead>
                 <tbody id="detalleTable"></tbody>
@@ -239,12 +250,12 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
             </div>
           </div>
 
-          <div class="text-end">
-            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
               <i class="bi bi-x-lg"></i> Cancelar
             </button>
-            <button type="submit" class="btn btn-success rounded-pill px-4">
-              <i class="bi bi-check2-circle"></i> Guardar
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Guardar
             </button>
           </div>
         </form>
@@ -617,3 +628,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+

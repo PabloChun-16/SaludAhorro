@@ -1,111 +1,135 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
-<!-- Modal principal -->
-<div class="modal-header py-3 bg-success text-white">
-  <h5 class="modal-title fw-bold">
-    <i class="bi bi-plus-circle me-2"></i> Ingreso por Ajuste
-  </h5>
-  <span class="badge bg-light text-success px-2 py-1 ms-2">SAIF</span>
-  <button type="button" class="btn-close btn-close-white d-none" tabindex="-1" aria-hidden="true"></button>
-</div>
-
-<form id="formAjusteIngreso" method="post" novalidate>
-  {% csrf_token %}
-
-  <div class="modal-body">
-
-    <!-- ENCABEZADO -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <label class="form-label fw-semibold">Usuario que realiza el ajuste</label>
-        <input type="text" class="form-control"
-               value="{{ request.user.nombre }} {{ request.user.apellido }}"
-               readonly>
-      </div>
-
-      <div class="col-md-6">
-        <label for="id_fecha_ajuste" class="form-label fw-semibold">Fecha del Ajuste</label>
-        <input type="date" id="id_fecha_ajuste" class="form-control"
-               name="fecha_ajuste"
-               required
-               value="{{ today|date:'Y-m-d' }}">
-      </div>
+<div class="saif-modal">
+  <!-- Encabezado del modal -->
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-box-arrow-in-down"></i></span>
+      <span>Ingreso por Ajuste</span>
     </div>
+    <span class="saif-badge">SAIF</span>
+    <button type="button" class="btn-close btn-close-white d-none" tabindex="-1" aria-hidden="true"></button>
+  </div>
 
-    <!-- DETALLE DE PRODUCTOS -->
-    <div class="border rounded p-3">
-      <h6 class="text-success fw-semibold mb-3">Detalle de Productos</h6>
+  <form id="formAjusteIngreso" method="post" novalidate>
+    {% csrf_token %}
 
-      <div class="row g-2 align-items-center mb-3">
-        <div class="col-md-5">
-          <label class="form-label small mb-1">Producto</label>
-          <div class="input-group">
-            <input type="text" id="productoInput" class="form-control" placeholder="Código o nombre..." readonly>
-            <input type="hidden" id="productoIdInput">
-            <button type="button" id="btnBuscarProducto" class="btn btn-outline-success">
-              <i class="bi bi-search"></i>
-            </button>
+    <div class="modal-body saif-modal-body">
+      <!-- Datos del ajuste -->
+      <div class="saif-section mb-4">
+        <div class="saif-section__title">
+          <i class="bi bi-clipboard2-data"></i> Datos del ajuste
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <label class="form-label">Usuario que realiza el ajuste</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-person-badge"></i></span>
+              <input type="text" class="form-control saif-input"
+                     value="{{ request.user.nombre }} {{ request.user.apellido }}"
+                     readonly>
+            </div>
           </div>
-        </div>
-
-        <div class="col-md-4">
-          <label class="form-label small mb-1">Lote</label>
-          <div class="input-group">
-            <input type="text" id="loteInput" class="form-control" placeholder="N.º de lote..." readonly>
-            <input type="hidden" id="loteIdInput">
-            <button type="button" id="btnBuscarLote" class="btn btn-outline-success">
-              <i class="bi bi-search"></i>
-            </button>
+          <div class="col-md-6">
+            <label for="id_fecha_ajuste" class="form-label">Fecha del Ajuste</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-calendar-event"></i></span>
+              <input type="date" id="id_fecha_ajuste" class="form-control saif-input"
+                     name="fecha_ajuste"
+                     required
+                     value="{{ today|date:'Y-m-d' }}">
+            </div>
           </div>
-        </div>
-
-        <div class="col-md-2">
-          <label class="form-label small mb-1">Cantidad a Ingresar</label>
-          <input type="number" id="cantidadInput" class="form-control" min="1" value="0">
-        </div>
-
-        <div class="col-md-1 d-flex align-items-end">
-          <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
-            <i class="bi bi-plus-circle"></i>
-          </button>
         </div>
       </div>
 
-      <!-- Tabla de detalles -->
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered align-middle text-center">
-          <thead class="table-success">
-            <tr>
-              <th>Producto</th>
-              <th>Lote</th>
-              <th>Cantidad</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody id="detalleTable">
-            <tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>
-          </tbody>
-        </table>
+      <!-- Detalle de productos -->
+      <div class="saif-section">
+        <div class="saif-section__title">
+          <i class="bi bi-box-seam"></i> Detalle de Productos
+        </div>
 
+        <div class="row g-2 align-items-end mt-2">
+          <div class="col-md-5">
+            <label class="form-label small mb-1">Producto</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-capsule-pill"></i></span>
+              <input type="text" id="productoInput" class="form-control saif-input" placeholder="Codigo o nombre..." readonly>
+              <input type="hidden" id="productoIdInput">
+              <button type="button" id="btnBuscarProducto" class="btn btn-outline-success saif-btn-outline">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+            <div class="form-text">Selecciona desde el buscador para evitar errores.</div>
+          </div>
 
+          <div class="col-md-4">
+            <label class="form-label small mb-1">Lote</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-box"></i></span>
+              <input type="text" id="loteInput" class="form-control saif-input" placeholder="No. de lote..." readonly>
+              <input type="hidden" id="loteIdInput">
+              <button type="button" id="btnBuscarLote" class="btn btn-outline-success saif-btn-outline">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label small mb-1">Cantidad a ingresar</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-hash"></i></span>
+              <input type="number" id="cantidadInput" class="form-control saif-input" min="1" value="0">
+            </div>
+          </div>
+
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="button" id="btnAddDetalle" class="btn btn-success w-100">
+              <i class="bi bi-plus-circle"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+          <table class="table table-hover align-middle text-center saif-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th>Cantidad</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody id="detalleTable">
+              <tr>
+                <td colspan="4" class="text-muted py-3">
+                  <i class="bi bi-inbox me-1"></i> Sin productos agregados
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="saif-hint mt-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Selecciona un producto y luego su lote para anadirlo.
+        </div>
 
         <input type="hidden" name="detalles_json" id="detallesJson">
-
       </div>
     </div>
 
-  </div> <!-- modal-body -->
-
-  <div class="modal-footer">
-    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-      <i class="bi bi-x-lg"></i> Cancelar
-    </button>
-    <button type="submit" class="btn btn-success">
-      <i class="bi bi-check-circle"></i> Guardar Ajuste
-    </button>
-  </div>
-</form>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+        <i class="bi bi-x-circle"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle"></i> Guardar Ajuste
+      </button>
+    </div>
+  </form>
+</div>
 
 <!-- Modales auxiliares -->
 {% include "ingresos/partials/producto_modal_ingresos.html" %}

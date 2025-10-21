@@ -118,50 +118,52 @@
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_envio' %}">
         {% csrf_token %}
-        <div class="modal-header bg-emerald-700 text-white py-3">
-          <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-                 class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-            <h5 class="modal-title mb-0 fw-bold">Nuevo Envío</h5>
-            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+        <div class="modal-header">
+          <div class="saif-modal-title">
+            <span class="saif-modal-icon"><i class="bi bi-send-check"></i></span>
+            <span>Nuevo Envío</span>
           </div>
+          <span class="saif-badge">SAIF</span>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
-        <div class="modal-body bg-slate-50 py-4">
+        <div class="modal-body saif-modal-body">
           <div id="crearEnvioAlert" class="alert alert-danger d-none"></div>
 
-          <div class="grid md:grid-cols-2 gap-4 mb-3">
-            <input type="text" name="nombre_reporte" class="form-control rounded-lg" placeholder="Nombre del reporte" required>
-
-            <!-- Chips informativos (estado/usuario automáticos) -->
-            <div class="md:col-span-2 d-flex flex-wrap gap-2">
-              <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">
-                Estado: Enviado (automático)
-              </span>
-              <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
-                Usuario: se toma del usuario de la <b>primera receta</b> seleccionada
-              </span>
+          <div class="saif-section mb-4">
+            <div class="saif-section__title">
+              <i class="bi bi-truck"></i> Datos del envio
+            </div>
+            <div class="row g-3 mt-1">
+              <div class="col-md-6">
+                <label class="form-label">Nombre del reporte</label>
+                <div class="input-group">
+                  <span class="input-group-text saif-ig"><i class="bi bi-file-earmark-text"></i></span>
+                  <input type="text" name="nombre_reporte" class="form-control saif-input" placeholder="Nombre del reporte" required>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Estado: Enviado (automatico)</span>
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Usuario: se toma del usuario de la primera receta seleccionada</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="border rounded-3 p-3 bg-white">
-            <div class="d-flex align-items-center justify-content-between">
-              <h6 class="fw-bold text-emerald-700 mb-2">
-                <i class="bi bi-journal-medical me-2"></i>Recetas seleccionadas
-              </h6>
-              <button type="button"
-                      class="btn btn-outline-success btn-sm"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalBuscarReceta"
-                      data-parent="crear">
+          <div class="saif-section">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="saif-section__title w-100 me-3">
+                <i class="bi bi-journal-medical"></i> Recetas seleccionadas
+              </div>
+              <button type="button" class="btn btn-outline-success saif-btn-outline ms-auto" data-bs-toggle="modal" data-bs-target="#modalBuscarReceta" data-parent="crear">
                 <i class="bi bi-search"></i> Buscar recetas
               </button>
             </div>
 
             <div class="table-responsive">
-              <table class="table table-sm align-middle">
-                <thead class="table-success">
+              <table class="table table-hover align-middle saif-table">
+                <thead>
                   <tr>
                     <th class="text-start">Factura</th>
                     <th class="text-start">Referente</th>
@@ -171,20 +173,18 @@
                     <th class="text-center">Quitar</th>
                   </tr>
                 </thead>
-                <tbody id="recetasSeleccionadasBody">
-                  <!-- Se agregan filas aquí; cada fila lleva un input hidden name="recetas[]" -->
-                </tbody>
+                <tbody id="recetasSeleccionadasBody"></tbody>
               </table>
             </div>
-            <small class="text-muted">Agrega una o varias recetas desde el buscador. No se permiten duplicados.</small>
+            <div class="form-text mt-2">Agrega una o varias recetas desde el buscador. No se permiten duplicados.</div>
           </div>
         </div>
 
-        <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-success rounded-pill px-4" id="crearEnvioSubmit">
+          <button type="submit" class="btn btn-success" id="crearEnvioSubmit">
             <i class="bi bi-check2-circle"></i> Guardar
           </button>
         </div>
@@ -240,7 +240,7 @@
         </div>
       </div>
 
-      <div class="modal-footer bg-white">
+      <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>

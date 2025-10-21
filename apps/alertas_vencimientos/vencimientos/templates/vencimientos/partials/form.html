@@ -1,12 +1,12 @@
-<form id="formReporteVencimiento">
+<form id="formReporteVencimiento" class="saif-modal">
   {% csrf_token %}
 
-  <div class="modal-header bg-success text-white">
-    <h5 class="modal-title d-flex align-items-center gap-2">
-      <i class="bi bi-calendar-x-fill"></i>
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-calendar-x-fill"></i></span>
       <span>Crear Reporte de Vencimiento</span>
-      <span class="badge bg-light text-success ms-2">SAIF</span>
-    </h5>
+    </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
@@ -126,50 +126,3 @@
     </button>
   </div>
 </form>
-
-<!-- estilos locales SAIF (verdes) para el modal -->
-<style>
-  .saif-modal-body { background: #f7fcf8; }
-  .saif-label { font-weight: 600; color: #166534; } /* green-800 */
-  .saif-card { border-radius: .75rem; overflow: hidden; }
-  .saif-section__title{
-    font-weight: 700; color:#14532d; display:flex; align-items:center;
-    background:#e8f5ec; border:1px solid #d7ebe0; padding:.5rem .75rem; border-radius:.5rem;
-  }
-  .saif-input{
-    border:1px solid #cfe9d7;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-  .saif-input:focus{
-    border-color:#22c55e;
-    box-shadow: 0 0 0 .15rem rgba(34,197,94,.15);
-  }
-  .saif-ig{
-    background:#f0fdf4; color:#166534; border:1px solid #cfe9d7;
-  }
-  .saif-btn-outline{
-    border-width:1px;
-  }
-  .saif-btn-outline:hover{
-    background:#22c55e; color:#fff; border-color:#22c55e;
-  }
-  .saif-btn-light{
-    background:#f8fff9;
-  }
-  .saif-table thead th{
-    background:#e8f5ec !important;
-    border-bottom:1px solid #d7ebe0 !important;
-    color:#065f46;
-  }
-  .saif-table tbody tr:hover{
-    background:#f3fbf6;
-  }
-  .saif-hint{
-    border:1px solid #cfe9d7;
-    background:#f0fdf4;
-    color:#166534;
-  }
-
-  /* Bordes y radios consistentes */
-  .form-control, .input-group-text, .btn { border-radius: .6rem; }
-</style>

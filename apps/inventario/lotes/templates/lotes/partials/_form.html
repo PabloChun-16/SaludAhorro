@@ -4,13 +4,12 @@
 
 <div class="saif-modal">
   <!-- HEADER -->
-  <div class="modal-header py-3 bg-success text-white">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-      <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Editar Lote" }}</h5>
-      <span class="saif-badge ms-2"><i class="bi bi-boxes"></i> SAIF</span>
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-layers"></i></span>
+      <span>{{ titulo|default:"Editar Lote" }}</span>
     </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
@@ -18,83 +17,56 @@
     {% csrf_token %}
 
     <!-- BODY -->
-    <div class="modal-body" style="background:#f7fbf9;">
-      <style>
-        .fld{
-          background:#fff;
-          border:1px solid #e5e7eb;
-          border-radius:14px;
-          box-shadow:0 4px 12px rgba(15,23,42,.06);
-          padding:.9rem;
-        }
-        .fld-label{
-          font-weight:800;
-          color:#0b1220;
-          margin-bottom:.4rem;
-        }
-        .fld .input-group-text{
-          background:#f9fafb;
-          border-right:0;
-        }
-        .fld .form-control,
-        .fld .form-select{
-          border-left:0;
-        }
-      </style>
-
-      <div class="container-fluid">
-        <div class="row g-3">
-          <!-- Fecha de Caducidad -->
+    <div class="modal-body saif-modal-body">
+      <div class="saif-section">
+        <div class="saif-section__title">
+          <i class="bi bi-clipboard-data"></i> Datos del lote
+        </div>
+        <div class="row g-3 mt-1">
+          <!-- Fecha de caducidad -->
           <div class="col-md-6">
-            <div class="fld">
-              <div class="fld-label">Fecha de Caducidad</div>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                <input type="date" name="fecha_caducidad" class="form-control"
-                       value="{{ lote.fecha_caducidad|date:'Y-m-d' }}">
-              </div>
+            <label class="form-label">Fecha de caducidad</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-calendar3"></i></span>
+              <input type="date" name="fecha_caducidad" class="form-control saif-input"
+                     value="{{ lote.fecha_caducidad|date:'Y-m-d' }}">
             </div>
           </div>
 
-          <!-- Ubicación -->
+          <!-- Ubicacion -->
           <div class="col-md-6">
-            <div class="fld">
-              <div class="fld-label">Ubicación</div>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                <input type="text" name="ubicacion_almacen" class="form-control"
-                       value="{{ lote.ubicacion_almacen }}" placeholder="Ej. Estante A · Nivel 3">
-              </div>
+            <label class="form-label">Ubicacion</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-geo-alt"></i></span>
+              <input type="text" name="ubicacion_almacen" class="form-control saif-input"
+                     value="{{ lote.ubicacion_almacen }}" placeholder="Ej. Estante A - Nivel 3">
             </div>
           </div>
 
           <!-- Estado -->
           <div class="col-md-6">
-            <div class="fld">
-              <div class="fld-label">Estado</div>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-info-circle"></i></span>
-                <select name="estado" class="form-select">
-                  {% for e in estados %}
-                    <option value="{{ e.id }}" {% if lote.id_estado_lote.id == e.id %}selected{% endif %}>
-                      {{ e.nombre_estado }}
-                    </option>
-                  {% endfor %}
-                </select>
-              </div>
+            <label class="form-label">Estado</label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-info-circle"></i></span>
+              <select name="estado" class="form-select saif-input">
+                {% for e in estados %}
+                  <option value="{{ e.id }}" {% if lote.id_estado_lote.id == e.id %}selected{% endif %}>
+                    {{ e.nombre_estado }}
+                  </option>
+                {% endfor %}
+              </select>
             </div>
           </div>
-
         </div>
       </div>
     </div>
 
     <!-- FOOTER -->
-    <div class="modal-footer bg-light">
-      <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+    <div class="modal-footer">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
-      <button type="submit" class="btn btn-success rounded-pill px-3">
+      <button type="submit" class="btn btn-success">
         <i class="bi bi-check2-circle"></i> Guardar
       </button>
     </div>

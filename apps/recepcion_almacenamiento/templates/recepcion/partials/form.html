@@ -2,52 +2,20 @@
 
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
-<style>
-/* ==== Estilos generales y consistencia visual ==== */
-.saif-form .section-card{
-  background:#f8fafc;
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:14px;
-}
-.saif-form .section-title{
-  font-weight:700;
-  color:#111827;
-  display:flex;
-  align-items:center;
-  gap:.5rem;
-}
-.saif-form .input-group-text{
-  min-width:40px;
-  justify-content:center;
-}
-.saif-form .muted-hint{
-  color:#6b7280;
-  font-size:.875rem;
-}
-.saif-form .fieldset-box{
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:16px;
-  background:#ffffff;
-}
-</style>
-
 <div class="saif-modal">
   <!-- HEADER -->
-  <div class="modal-header py-3 bg-success text-white">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-      <h5 class="modal-title mb-0 fw-bold">{{ titulo|default:"Crear Recepción" }}</h5>
-      <span class="saif-badge ms-2"><i class="bi bi-box-arrow-in-down"></i> SAIF</span>
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-box-arrow-in-down"></i></span>
+      <span>{{ titulo|default:"Crear Recepción" }}</span>
     </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
   <!-- FORM -->
   <form method="post" id="form-recepcion" action="{{ action }}" novalidate autocomplete="off">
-    <div class="modal-body">
+    <div class="modal-body saif-modal-body">
       {% csrf_token %}
       <div class="container-fluid saif-form">
 
@@ -178,8 +146,8 @@
     </div>
 
     <!-- FOOTER -->
-    <div class="modal-footer bg-light">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+    <div class="modal-footer">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
       <button type="submit" class="btn btn-success">
