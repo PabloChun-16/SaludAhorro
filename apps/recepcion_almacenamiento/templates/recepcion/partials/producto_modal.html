@@ -13,6 +13,9 @@
 
   .saif-modal .modal-header {
     border-bottom: 0;
+    background:#0f7a3a;
+    color:#fff;
+    padding:.9rem 1.1rem;
   }
 
   .saif-modal .modal-body {
@@ -86,13 +89,12 @@
     <div class="modal-content saif-modal">
 
       <!-- HEADER -->
-      <div class="modal-header py-3 bg-success text-white">
-        <div class="d-flex align-items-center gap-2">
-          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-               class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-          <h5 class="modal-title mb-0 fw-bold">Buscar Producto</h5>
-          <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-search"></i></span>
+          <span>Buscar Producto</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
@@ -131,7 +133,7 @@
 
       <!-- FOOTER -->
       <div class="modal-footer d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary" id="btnCerrarProducto" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-light saif-btn-light" id="btnCerrarProducto" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cancelar
         </button>
       </div>

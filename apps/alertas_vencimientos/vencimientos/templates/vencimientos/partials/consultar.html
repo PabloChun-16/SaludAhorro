@@ -1,12 +1,12 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'consult/consult.css' %}">
 
-<div class="modal-header bg-success text-white">
-  <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
-    <i class="bi bi-calendar-x-fill"></i>
-    Detalle del Reporte de Vencimiento
-    <span class="badge bg-light text-success ms-2">SAIF</span>
-  </h5>
+<div class="modal-header">
+  <div class="saif-modal-title">
+    <span class="saif-modal-icon"><i class="bi bi-calendar-x-fill"></i></span>
+    <span>Detalle del Reporte de Vencimiento</span>
+  </div>
+  <span class="saif-badge">SAIF</span>
   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 </div>
 

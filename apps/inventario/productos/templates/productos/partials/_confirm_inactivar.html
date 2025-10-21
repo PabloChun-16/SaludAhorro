@@ -3,14 +3,13 @@
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
-  <!-- Header (verde SAIF, sin cambios) -->
-  <div class="modal-header py-3">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-      <h5 class="modal-title mb-0 fw-bold">Inactivar Producto</h5>
-      <span class="saif-badge ms-2"><i class="bi bi-box-seam"></i> SAIF</span>
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-slash-circle"></i></span>
+      <span>Inactivar Producto</span>
     </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
@@ -41,7 +40,7 @@
 
     <!-- Footer -->
     <div class="modal-footer bg-white">
-      <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
       <button type="submit" class="btn btn-danger rounded-pill px-3">

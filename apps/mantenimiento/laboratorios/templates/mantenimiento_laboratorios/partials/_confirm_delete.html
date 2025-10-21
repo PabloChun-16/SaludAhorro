@@ -3,15 +3,12 @@
 <link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
 
 <div class="saif-modal">
-  <div class="modal-header py-3">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-           class="rounded-circle bg-white p-1" style="width:34px;height:34px;">
-      <h5 class="modal-title mb-0 fw-bold">
-        {{ titulo|default:"Eliminar Laboratorio" }}
-      </h5>
-      <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-building-x"></i></span>
+      <span>{{ titulo|default:"Eliminar Laboratorio" }}</span>
     </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
@@ -30,9 +27,9 @@
     </div>
 
     <div class="modal-footer bg-white">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
-      </button>
+     </button>
       <button type="submit" class="btn btn-danger">
         <i class="bi bi-trash"></i> Eliminar
       </button>

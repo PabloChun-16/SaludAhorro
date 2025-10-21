@@ -10,7 +10,7 @@
     font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   }
   .saif-modal .modal-header{
-    background:#0E7A3A;color:#fff;border-bottom:0;padding:.65rem .9rem;
+    background:#0f7a3a;color:#fff;border-bottom:0;padding:.9rem 1.1rem;
   }
   .saif-modal .modal-footer{border-top:0;background:#fff;}
   .saif-modal .modal-body{
@@ -69,14 +69,11 @@
 <div class="saif-modal">
   <!-- Header -->
   <div class="modal-header">
-    <div class="d-flex align-items-center gap-2">
-      <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-           class="rounded-circle bg-white p-1" style="width:28px;height:28px;">
-      <h5 class="modal-title mb-0 fw-bold">Detalle de Recepción</h5>
-      <span class="ms-2" style="background:rgba(255,255,255,.15);border-radius:999px;padding:.12rem .5rem;font-weight:600;font-size:.8rem;">
-        <i class="bi bi-box-arrow-in-down"></i> SAIF
-      </span>
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-box-arrow-in-down"></i></span>
+      <span>Detalle de Recepción</span>
     </div>
+    <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
@@ -181,7 +178,7 @@
 
   <!-- Footer -->
   <div class="modal-footer py-2">
-    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+    <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>
   </div>
