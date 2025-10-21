@@ -12,4 +12,7 @@ urlpatterns = [
     path("productos/search/", views.search_productos, name="search_productos"),
     path("lotes/<int:producto_id>/search/", views.search_lotes, name="search_lotes"),
     path("lotes/create/", views.create_lote, name="create_lote"),
+
+    # cambio de estado
+    path("<int:pk>/cambiar-estado/", views.recepcion_cambiar_estado, name="cambiar_estado"),
 ]

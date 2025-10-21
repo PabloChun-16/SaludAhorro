@@ -258,13 +258,23 @@ def registrar_envio(request):
 
 @login_required
 def crear_envio(request):
-    """
-    Crea Envío con:
-      - estado forzado a "Enviado"
-      - usuario asignado automáticamente (del primer detalle/receta seleccionada, si hay)
-    y luego crea los DetalleEnvioReceta en base a recetas[] del POST.
-    """
-    if request.method != "POST":
+
+
+    if request.method == "POST":
+        envio = EnvioReceta.objects.create(
+            fecha_envio=timezone.now(),
+            nombre_reporte=request.POST.get("nombre_reporte"),
+            id_estado_envio_id=request.POST.get("id_estado_envio"),
+            id_usuario_id=request.POST.get("id_usuario"),
+        )
+
+        # Detalle (IDs enviados como recetas[])
+        recetas_ids = request.POST.getlist("recetas[]")
+        for rid in recetas_ids:
+            if rid:
+                DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
+
+
         return redirect("recetas:registrar_envio")
 
     nombre_reporte = request.POST.get("nombre_reporte", "").strip()
