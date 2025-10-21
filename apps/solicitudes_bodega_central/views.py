@@ -1,37 +1,44 @@
-import json
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from django.contrib import messages
-from .models import Solicitudes_Faltantes, Detalle_Solicitud_Faltantes
-from apps.mantenimiento.models import Usuario
-from apps.inventario.models import Productos
-from apps.mantenimiento.models import Estado_Solicitud
-from django.http import HttpResponse, JsonResponse
-from django.template.loader import get_template
-import datetime
-from django.http import FileResponse
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime
 import io
+import json
+from datetime import datetime as dt
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+from django.http import FileResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+from .models import Solicitudes_Faltantes, Detalle_Solicitud_Faltantes
+from apps.mantenimiento.models import Usuario, Estado_Solicitud
+from apps.inventario.models import Productos
 
 
+# ==============================
+# HOME
+# ==============================
+@login_required
 def index(request):
     return render(request, "solicitudes_bodega_central/index.html")
+
 
 # ==============================
 # REGISTRO / LISTADO PRINCIPAL
 # ==============================
+@login_required
 def registrar_solicitud(request):
-    solicitudes = Solicitudes_Faltantes.objects.select_related(
-        "id_usuario", "id_estado_solicitud"
-    ).prefetch_related("detalles__id_producto").order_by("-fecha_solicitud")
+    solicitudes = (
+        Solicitudes_Faltantes.objects
+        .select_related("id_usuario", "id_estado_solicitud")
+        .prefetch_related("detalles__id_producto")
+        .order_by("-fecha_solicitud")
+    )
 
     context = {
         "solicitudes": solicitudes,
@@ -39,55 +46,134 @@ def registrar_solicitud(request):
         "usuarios": Usuario.objects.all(),
         "estados": Estado_Solicitud.objects.all(),
     }
+    # 👇 Aquí tienes TODO tu HTML de registrar embebido (tal como pediste)
     return render(request, "solicitudes_bodega_central/registrar.html", context)
 
 
 # ==============================
-# CREAR SOLICITUD
+# BUSCADOR AJAX DE PRODUCTOS
 # ==============================
 @login_required
-def crear_solicitud(request):
-    if request.method == "POST":
+def buscar_productos(request):
+    """
+    Devuelve JSON para el buscador del input en registrar.html.
+    Query: ?q=texto
+    Respuesta: [{id, nombre, codigo, presentacion, stock}]
+    """
+    q = (request.GET.get("q") or "").strip()
+    qs = Productos.objects.all()
+    if q:
         try:
-            usuario = get_object_or_404(Usuario, id=request.user.id)
-
-            # Estado inicial: "Enviada"
-            estado_inicial = get_object_or_404(Estado_Solicitud, id=1)
-
-            # Crear la solicitud principal
-            solicitud = Solicitudes_Faltantes.objects.create(
-                nombre_documento=request.POST.get("nombre_documento"),
-                fecha_solicitud=timezone.now(),
-                id_estado_solicitud=estado_inicial,
-                id_usuario=usuario,
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(nombre__icontains=q) |
+                Q(codigo__icontains=q) |
+                Q(codigo_barras__icontains=q)
             )
+        except Exception:
+            qs = qs.filter(nombre__icontains=q)
 
-            # Registrar detalles (pueden ser varios productos)
-            productos = request.POST.getlist("id_producto[]")
-            cantidades = request.POST.getlist("cantidad_solicitada[]")
-            urgentes = request.POST.getlist("es_urgente[]")
-            observaciones = request.POST.getlist("observaciones[]")
+    def safe_attr(obj, field, default=""):
+        try:
+            v = getattr(obj, field, default)
+            return v if v is not None else default
+        except Exception:
+            return default
 
-            for i in range(len(productos)):
-                if not productos[i] or not cantidades[i]:
-                    continue
-                Detalle_Solicitud_Faltantes.objects.create(
-                    id_solicitud=solicitud,
-                    id_producto_id=productos[i],
-                    cantidad_solicitada=cantidades[i],
-                    es_urgente=(str(i) in urgentes or urgentes[i] == "on"),
-                    observaciones=observaciones[i],
-                )
-
-        except Exception as e:
-            messages.error(request, f"❌ Error al registrar la solicitud: {e}")
-            return redirect("solicitudes_bodega_central:registrar_solicitud")
-
-    return redirect("solicitudes_bodega_central:registrar_solicitud")
+    data = []
+    for p in qs[:30]:
+        data.append({
+            "id": p.id,
+            "nombre": safe_attr(p, "nombre"),
+            "codigo": safe_attr(p, "codigo", safe_attr(p, "codigo_barras", "")),
+            "presentacion": safe_attr(getattr(p, "id_presentacion", None), "nombre", ""),
+            # si no tienes stock en este modelo, mandamos 0 para que el front no falle
+            "stock": 0,
+        })
+    return JsonResponse(data, safe=False)
 
 
 # ==============================
-# EDITAR SOLICITUD
+# CREAR SOLICITUD (POST JSON)
+# ==============================
+@login_required
+@transaction.atomic
+def crear_solicitud(request):
+    # Evita el 405 si entran por GET directo
+    if request.method != "POST":
+        return redirect("solicitudes_bodega_central:registrar_solicitud")
+
+    try:
+        payload = json.loads((request.body or b"").decode("utf-8"))
+    except Exception:
+        return JsonResponse({"success": False, "errors": "Payload inválido."}, status=400)
+
+    form_data = payload.get("form_data") or {}
+    detalles = payload.get("detalles") or []
+
+    nombre_documento = (form_data.get("nombre_documento") or "").strip()
+    comentario = (form_data.get("comentario") or "").strip()
+
+    if not nombre_documento:
+        return JsonResponse({"success": False, "errors": "El nombre del documento es requerido."}, status=400)
+    if not detalles:
+        return JsonResponse({"success": False, "errors": "Debe agregar al menos un producto."}, status=400)
+
+    # Usuario (tu app usa modelo Usuario)
+    usuario = get_object_or_404(Usuario, id=request.user.id)
+
+    # Estado inicial
+    estado = Estado_Solicitud.objects.filter(nombre_estado__iexact="Enviada").first()
+    if not estado:
+        estado = get_object_or_404(Estado_Solicitud, id=1)
+
+    # Crear cabecera
+    solicitud = Solicitudes_Faltantes.objects.create(
+        nombre_documento=nombre_documento,
+        fecha_solicitud=timezone.now(),
+        id_estado_solicitud=estado,
+        id_usuario=usuario,
+    )
+
+    # Crear renglones
+    try:
+        for idx, d in enumerate(detalles, start=1):
+            pid = d.get("producto_id")
+            qty = d.get("cantidad")
+            urgente = bool(d.get("urgente"))
+            obs = (d.get("observaciones") or "").strip() or None
+
+            try:
+                qty = int(qty)
+            except Exception:
+                qty = 0
+
+            if not pid or qty <= 0:
+                raise ValueError(f"Producto/cantidad inválidos en la línea {idx}.")
+
+            # valida existencia
+            get_object_or_404(Productos, pk=pid)
+
+            Detalle_Solicitud_Faltantes.objects.create(
+                id_solicitud=solicitud,
+                id_producto_id=pid,
+                cantidad_solicitada=qty,
+                es_urgente=urgente,
+                observaciones=obs,
+            )
+
+        return JsonResponse({"success": True})
+
+    except ValueError as e:
+        transaction.set_rollback(True)
+        return JsonResponse({"success": False, "errors": str(e)}, status=400)
+    except Exception:
+        transaction.set_rollback(True)
+        return JsonResponse({"success": False, "errors": "Error interno al guardar la solicitud."}, status=500)
+
+
+# ==============================
+# EDITAR
 # ==============================
 @login_required
 def editar_solicitud(request, id):
@@ -100,10 +186,11 @@ def editar_solicitud(request, id):
             solicitud.id_estado_solicitud_id = request.POST.get("id_estado_solicitud")
             solicitud.save()
 
-            detalle.id_producto_id = request.POST.get("id_producto")
-            detalle.cantidad_solicitada = request.POST.get("cantidad_solicitada")
-            detalle.observaciones = request.POST.get("observaciones")
-            detalle.save()
+            if detalle:
+                detalle.id_producto_id = request.POST.get("id_producto")
+                detalle.cantidad_solicitada = request.POST.get("cantidad_solicitada")
+                detalle.observaciones = request.POST.get("observaciones")
+                detalle.save()
 
         except Exception as e:
             messages.error(request, f"❌ Error al actualizar la solicitud: {e}")
@@ -120,7 +207,7 @@ def editar_solicitud(request, id):
 
 
 # ==============================
-# ELIMINAR SOLICITUD
+# ELIMINAR
 # ==============================
 @login_required
 def eliminar_solicitud(request, id):
@@ -131,7 +218,7 @@ def eliminar_solicitud(request, id):
 
 
 # ==============================
-#  OBTENER DETALLE (para modal)
+# OBTENER (si lo usas desde un modal)
 # ==============================
 @login_required
 def obtener_solicitud(request, id):
@@ -140,24 +227,24 @@ def obtener_solicitud(request, id):
 
     data = {
         "documento": solicitud.nombre_documento,
-        "producto": detalle.id_producto.nombre,
-        "cantidad": detalle.cantidad_solicitada,
-        "urgente": "Sí" if detalle.es_urgente else "No",
-        "observaciones": detalle.observaciones or "—",
-        "estado": solicitud.id_estado_solicitud.nombre_estado,
+        "producto": detalle.id_producto.nombre if detalle else "",
+        "cantidad": detalle.cantidad_solicitada if detalle else "",
+        "urgente": "Sí" if (detalle and detalle.es_urgente) else "No",
+        "observaciones": (detalle.observaciones if (detalle and detalle.observaciones) else "—"),
+        "estado": solicitud.id_estado_solicitud.nombre_estado if solicitud.id_estado_solicitud else "",
     }
-    return render(request, "solicitudes_bodega_central/partials/detalle.html", data)
+    return JsonResponse(data)
 
 
-# =======================
-#   LISTAR SOLICITUDES
-# =======================
+# ==============================
+# LISTAR
+# ==============================
+@login_required
 def listar_solicitudes(request):
     solicitudes = (
         Solicitudes_Faltantes.objects
         .select_related("id_estado_solicitud", "id_usuario")
         .prefetch_related("detalles__id_producto")
-        .all()
         .order_by("-fecha_solicitud")
     )
 
@@ -165,65 +252,67 @@ def listar_solicitudes(request):
         {
             "documento": s.nombre_documento,
             "producto": s.detalles.first().id_producto.nombre if s.detalles.first() else "",
-            "usuario": s.id_usuario.nombre,
-            "estado": s.id_estado_solicitud.nombre_estado,
+            "usuario": getattr(s.id_usuario, "nombre", str(s.id_usuario)),
+            "estado": s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
             "fecha": s.fecha_solicitud.strftime("%Y-%m-%d"),
         }
         for s in solicitudes
     ]
 
-    return render(request, "solicitudes_bodega_central/listar.html", {
-        "solicitudes": solicitudes,
-        "solicitudes_json": json.dumps(solicitudes_json, cls=DjangoJSONEncoder),
-    })
+    return render(
+        request,
+        "solicitudes_bodega_central/listar.html",
+        {"solicitudes": solicitudes, "solicitudes_json": json.dumps(solicitudes_json, cls=DjangoJSONEncoder)},
+    )
 
-# =======================
-#   EXPORTAR A PDF (SAIF)
-# =======================
+
+# ==============================
+# PDF
+# ==============================
+@login_required
 def exportar_solicitudes_pdf(request):
-    """
-    Genera un PDF con el listado de solicitudes al estilo SAIF.
-    """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
 
-    # Estilos SAIF
     styles = getSampleStyleSheet()
     elementos = []
 
-    # ===================== ENCABEZADO =====================
-    header = Table([
-        [
+    header = Table(
+        [[
             Paragraph("<b>Reporte de Solicitudes · SAIF</b>", styles["Heading2"]),
-            Paragraph(datetime.now().strftime("%d/%m/%Y %H:%M"), styles["Normal"])
-        ]
-    ], colWidths=[450, 100])
+            Paragraph(dt.now().strftime("%d/%m/%Y %H:%M"), styles["Normal"]),
+        ]],
+        colWidths=[450, 100],
+    )
     header.setStyle(TableStyle([("ALIGN", (1, 0), (1, 0), "RIGHT")]))
     elementos.append(header)
     elementos.append(Spacer(1, 12))
 
-    # ===================== TABLA =====================
     data = [["Documento", "Producto", "Cantidad", "Urgente", "Observaciones", "Estado", "Fecha"]]
 
-    solicitudes = Solicitudes_Faltantes.objects.select_related("id_estado_solicitud").prefetch_related("detalles").all()
+    solicitudes = (
+        Solicitudes_Faltantes.objects
+        .select_related("id_estado_solicitud")
+        .prefetch_related("detalles__id_producto")
+        .order_by("-fecha_solicitud")
+    )
 
     for s in solicitudes:
-        detalle = s.detalles.first()
-        if detalle:
+        d = s.detalles.first()
+        if d:
             data.append([
                 s.nombre_documento or "",
-                detalle.id_producto.nombre if detalle.id_producto else "",
-                detalle.cantidad_solicitada or "",
-                "Sí" if detalle.es_urgente else "No",
-                detalle.observaciones or "—",
+                d.id_producto.nombre if d.id_producto else "",
+                d.cantidad_solicitada or "",
+                "Sí" if d.es_urgente else "No",
+                d.observaciones or "—",
                 s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
                 s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
             ])
 
-    # ===================== ESTILOS DE TABLA =====================
     tabla = Table(data, repeatRows=1)
     tabla.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.Color(14/255, 122/255, 58/255)),  # Verde SAIF
+        ("BACKGROUND", (0, 0), (-1, 0), colors.Color(14/255, 122/255, 58/255)),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -234,8 +323,6 @@ def exportar_solicitudes_pdf(request):
     ]))
 
     elementos.append(tabla)
-
-    # ===================== CONSTRUIR PDF =====================
     doc.build(elementos)
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename="reporte_solicitudes.pdf")

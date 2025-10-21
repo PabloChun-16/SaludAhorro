@@ -1,73 +1,56 @@
 {% extends "dashboard/base.html" %}
 {% load static %}
-{% load tz %}
 
-{% block title %}Registro de Solicitudes · SAIF{% endblock %}
+{% block title %}Solicitudes · SAIF{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
-<section class="p-3">
-  <style>
-  /* ====== DISEÑO CLONADO DE “Productos · SAIF” ====== */
-  .table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
+<style>
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
 
-  #tablaSolicitudes{
-    table-layout:fixed; width:100%; min-width:1200px;
-    border-collapse:separate; border-spacing:0;
-    outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
-  }
+#tablaSolicitudes{
+  table-layout:fixed; width:100%; min-width:1200px;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem; margin-bottom:0;
+}
+#tablaSolicitudes th,#tablaSolicitudes td{
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
+  padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea; color:#0f172a;
+}
+#tablaSolicitudes tbody tr{ background:#ffffff; }
+#tablaSolicitudes tbody tr:hover{ background:#fafafa; }
 
-  #tablaSolicitudes th,#tablaSolicitudes td{
-    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
-    padding:.5rem; font-size:.875rem; background-clip:padding-box; border:1px solid #e3e6ea;
-    color:#0f172a;
-  }
+#tablaSolicitudes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
+#tablaSolicitudes thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th{
+  position:sticky; top:42px; z-index:10; background:#f4fbf6;
+  border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem; overflow:visible;
+}
+thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
+.filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
+#tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
+#tablaSolicitudes thead.sticky-top tr.filter-row th select.form-select.filter-control{ -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important; }
 
-  #tablaSolicitudes tbody tr{ background:#ffffff; }
-  #tablaSolicitudes tbody tr:hover{ background:#fafafa; }
+.wp-18{width:18%}.wp-26{width:26%}.wp-12{width:12%}.wp-10{width:10%}.wp-24{width:24%}.wp-10b{width:10%}
+.hidden-by-pagination{ display:none !important; }
 
-  #tablaSolicitudes thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
-  #tablaSolicitudes thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
-  #tablaSolicitudes thead.sticky-top tr.filter-row th{
-    position:sticky; top:42px; z-index:10; background:#f4fbf6;
-    border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
-    padding:.35rem .5rem; overflow:visible;
-  }
+#tablaSolicitudes thead tr:first-child th{ border-top:0; }
+#tablaSolicitudes tbody tr:last-child td{ border-bottom:0; }
+#tablaSolicitudes tr>*:first-child{ border-left:0; }
+#tablaSolicitudes tr>*:last-child{  border-right:0; }
+#tablaSolicitudes tbody tr.last-visible td{ border-bottom:0 !important; }
 
-  thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
-  .filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
-  .filter-control::placeholder{ color:#94a3b8; }
-  .filter-control.text-center{ text-align:center; }
-  .filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
-  #tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
-  #tablaSolicitudes thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
-  #tablaSolicitudes thead.sticky-top tr.filter-row th select.form-select.filter-control{ -moz-text-align-last:center !important; text-align-last:center !important; text-align:center !important; }
+#tablaSolicitudes tr.selected, #tablaSolicitudes tr.table-active { background-color: rgba(25,135,84,.12); }
+#tablaSolicitudes tr { cursor: pointer; }
+</style>
 
-  /* Bordes exteriores suaves */
-  #tablaSolicitudes thead tr:first-child th{ border-top:0; }
-  #tablaSolicitudes tbody tr:last-child td{ border-bottom:0; }
-  #tablaSolicitudes tr>*:first-child{ border-left:0; }
-  #tablaSolicitudes tr>*:last-child{  border-right:0; }
-  #tablaSolicitudes tbody tr.last-visible td{ border-bottom:0 !important; }
-
-  /* Helpers de ancho similares a Productos (ajustados a 6 cols) */
-  .wp-18{width:18%}.wp-26{width:26%}.wp-12{width:12%}.wp-10{width:10%}.wp-24{width:24%}.wp-10b{width:10%}
-
-  .hidden-by-pagination{ display:none !important; }
-
-  /* ====== Modales (mantengo tu estilo) ====== */
-  .saif-modal .modal-content{ border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-  .saif-modal .modal-header{ background:#0E7A3A; color:#fff; border-bottom:0; }
-  .saif-badge{ background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem; }
-
-  .kv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem; }
-  .kv{ display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04); }
-  .kv--block{ grid-column:1 / -1; grid-template-columns:160px 1fr; }
-  .kv__key{ color:#0b1220; font-weight:700; }
-  .kv__val{ color:#0f172a; word-break:break-word; }
-  </style>
-
+<section class="p-6 md:p-8">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
     <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
       <h3 class="mb-0 fs-6"><i class="bi bi-inboxes me-2"></i> Registro de Solicitudes</h3>
@@ -89,7 +72,6 @@
             <th scope="col">Observaciones</th>
             <th scope="col">Estado</th>
           </tr>
-          <!-- Fila de filtros (UI) -->
           <tr class="filter-row">
             <th><input id="f-doc" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-prod" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
@@ -115,31 +97,31 @@
             </th>
           </tr>
         </thead>
-
         <tbody>
           {% for solicitud in solicitudes %}
+          {% with d=solicitud.detalles.first %}
           <tr
             data-id="{{ solicitud.id }}"
             data-documento="{{ solicitud.nombre_documento }}"
-            data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
-            data-producto-id="{{ solicitud.detalles.first.id_producto.id }}"
-            data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
-            data-urgente="{{ solicitud.detalles.first.es_urgente }}"
-            data-observaciones="{{ solicitud.detalles.first.observaciones }}"
+            data-producto="{% if d %}{{ d.id_producto.nombre }}{% endif %}"
+            data-producto-id="{% if d %}{{ d.id_producto.id }}{% endif %}"
+            data-cantidad="{% if d %}{{ d.cantidad_solicitada }}{% endif %}"
+            data-urgente="{% if d and d.es_urgente %}True{% else %}False{% endif %}"
+            data-observaciones="{% if d %}{{ d.observaciones|default:'—' }}{% endif %}"
             data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
             data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d H:i' }}"
           >
-            <td class="text-truncate">{{ solicitud.nombre_documento }}</td>
-            <td class="text-truncate">{{ solicitud.detalles.first.id_producto.nombre }}</td>
-            <td class="text-truncate">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
+            <td class="text-truncate fw-semibold">{{ solicitud.nombre_documento }}</td>
+            <td class="text-truncate">{% if d %}{{ d.id_producto.nombre }}{% else %}—{% endif %}</td>
+            <td class="text-truncate">{% if d %}{{ d.cantidad_solicitada }}{% else %}—{% endif %}</td>
             <td>
-              {% if solicitud.detalles.first.es_urgente %}
+              {% if d and d.es_urgente %}
                 <span class="badge bg-primary">Sí</span>
               {% else %}
                 <span class="badge bg-secondary">No</span>
               {% endif %}
             </td>
-            <td class="text-truncate">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
+            <td class="text-truncate">{% if d %}{{ d.observaciones|default:"—" }}{% else %}—{% endif %}</td>
             <td>
               {% if solicitud.id_estado_solicitud.nombre_estado == "Activo" %}
                 <span class="badge bg-success">Activo</span>
@@ -150,6 +132,7 @@
               {% endif %}
             </td>
           </tr>
+          {% endwith %}
           {% empty %}
           <tr>
             <td colspan="6" class="py-5 text-muted" data-empty-row>
@@ -162,341 +145,438 @@
       </table>
     </div>
 
-    <!-- Pager como en Productos -->
     <div id="pagerSolicitudes" class="saif-pager"></div>
 
-    <!-- BOTONES -->
     <div class="px-3 py-3 text-center border-top bg-light">
-      <button class="btn btn-warning rounded-pill px-3 me-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#crearSolicitudModal">
-        <i class="bi bi-plus-circle"></i> Crear
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm">
+        <i class="bi bi-plus-circle"></i> CREAR
       </button>
-      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
-        <i class="bi bi-search"></i> Consultar
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-search"></i> CONSULTAR
       </button>
-      <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
-        <i class="bi bi-pencil"></i> Editar
-      </button>
-      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
-        <i class="bi bi-trash"></i> Eliminar
-      </button>
-    </div>
-  </div>
-
-  <!-- ====== MODALES (tus mismos) ====== -->
-  <!-- CREAR -->
-  <div class="modal fade saif-modal" id="crearSolicitudModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form method="post" action="{% url 'solicitudes_bodega_central:crear_solicitud' %}">
-          {% csrf_token %}
-          <div class="modal-header bg-emerald-700 text-white py-3">
-            <div class="d-flex align-items-center gap-3">
-              <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-              <h5 class="modal-title mb-0 fw-bold">Nueva Solicitud</h5>
-              <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
-            </div>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body bg-slate-50 py-4">
-            <div class="grid md:grid-cols-2 gap-4">
-              <input type="text" name="nombre_documento" class="form-control rounded-lg" placeholder="Nombre del documento" required>
-              <select name="id_producto[]" class="form-control rounded-lg" required>
-                <option value="">Seleccione un producto</option>
-                {% for producto in productos %}
-                  <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-                {% endfor %}
-              </select>
-              <input type="number" name="cantidad_solicitada[]" class="form-control rounded-lg" placeholder="Cantidad solicitada" min="1" required>
-              <div class="d-flex align-items-center gap-2">
-                <input type="checkbox" name="es_urgente[]" class="form-check-input" checked value="on">
-                <label class="mb-0">Marcar como urgente (Sí)</label>
-              </div>
-              <input type="text" name="observaciones[]" class="form-control rounded-lg" placeholder="Observaciones (opcional)">
-            </div>
-          </div>
-          <div class="modal-footer bg-white">
-            <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
-            <button class="btn btn-success rounded-pill px-4"><i class="bi bi-check2-circle"></i> Guardar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONSULTAR -->
-  <div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-emerald-700 text-white py-3">
-          <div class="d-flex align-items-center gap-3">
-            <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-            <h5 class="modal-title mb-0 fw-bold">Detalle de Solicitud</h5>
-            <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
-          </div>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body py-3 bg-slate-50">
-          <div class="kv-grid">
-            <div class="kv"><div class="kv__key fw-bold">Documento</div><div class="kv__val" id="detalleDocumento"></div></div>
-            <div class="kv"><div class="kv__key fw-bold">Producto</div><div class="kv__val" id="detalleProducto"></div></div>
-            <div class="kv"><div class="kv__key fw-bold">Cantidad</div><div class="kv__val" id="detalleCantidad"></div></div>
-            <div class="kv"><div class="kv__key fw-bold">Urgente</div><div class="kv__val" id="detalleUrgente"></div></div>
-            <div class="kv kv--block"><div class="kv__key fw-bold">Observaciones</div><div class="kv__val" id="detalleObservaciones"></div></div>
-            <div class="kv"><div class="kv__key fw-bold">Estado</div><div class="kv__val" id="detalleEstado"></div></div>
-          </div>
-        </div>
-        <div class="modal-footer bg-white">
-          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDITAR -->
-  <div class="modal fade saif-modal" id="editarSolicitudModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form method="post" id="editarSolicitudForm">
-          {% csrf_token %}
-          <div class="modal-header bg-green-600 text-white">
-            <div class="d-flex align-items-center gap-3">
-              <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-              <h5 class="modal-title fw-bold mb-0">Editar Solicitud</h5>
-              <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
-            </div>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body bg-slate-50 py-4 grid md:grid-cols-2 gap-4">
-            <input type="text" name="nombre_documento" id="editDocumento" class="form-control rounded-lg" placeholder="Documento">
-            <input type="number" name="cantidad_solicitada" id="editCantidad" class="form-control rounded-lg" placeholder="Cantidad">
-            <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
-              <option value="">Seleccione un producto</option>
-              {% for producto in productos %}<option value="{{ producto.id }}">{{ producto.nombre }}</option>{% endfor %}
-            </select>
-            <input type="text" name="observaciones" id="editObservaciones" class="form-control rounded-lg" placeholder="Observaciones">
-            <select name="id_estado_solicitud" id="editEstado" class="form-control rounded-lg" required>
-              <option value="">Seleccione estado</option>
-              {% for e in estados %}<option value="{{ e.id }}">{{ e.nombre_estado }}</option>{% endfor %}
-            </select>
-          </div>
-          <div class="modal-footer bg-white">
-            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
-            <button type="submit" class="btn btn-success rounded-pill px-4"><i class="bi bi-check2-circle"></i> Guardar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ELIMINAR -->
-  <div class="modal fade saif-modal" id="eliminarSolicitudModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <form method="post" id="eliminarSolicitudForm">
-          {% csrf_token %}
-          <div class="modal-header bg-red-700 text-white py-3">
-            <div class="d-flex align-items-center gap-3">
-              <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-              <h5 class="modal-title mb-0 fw-bold">Eliminar Solicitud</h5>
-              <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
-            </div>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body text-center py-4 bg-slate-50">
-            <p class="fw-semibold text-slate-700">
-              ¿Seguro que deseas eliminar la solicitud <strong id="eliminarDocumento" class="text-red-600"></strong>?
-            </p>
-          </div>
-          <div class="modal-footer justify-center bg-white">
-            <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
-            <button class="btn btn-danger rounded-pill px-4"><i class="bi bi-trash-fill"></i> Eliminar</button>
-          </div>
-        </form>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- ======== SCRIPT: Lógica clonada de Productos, adaptada ======== -->
+<!-- ====== CSRF a mano para fetch ====== -->
+<form style="display:none">{% csrf_token %}</form>
+
+<!-- ====== MODAL: CREAR (todo aquí) ====== -->
+<div class="modal fade" id="modalSolicitud" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-emerald-700 text-white py-3">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
+          <h5 class="modal-title mb-0 fw-bold">Crear Solicitud</h5>
+          <span class="badge bg-light text-emerald-700">SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div id="formAlertSolicitud" class="alert alert-danger d-none"></div>
+
+        <form id="form-solicitud">
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Documento</label>
+              <input id="documentoInput" type="text" class="form-control" placeholder="Ej. RQ-0001" required>
+            </div>
+          </div>
+
+          <div class="border rounded-3 p-3 bg-light mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-box-seam me-2"></i>Detalle de Productos</h6>
+
+            <div class="mb-2">
+              <label class="form-label">Producto</label>
+              <div class="input-group">
+                <input id="productoInput" type="text" class="form-control" placeholder="Código o nombre..." readonly>
+                <input id="productoIdInput" type="hidden">
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalBuscarProducto">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <small class="text-muted">Selecciona desde el buscador para evitar errores.</small>
+            </div>
+
+            <div class="row g-2 align-items-end">
+              <div class="col-3">
+                <label class="form-label">Cantidad</label>
+                <input id="cantidadInput" type="number" class="form-control" min="1" value="1">
+              </div>
+              <div class="col-3">
+                <label class="form-label d-block">Urgente</label>
+                <div class="form-check form-switch">
+                  <input id="urgenteInput" class="form-check-input" type="checkbox">
+                  <label class="form-check-label">Sí</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Observaciones</label>
+                <input id="obsInput" type="text" class="form-control" placeholder="Opcional">
+              </div>
+              <div class="col-12 mt-2">
+                <button type="button" class="btn btn-success" id="btnAddDetalle">
+                  <i class="bi bi-plus-circle"></i> Añadir
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-sm">
+                <thead class="table-success">
+                  <tr>
+                    <th class="text-start">Producto</th>
+                    <th>Cantidad</th>
+                    <th>Urgente</th>
+                    <th class="text-start">Observaciones</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="detalleTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+              <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-success rounded-pill px-4">
+              <i class="bi bi-check2-circle"></i> Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL: CONSULTAR (rellenado desde la fila seleccionada) ====== -->
+<div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-emerald-700 text-white py-3">
+        <div class="d-flex align-items-center gap-3">
+          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo" class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
+          <h5 class="modal-title mb-0 fw-bold">Detalle de Solicitud</h5>
+          <span class="badge bg-light text-emerald-700">SAIF</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-3 bg-slate-50">
+        <div class="kv-grid">
+          <div class="kv"><div class="kv__key fw-bold">Documento</div><div class="kv__val" id="detalleDocumento"></div></div>
+          <div class="kv"><div class="kv__key fw-bold">Producto</div><div class="kv__val" id="detalleProducto"></div></div>
+          <div class="kv"><div class="kv__key fw-bold">Cantidad</div><div class="kv__val" id="detalleCantidad"></div></div>
+          <div class="kv"><div class="kv__key fw-bold">Urgente</div><div class="kv__val" id="detalleUrgente"></div></div>
+          <div class="kv kv--block"><div class="kv__key fw-bold">Observaciones</div><div class="kv__val" id="detalleObservaciones"></div></div>
+          <div class="kv"><div class="kv__key fw-bold">Estado</div><div class="kv__val" id="detalleEstado"></div></div>
+        </div>
+      </div>
+      <div class="modal-footer bg-white">
+        <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL: BUSCAR PRODUCTO (clonado del de recepción) ====== -->
+<div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-search"></i> Buscar producto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <input id="searchProducto" type="text" class="form-control" placeholder="Escribe código o nombre...">
+        </div>
+        <div class="table-responsive" style="max-height:50vh;overflow:auto">
+          <table class="table table-hover table-sm">
+            <thead class="table-success">
+              <tr>
+                <th>Código</th><th>Nombre</th><th>Descripción</th><th>Presentación</th>
+                <th>Unidad</th><th>Condición</th><th>Receta</th><th>Ctrl.</th><th>Elegir</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarProductos"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const table = document.getElementById("tablaSolicitudes");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerSolicitudes");
 
-  let selectedId = null;
+  const btnCrear = document.getElementById("btnCrear");
+  const btnConsultar = document.getElementById("btnConsultar");
 
+  const modalEl = document.getElementById("modalSolicitud");
+  const modalCrear = new bootstrap.Modal(modalEl);
+  const modalBuscar = document.getElementById("modalBuscarProducto");
+  const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"));
+
+  let selectedRow = null;
+
+  // ========== Selección de fila y consultar ==========
+  table.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-id]");
+    if (!tr) return;
+    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+    tr.classList.add("selected","table-active");
+    selectedRow = tr;
+    btnConsultar.disabled = false;
+  });
+
+  tbody.addEventListener("dblclick",(ev)=>{
+    const tr = ev.target.closest("tr[data-id]");
+    if(!tr || tr.hasAttribute("data-empty-row")) return;
+    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+    tr.classList.add("selected","table-active");
+    selectedRow = tr;
+    btnConsultar.disabled = false;
+    btnConsultar.click();
+  });
+
+  btnConsultar.addEventListener("click", function () {
+    const row = selectedRow;
+    if (!row) return;
+    document.getElementById("detalleDocumento").textContent = row.dataset.documento || "";
+    document.getElementById("detalleProducto").textContent = row.dataset.producto || "";
+    document.getElementById("detalleCantidad").textContent = row.dataset.cantidad || "";
+    document.getElementById("detalleUrgente").textContent = (row.dataset.urgente === "True") ? "Sí" : "No";
+    document.getElementById("detalleObservaciones").textContent = row.dataset.observaciones || "—";
+    document.getElementById("detalleEstado").textContent = row.dataset.estado || "";
+    modalConsultar.show();
+  });
+
+  // ========== Crear ==========
+  btnCrear.addEventListener("click", function () {
+    // Limpia el formulario cada vez
+    document.getElementById("formAlertSolicitud").classList.add("d-none");
+    document.getElementById("formAlertSolicitud").textContent = "";
+    document.getElementById("form-solicitud").reset?.();
+    document.getElementById("detalleTable").innerHTML = "";
+    modalCrear.show();
+  });
+
+  const alertBox = document.getElementById("formAlertSolicitud");
+  const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
+  const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
+
+  // API global para setear producto desde el buscador
+  window.setProductoSeleccionado = function({id, texto}) {
+    const idEl  = document.querySelector("#productoIdInput");
+    const txtEl = document.querySelector("#productoInput");
+    if (idEl)  idEl.value  = id || "";
+    if (txtEl) txtEl.value = texto || "";
+  };
+
+  // Añadir detalle a la tabla
+  document.getElementById("btnAddDetalle").addEventListener("click", () => {
+    hideAlert();
+    const pid = document.getElementById("productoIdInput").value || "";
+    const ptx = (document.getElementById("productoInput").value || "").trim();
+    const qty = parseInt(document.getElementById("cantidadInput").value || 0, 10);
+    const urg = !!document.getElementById("urgenteInput").checked;
+    const obs = (document.getElementById("obsInput").value || "").trim();
+
+    if (!pid){ showAlert("Seleccione un producto."); return; }
+    if (!qty || qty <= 0){ showAlert("Cantidad inválida."); return; }
+
+    const tbodyDet = document.getElementById("detalleTable");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="text-start" data-id="${pid}" data-nombre="${ptx}">${ptx}</td>
+      <td>${qty}</td>
+      <td>${urg ? "Sí" : "No"}</td>
+      <td class="text-start">${obs || "—"}</td>
+      <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>`;
+    tr.querySelector(".btn-del").addEventListener("click", () => tr.remove());
+    tbodyDet.appendChild(tr);
+
+    // limpiar captura
+    document.getElementById("productoIdInput").value = "";
+    document.getElementById("productoInput").value  = "";
+    document.getElementById("cantidadInput").value  = "1";
+    document.getElementById("urgenteInput").checked = false;
+    document.getElementById("obsInput").value = "";
+  });
+
+  // Enviar (POST JSON)
+  document.getElementById("form-solicitud").addEventListener("submit", async (e)=>{
+    e.preventDefault(); hideAlert();
+
+    const doc = (document.getElementById("documentoInput").value || "").trim();
+    if (!doc){ showAlert("Ingrese nombre del documento."); return; }
+
+    // Construye detalles desde la tabla
+    const detalles = [];
+    document.querySelectorAll("#detalleTable tr").forEach(tr=>{
+      const tds = tr.children;
+      const nombre = tds[0].dataset.nombre || tds[0].textContent.trim();
+      const pid    = parseInt(tds[0].dataset.id || "0", 10);
+      const qty    = parseInt((tds[1].textContent||"0").trim(), 10);
+      const urg    = (tds[2].textContent||"").trim().toLowerCase().startsWith('s'); // Sí
+      const obs    = (tds[3].textContent||"").trim();
+      if(pid && qty>0){
+        detalles.push({producto_id: pid, cantidad: qty, urgente: urg, observaciones: (obs==="—"? "" : obs), producto:nombre});
+      }
+    });
+
+    if (!detalles.length){ showAlert("Agregue al menos un producto."); return; }
+
+    const payload = {
+      form_data: { nombre_documento: doc },
+      detalles: detalles
+    };
+
+    try{
+      const resp = await fetch("{% url 'solicitudes_bodega_central:crear_solicitud' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With":"XMLHttpRequest",
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success){
+        const msg = (data && (data.errors || data.message)) ? (data.errors || data.message) : "Error al guardar.";
+        showAlert(msg);
+        return;
+      }
+      window.location.reload();
+    }catch(err){
+      console.error(err);
+      showAlert("Error de red.");
+    }
+  });
+
+  // ========== Buscador de productos ==========
+  const searchInput = document.getElementById("searchProducto");
+  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+
+  if(modalBuscar){
+    modalBuscar.addEventListener("shown.bs.modal", () => {
+      searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
+    });
+    modalBuscar.addEventListener("hidden.bs.modal", () => {
+      // Regresa al modal de crear
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+  }
+
+  if(searchInput){
+    searchInput.oninput = function () {
+      const term = this.value;
+      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyResultados.innerHTML = "";
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo}</td>
+              <td>${p.nombre}</td>
+              <td>${p.descripcion ?? ""}</td>
+              <td>${p.presentacion ?? ""}</td>
+              <td>${p.unidad ?? ""}</td>
+              <td>${p.condicion ?? ""}</td>
+              <td>${p.receta ? "Sí" : "No"}</td>
+              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              if (window.setProductoSeleccionado) {
+                window.setProductoSeleccionado({
+                  id: p.id,
+                  texto: `${p.codigo} - ${p.nombre}`
+                });
+              }
+              bootstrap.Modal.getInstance(modalBuscar).hide();
+            });
+            tbodyResultados.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+        });
+    };
+  }
+
+  // ========== Utilidades: paginación y filtros ==========
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
       if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
       else{el.removeAttribute("title")}
     });
   }
-
   function removeEmptyRows(){
     Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
       if(tr.hasAttribute('data-empty-row')) return;
-      const tds = Array.from(tr.cells);
-      const hasContent = tds.some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
       if(!hasContent){ tr.remove(); }
     });
   }
-
-  function selectRow(row){
-    if(!row) return;
-    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
-    row.classList.add("table-active");
-    selectedId = row.getAttribute("data-id");
-
-    // Habilitar botones cuando hay selección
-    document.getElementById("btnConsultar").disabled = false;
-    document.getElementById("btnEditar").disabled = false;
-    document.getElementById("btnEliminar").disabled = false;
-  }
-
-  // Click / Doble click
-  tbody.addEventListener("click",(ev)=>{
-    const row = ev.target.closest("tr");
-    if(!row || row.hasAttribute("data-empty-row")) return;
-    selectRow(row);
-  });
-
-  tbody.addEventListener("dblclick",(ev)=>{
-    const row = ev.target.closest("tr");
-    if(!row || row.hasAttribute("data-empty-row")) return;
-    selectRow(row);
-    if(selectedId){
-      // Abre el modal de consulta (tu flujo existente)
-      document.getElementById("btnConsultar").click();
-    }
-  });
-
-  // Atajos
-  document.addEventListener('keydown', (ev)=>{
-    if(ev.key==='Enter' && selectedId){
-      document.getElementById("btnConsultar").click(); ev.preventDefault();
-    }
-    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='e' && selectedId){
-      document.getElementById("btnEditar").click(); ev.preventDefault();
-    }
-    if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='d' && selectedId){
-      document.getElementById("btnEliminar").click(); ev.preventDefault();
-    }
-  });
-
-  // Botones (tu lógica de consulta/editar/eliminar se mantiene)
-  document.getElementById("btnConsultar").addEventListener("click", function () {
-    const selectedRow = tbody.querySelector("tr.table-active");
-    if (!selectedRow) { alert("Selecciona una solicitud primero."); return; }
-    document.getElementById("detalleDocumento").textContent = selectedRow.dataset.documento;
-    document.getElementById("detalleProducto").textContent = selectedRow.dataset.producto;
-    document.getElementById("detalleCantidad").textContent = selectedRow.dataset.cantidad;
-    document.getElementById("detalleUrgente").textContent = (selectedRow.dataset.urgente === "True" || selectedRow.dataset.urgente === "true") ? "Sí" : "No";
-    document.getElementById("detalleObservaciones").textContent = selectedRow.dataset.observaciones || "—";
-    document.getElementById("detalleEstado").textContent = selectedRow.dataset.estado;
-    new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
-  });
-
-  document.getElementById("btnEditar").addEventListener("click", function () {
-    const selectedRow = tbody.querySelector("tr.table-active");
-    if (!selectedRow) { alert("Selecciona una solicitud primero."); return; }
-    const id = selectedRow.dataset.id;
-    document.getElementById("editDocumento").value = selectedRow.dataset.documento || "";
-    document.getElementById("editCantidad").value = selectedRow.dataset.cantidad || "";
-    document.getElementById("editProducto").value = selectedRow.dataset.productoId || "";
-    document.getElementById("editObservaciones").value = selectedRow.dataset.observaciones || "";
-
-    const estadoNombre = (selectedRow.dataset.estado||"").trim();
-    const estadoSelect = document.getElementById("editEstado");
-    if (estadoSelect) {
-      for (const option of estadoSelect.options) { option.selected = (option.text.trim() === estadoNombre); }
-    }
-    document.getElementById("editarSolicitudForm").action = `/solicitudes_bodega_central/${id}/editar/`;
-    new bootstrap.Modal(document.getElementById("editarSolicitudModal")).show();
-  });
-
-  document.getElementById("btnEliminar").addEventListener("click", function () {
-    const selectedRow = tbody.querySelector("tr.table-active");
-    if (!selectedRow) { alert("Selecciona una solicitud primero."); return; }
-    const id = selectedRow.dataset.id;
-    document.getElementById("eliminarDocumento").textContent = selectedRow.dataset.documento || "";
-    document.getElementById("eliminarSolicitudForm").action = `/solicitudes_bodega_central/${id}/eliminar/`;
-    new bootstrap.Modal(document.getElementById("eliminarSolicitudModal")).show();
-  });
-
-  /* ====== Paginación (igual a Productos) ====== */
   let currentPage=1; let pageSize=15; const rowHeight=42;
-
   function recomputarPageSize(){
     const rect=tbody.getBoundingClientRect();
     const margenInf=160;
     const espacio=window.innerHeight-rect.top-margenInf;
     pageSize=Math.max(1,Math.floor(espacio/rowHeight));
   }
-
   function getDataRows(){
-    return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+    return Array.from(tbody.querySelectorAll("tr")).filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
   }
-
   function renderPager(totalPages){
-    if(totalPages<=1){
-      pagerEl.innerHTML=""; pagerEl.style.display="none"; return;
-    }
+    if(totalPages<=1){ pagerEl.innerHTML=""; pagerEl.style.display="none"; return; }
     pagerEl.style.display="flex";
     pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
     pagerEl.innerHTML="";
-
     const prev=document.createElement("button");
     prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
     prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
     prev.disabled=currentPage===1;
     prev.onclick=()=>{ currentPage--; applyPagination(); };
-
     const info=document.createElement("span");
     info.className="fw-semibold text-success small";
     info.textContent=`Página ${currentPage} de ${totalPages}`;
-
     const next=document.createElement("button");
     next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
     next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
     next.disabled=currentPage===totalPages;
     next.onclick=()=>{ currentPage++; applyPagination(); };
-
     pagerEl.append(prev,info,next);
   }
-
   function applyPagination(){
     const rows=getDataRows();
     const total=rows.length;
     const totalPages=Math.max(1,Math.ceil(total/pageSize));
     if(currentPage>totalPages) currentPage=totalPages;
-
     const start=(currentPage-1)*pageSize;
     const end=start+pageSize;
-
-    rows.forEach((tr,idx)=>{
-      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
-    });
-
+    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
     renderPager(totalPages);
-
     tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
     const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
-    const last = visibles[visibles.length-1];
-    if(last) last.classList.add('last-visible');
-
-    if(selectedId){
-      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
-      if(sel && sel.classList.contains("hidden-by-pagination")){
-        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
-        if(firstVisible) selectRow(firstVisible);
-      }
-    }
+    const last = visibles[visibles.length-1]; if(last) last.classList.add('last-visible');
     refreshAutoTitles();
   }
-
-  /* ====== Filtros (adaptados a columnas de Solicitudes) ====== */
   function installFilters(){
     const fDoc=document.getElementById("f-doc");
     const fProd=document.getElementById("f-prod");
@@ -504,15 +584,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const fUrg=document.getElementById("f-urg");
     const fObs=document.getElementById("f-obs");
     const fEst=document.getElementById("f-estado");
-
     const inputs=[fDoc,fProd,fCant,fUrg,fObs,fEst].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
     const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
-
     function applyFilters(){
       const vDoc=norm(fDoc?.value), vProd=norm(fProd?.value), vCant=norm(fCant?.value),
             vUrg=yesNo(fUrg?.value), vObs=norm(fObs?.value), vEst=norm(fEst?.value);
-
       const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
       rows.forEach(tr=>{
         const tds=tr.querySelectorAll("td");
@@ -521,13 +598,12 @@ document.addEventListener("DOMContentLoaded", function () {
           (!vDoc  || txt(0).includes(vDoc)) &&
           (!vProd || txt(1).includes(vProd)) &&
           (!vCant || txt(2).includes(vCant)) &&
-          (!vUrg  || yesNo(txt(3))===vUrg) &&
+          (!vUrg  || (txt(3).includes("sí") || txt(3).includes("si")) === (vUrg==="si")) &&
           (!vObs  || txt(4).includes(vObs)) &&
-          (!vEst  || norm(tr.getAttribute("data-estado")||txt(5))===vEst);
+          (!vEst  || norm(tds[5]?.innerText)===vEst);
         tr.style.display = ok ? "" : "none";
       });
-      currentPage=1;
-      applyPagination();
+      currentPage=1; applyPagination();
     }
     inputs.forEach(inp=>{ const ev=(inp.tagName==="SELECT")?"change":"input"; inp.addEventListener(ev,applyFilters); });
   }

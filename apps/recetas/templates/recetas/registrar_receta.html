@@ -82,6 +82,9 @@
   </div>
 </section>
 
+<!-- ====== CSRF para fetch ====== -->
+<form style="display:none">{% csrf_token %}</form>
+
 <!-- ================== MODAL CREAR ================== -->
 <div class="modal fade saif-modal" id="crearRecetaModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -103,12 +106,22 @@
             <input type="text" name="referencia_factura" class="form-control rounded-lg" placeholder="Referencia Factura" required>
             <input type="text" name="referente_receta"   class="form-control rounded-lg" placeholder="Referente Receta" required>
 
-            <select name="id_producto" class="form-control rounded-lg" required>
-              <option value="">Seleccione un producto</option>
-              {% for producto in productos %}
-                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-              {% endfor %}
-            </select>
+            <!-- Producto: readonly + hidden + botón buscar -->
+            <div class="md:col-span-2">
+              <label class="form-label fw-semibold mb-1">Producto</label>
+              <div class="input-group">
+                <input id="crearProductoTxt" type="text" class="form-control rounded-start" placeholder="Seleccione desde el buscador" readonly>
+                <input id="crearProductoId" type="hidden" name="id_producto">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalBuscarProducto"
+                        data-parent="crear">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+              <small class="text-muted">Usa el buscador para evitar errores.</small>
+            </div>
 
             <select name="id_usuario_venta" class="form-control rounded-lg" required>
               <option value="">Seleccione un usuario</option>
@@ -180,12 +193,21 @@
           <input type="text" name="referencia_factura" id="editFactura"   class="form-control rounded-lg" placeholder="Referencia Factura">
           <input type="text" name="referente_receta"   id="editReferente" class="form-control rounded-lg" placeholder="Referente Receta">
 
-          <select name="id_producto" id="editProducto" class="form-control rounded-lg" required>
-            <option value="">Seleccione un producto</option>
-            {% for producto in productos %}
-              <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-            {% endfor %}
-          </select>
+          <!-- Producto: readonly + hidden + botón buscar -->
+          <div class="md:col-span-2">
+            <label class="form-label fw-semibold mb-1">Producto</label>
+            <div class="input-group">
+              <input id="editProductoTxt" type="text" class="form-control rounded-start" placeholder="Seleccione desde el buscador" readonly>
+              <input id="editProductoId" type="hidden" name="id_producto">
+              <button class="btn btn-outline-secondary"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBuscarProducto"
+                      data-parent="editar">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
 
           <select name="id_usuario_venta" id="editUsuario" class="form-control rounded-lg" required>
             <option value="">Seleccione un usuario</option>
@@ -240,10 +262,47 @@
   </div>
 </div>
 
+<!-- ================== MODAL: BUSCAR PRODUCTO ================== -->
+<div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-search me-2"></i>Buscar producto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <input id="searchProducto" type="text" class="form-control" placeholder="Escribe código o nombre...">
+        </div>
+        <div class="table-responsive" style="max-height:50vh;overflow:auto">
+          <table class="table table-hover table-sm">
+            <thead class="table-success">
+              <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Presentación</th>
+                <th>Unidad</th>
+                <th>Condición</th>
+                <th>Receta</th>
+                <th>Ctrl.</th>
+                <th>Elegir</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarProductos"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ================== ESTILOS (tabla + modal) ================== -->
 <style>
 .table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
-
 #tablaRecetas{
   table-layout:fixed; width:100%; min-width:1100px;
   border-collapse:separate; border-spacing:0;
@@ -255,7 +314,6 @@
 }
 #tablaRecetas tbody tr{ background:#ffffff; }
 #tablaRecetas tbody tr:hover{ background:#fafafa; }
-
 #tablaRecetas thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
 #tablaRecetas thead.sticky-top tr:first-child th{ position:sticky; top:0; z-index:11; background:#e8f5ec; border-bottom:1px solid #d7dbdf; }
 #tablaRecetas thead.sticky-top tr.filter-row th{
@@ -263,23 +321,18 @@
   border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf; box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
   padding:.35rem .5rem; overflow:visible;
 }
-
 thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
 .filter-control{ width:100%; height:32px; padding:.25rem .5rem; border:1px solid #cfe9d7; background:#fff; border-radius:.5rem; transition:border-color .15s, box-shadow .15s; font-size:.85rem; box-sizing:border-box; }
 .filter-control::placeholder{ color:#94a3b8; }
 .filter-control.text-center{ text-align:center; }
 .filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
-
 #tablaRecetas thead tr:first-child th{ border-top:0; }
 #tablaRecetas tbody tr:last-child td{ border-bottom:0; }
 #tablaRecetas tr>*:first-child{ border-left:0; }
 #tablaRecetas tr>*:last-child{  border-right:0; }
 #tablaRecetas tbody tr.last-visible td{ border-bottom:0 !important; }
-
 .hidden-by-pagination{ display:none !important; }
-
-/* Modal detalle */
-.saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+.saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); }
 .saif-modal .modal-header { background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
 .saif-modal .saif-badge { background:rgba(255,255,255,.15); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
 .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
@@ -345,14 +398,15 @@ document.addEventListener("DOMContentLoaded", function(){
     new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
   });
 
-  /* ====== Editar ====== */
+  /* ====== Editar (carga datos + action) ====== */
   document.getElementById("btnEditar").addEventListener("click",()=>{
     if(!selectedRow){ alert("Selecciona una receta primero."); return; }
     const id = selectedRow.dataset.id;
-    document.getElementById("editFactura").value   = selectedRow.dataset.factura || "";
-    document.getElementById("editReferente").value = selectedRow.dataset.referente || "";
-    document.getElementById("editProducto").value  = selectedRow.dataset.productoId || "";
-    document.getElementById("editUsuario").value   = selectedRow.dataset.usuarioId  || "";
+    document.getElementById("editFactura").value    = selectedRow.dataset.factura || "";
+    document.getElementById("editReferente").value  = selectedRow.dataset.referente || "";
+    document.getElementById("editProductoId").value = selectedRow.dataset.productoId || "";
+    document.getElementById("editProductoTxt").value= selectedRow.dataset.productoNombre || "";
+    document.getElementById("editUsuario").value    = selectedRow.dataset.usuarioId  || "";
     document.getElementById("editarRecetaForm").action = `/recetas/${id}/editar/`;
     new bootstrap.Modal(document.getElementById("editarRecetaModal")).show();
   });
@@ -489,6 +543,89 @@ document.addEventListener("DOMContentLoaded", function(){
       const ev=(inp.tagName==="SELECT")?"change":"input";
       inp.addEventListener(ev,applyFilters);
     });
+  }
+
+  /* ====== Buscador de productos (modal) ====== */
+  const modalBuscarEl = document.getElementById("modalBuscarProducto");
+  const modalCrearEl  = document.getElementById("crearRecetaModal");
+  const modalEditarEl = document.getElementById("editarRecetaModal");
+
+  // Guardar desde qué modal se abrió el buscador
+  let parentContext = null;
+  document.querySelectorAll('[data-bs-target="#modalBuscarProducto"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      parentContext = btn.getAttribute('data-parent') || null;
+    });
+  });
+
+  const searchInput = document.getElementById("searchProducto");
+  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+
+  if(modalBuscarEl){
+    modalBuscarEl.addEventListener("shown.bs.modal", () => {
+      if (searchInput){ searchInput.value = ""; searchInput.focus(); }
+      if (tbodyResultados){ tbodyResultados.innerHTML = ""; }
+    });
+
+    // Al cerrar el buscador, reabrir el modal padre correspondiente
+    modalBuscarEl.addEventListener("hidden.bs.modal", () => {
+      if (parentContext === 'crear' && modalCrearEl){
+        bootstrap.Modal.getOrCreateInstance(modalCrearEl).show();
+      } else if (parentContext === 'editar' && modalEditarEl){
+        bootstrap.Modal.getOrCreateInstance(modalEditarEl).show();
+      }
+    });
+  }
+
+  function setProductoSeleccionadoGlobal({id, texto}){
+    if (parentContext === 'editar'){
+      document.getElementById("editProductoId").value  = id || "";
+      document.getElementById("editProductoTxt").value = texto || "";
+    } else { // por defecto crear
+      document.getElementById("crearProductoId").value  = id || "";
+      document.getElementById("crearProductoTxt").value = texto || "";
+    }
+  }
+
+  if (searchInput){
+    searchInput.oninput = function(){
+      const term = this.value || "";
+      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyResultados.innerHTML = "";
+          if (!Array.isArray(data) || data.length===0){
+            tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>`;
+            return;
+          }
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo ?? ""}</td>
+              <td>${p.nombre ?? ""}</td>
+              <td>${p.descripcion ?? ""}</td>
+              <td>${p.presentacion ?? ""}</td>
+              <td>${p.unidad ?? ""}</td>
+              <td>${p.condicion ?? ""}</td>
+              <td>${p.receta ? "Sí" : "No"}</td>
+              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success">✔</button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              setProductoSeleccionadoGlobal({
+                id: p.id,
+                texto: `${p.codigo ?? ""} - ${p.nombre ?? ""}`.trim()
+              });
+              // Cerrar buscador; el handler 'hidden' reabre el padre
+              bootstrap.Modal.getInstance(modalBuscarEl).hide();
+            });
+            tbodyResultados.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+        });
+    };
   }
 
   /* ====== Init ====== */

@@ -84,8 +84,11 @@
   </div>
 </section>
 
+<!-- ================= CSRF oculto (por si hace falta en futuros fetch) ================= -->
+<form style="display:none">{% csrf_token %}</form>
+
 <!-- ============================= MODAL CREAR ENVÍO ============================= -->
-<div class="modal fade saif-modal" id="crearEnvioModal" tabindex="-1">
+<div class="modal fade saif-modal" id="crearEnvioModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_envio' %}">
@@ -101,6 +104,8 @@
         </div>
 
         <div class="modal-body bg-slate-50 py-4">
+          <div id="crearEnvioAlert" class="alert alert-danger d-none"></div>
+
           <div class="grid md:grid-cols-2 gap-4 mb-3">
             <input type="text" name="nombre_reporte" class="form-control rounded-lg" placeholder="Nombre del reporte" required>
 
@@ -119,20 +124,38 @@
             </select>
           </div>
 
-          <h6 class="fw-bold text-emerald-700 mb-2">
-            <i class="bi bi-journal-medical"></i> Seleccionar recetas
-          </h6>
-          <div class="border rounded p-3 bg-white" style="max-height:250px;overflow-y:auto;">
-            {% for receta in recetas %}
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="recetas[]" value="{{ receta.id }}" id="receta{{ receta.id }}">
-                <label class="form-check-label" for="receta{{ receta.id }}">
-                  {{ receta.referencia_factura }} · {{ receta.referente_receta }}
-                </label>
-              </div>
-            {% empty %}
-              <p class="text-slate-500 mb-0">No hay recetas disponibles.</p>
-            {% endfor %}
+          <div class="border rounded-3 p-3 bg-white">
+            <div class="d-flex align-items-center justify-content-between">
+              <h6 class="fw-bold text-emerald-700 mb-2">
+                <i class="bi bi-journal-medical me-2"></i>Recetas seleccionadas
+              </h6>
+              <button type="button"
+                      class="btn btn-outline-success btn-sm"
+                      data-bs-toggle="modal"
+                      data-bs-target="#modalBuscarReceta"
+                      data-parent="crear">
+                <i class="bi bi-search"></i> Buscar recetas
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead class="table-success">
+                  <tr>
+                    <th class="text-start">Factura</th>
+                    <th class="text-start">Referente</th>
+                    <th class="text-start">Producto</th>
+                    <th class="text-start">Usuario</th>
+                    <th class="text-center">Fecha</th>
+                    <th class="text-center">Quitar</th>
+                  </tr>
+                </thead>
+                <tbody id="recetasSeleccionadasBody">
+                  <!-- Se agregan filas aquí; cada fila lleva un input hidden name="recetas[]" -->
+                </tbody>
+              </table>
+            </div>
+            <small class="text-muted">Agrega una o varias recetas desde el buscador. No se permiten duplicados.</small>
           </div>
         </div>
 
@@ -140,7 +163,7 @@
           <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-success rounded-pill px-4">
+          <button type="submit" class="btn btn-success rounded-pill px-4" id="crearEnvioSubmit">
             <i class="bi bi-check2-circle"></i> Guardar
           </button>
         </div>
@@ -258,6 +281,62 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= MODAL BUSCAR RECETA ============================= -->
+<div class="modal fade" id="modalBuscarReceta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-search me-2"></i>Buscar receta</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <input id="searchReceta" type="text" class="form-control" placeholder="Factura, referente, producto, usuario o fecha...">
+        </div>
+        <div class="table-responsive" style="max-height:50vh;overflow:auto">
+          <table class="table table-hover table-sm">
+            <thead class="table-success">
+              <tr>
+                <th>Factura</th>
+                <th>Referente</th>
+                <th>Producto</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Elegir</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBuscarRecetas">
+              {% for r in recetas %}
+              <tr data-id="{{ r.id }}"
+                  data-factura="{{ r.referencia_factura }}"
+                  data-referente="{{ r.referente_receta }}"
+                  data-producto="{{ r.id_producto.nombre }}"
+                  data-usuario="{{ r.id_usuario_venta.nombre }}"
+                  data-fecha="{{ r.fecha_venta|date:'Y-m-d' }}"
+                  data-fecha-show="{{ r.fecha_venta|date:'d/m/Y H:i' }}">
+                <td>{{ r.referencia_factura }}</td>
+                <td>{{ r.referente_receta }}</td>
+                <td>{{ r.id_producto.nombre }}</td>
+                <td>{{ r.id_usuario_venta.nombre }}</td>
+                <td>{{ r.fecha_venta|date:"d/m/Y H:i" }}</td>
+                <td><button type="button" class="btn btn-sm btn-success btn-elegir-receta">✔</button></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-muted">No hay recetas disponibles para seleccionar.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -489,6 +568,124 @@ document.addEventListener("DOMContentLoaded",function(){
     }
 
     inputs.forEach(inp=>inp.addEventListener("input",applyFilters));
+  }
+
+  // ====== Buscar Recetas (modal secundario) ======
+  const modalBuscarEl = document.getElementById("modalBuscarReceta");
+  const modalCrearEl  = document.getElementById("crearEnvioModal");
+  let parentContext = null; // desde dónde abrí el buscador
+
+  // Captura el contexto (crear/editar) del botón que abrió el buscador
+  document.querySelectorAll('[data-bs-target="#modalBuscarReceta"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      parentContext = btn.getAttribute('data-parent') || null;
+    });
+  });
+
+  // Al cerrar el buscador, reabrir el modal padre (como en productos)
+  if(modalBuscarEl){
+    modalBuscarEl.addEventListener("hidden.bs.modal", ()=>{
+      if(parentContext === 'crear' && modalCrearEl){
+        bootstrap.Modal.getOrCreateInstance(modalCrearEl).show();
+      }
+    });
+    modalBuscarEl.addEventListener("shown.bs.modal", ()=>{
+      const input = document.getElementById("searchReceta");
+      if(input){ input.value=""; input.focus(); }
+    });
+  }
+
+  // Filtrado local en el buscador
+  const searchReceta = document.getElementById("searchReceta");
+  const tbodyBuscar  = document.getElementById("tablaBuscarRecetas");
+
+  function normaliza(s){ return (s||"").toString().toLowerCase().trim(); }
+
+  if(searchReceta && tbodyBuscar){
+    searchReceta.addEventListener("input", ()=>{
+      const term = normaliza(searchReceta.value);
+      Array.from(tbodyBuscar.querySelectorAll("tr")).forEach(tr=>{
+        const fac = normaliza(tr.dataset.factura);
+        const ref = normaliza(tr.dataset.referente);
+        const pro = normaliza(tr.dataset.producto);
+        const usu = normaliza(tr.dataset.usuario);
+        const fec = normaliza(tr.dataset.fecha);
+        const ok = !term || fac.includes(term) || ref.includes(term) || pro.includes(term) || usu.includes(term) || fec.includes(term);
+        tr.style.display = ok ? "" : "none";
+      });
+    });
+
+    // Elegir receta -> agregar a seleccionadas y cerrar buscador
+    tbodyBuscar.addEventListener("click", (e)=>{
+      const btn = e.target.closest(".btn-elegir-receta");
+      if(!btn) return;
+      const tr = btn.closest("tr");
+      if(!tr) return;
+
+      const data = {
+        id: tr.dataset.id,
+        factura: tr.dataset.factura,
+        referente: tr.dataset.referente,
+        producto: tr.dataset.producto,
+        usuario: tr.dataset.usuario,
+        fecha: tr.dataset.fechaShow || tr.querySelector("td:nth-child(5)")?.textContent || ""
+      };
+      addRecetaSeleccionada(data);
+      bootstrap.Modal.getInstance(modalBuscarEl)?.hide();
+    });
+  }
+
+  // Tabla de seleccionadas (Crear Envío)
+  const selBody = document.getElementById("recetasSeleccionadasBody");
+  const crearEnvioAlert = document.getElementById("crearEnvioAlert");
+
+  function showCrearAlert(msg){
+    if(!crearEnvioAlert) return;
+    crearEnvioAlert.textContent = msg || "Error";
+    crearEnvioAlert.classList.remove("d-none");
+  }
+  function hideCrearAlert(){
+    if(!crearEnvioAlert) return;
+    crearEnvioAlert.textContent = "";
+    crearEnvioAlert.classList.add("d-none");
+  }
+
+  function yaExiste(id){
+    return !!selBody.querySelector(`tr[data-id="${id}"]`);
+  }
+
+  function addRecetaSeleccionada({id, factura, referente, producto, usuario, fecha}){
+    hideCrearAlert();
+    if(!id){ showCrearAlert("Receta inválida."); return; }
+    if(yaExiste(id)){ showCrearAlert("La receta ya fue agregada."); return; }
+
+    const tr = document.createElement("tr");
+    tr.setAttribute("data-id", id);
+    tr.innerHTML = `
+      <td class="text-start">${factura||""}</td>
+      <td class="text-start">${referente||""}</td>
+      <td class="text-start">${producto||""}</td>
+      <td class="text-start">${usuario||""}</td>
+      <td class="text-center">${fecha||""}</td>
+      <td class="text-center">
+        <button type="button" class="btn btn-sm btn-outline-danger btn-quitar-receta"><i class="bi bi-x-lg"></i></button>
+      </td>
+      <input type="hidden" name="recetas[]" value="${id}">
+    `;
+    tr.querySelector(".btn-quitar-receta").addEventListener("click", ()=> tr.remove());
+    selBody.appendChild(tr);
+  }
+
+  // Validar antes de enviar (al menos 1 receta)
+  const crearSubmit = document.getElementById("crearEnvioSubmit");
+  if(crearSubmit){
+    crearSubmit.closest("form")?.addEventListener("submit", (e)=>{
+      hideCrearAlert();
+      if(!selBody.querySelector("tr[data-id]")){
+        e.preventDefault();
+        showCrearAlert("Agrega al menos una receta al envío.");
+      }
+    });
   }
 
   // ====== Init ======
