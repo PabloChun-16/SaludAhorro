@@ -212,7 +212,6 @@ def crear_envio(request):
             if rid:
                 DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
 
-        # Regresar a la pantalla principal de envíos
         return redirect("recetas:registrar_envio")
 
     # Si entran por GET, redirige a registrar envíos
