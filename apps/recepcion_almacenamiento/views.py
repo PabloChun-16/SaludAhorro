@@ -26,7 +26,124 @@ from apps.mantenimiento.models import (
 
 logger = logging.getLogger(__name__)
 
+from django.views.decorators.http import require_POST
 
+# ------------- utilidades internas -------------
+def _get_estado_recepcion(nombre: str) -> Estado_Recepcion:
+    return Estado_Recepcion.objects.get(nombre_estado=nombre)
+
+def _get_estado_mov(nombre: str) -> Estado_Movimiento_Inventario:
+    return Estado_Movimiento_Inventario.objects.get(nombre_estado=nombre)
+
+# -------------------------------
+# Cambio de estado 
+# -------------------------------
+@login_required
+@require_POST
+@transaction.atomic
+def recepcion_cambiar_estado(request, pk: int):
+    """
+    Cambia el estado de una recepción:
+      - 'Recibido Completo'  <->  'Recibido Parcialmente' : libre
+      - 'Rechazado' : valida que no existan movimientos de naturaleza -1
+                      (p.ej. VEN, TRB, AJ-) posteriores a la fecha de recepción
+                      para los lotes involucrados y no cancelados.
+                      Si es válido:
+                        * marca TODOS los movimientos REC de esa recepción como 'Cancelado'
+                        * resta del stock lo recibido en Detalle_Recepcion
+    Body JSON:
+      {"nuevo_estado": "Recibido Completo" | "Recibido Parcialmente" | "Rechazado", "motivo": "opcional/obligatorio si rechaza"}
+    """
+    recepcion = get_object_or_404(
+        Recepciones_Envio.objects.select_related("estado_recepcion", "id_usuario"),
+        pk=pk
+    )
+
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "JSON inválido."}, status=400)
+
+    nuevo_estado_nombre = (data.get("nuevo_estado") or "").strip()
+    motivo = (data.get("motivo") or "").strip()
+
+    if nuevo_estado_nombre not in ("Recibido Completo", "Recibido Parcialmente", "Rechazado"):
+        return JsonResponse({"success": False, "error": "Estado no permitido."}, status=400)
+
+    # Atajos a estados
+    try:
+        estado_nuevo = _get_estado_recepcion(nuevo_estado_nombre)
+        estado_mov_cancelado = _get_estado_mov("Cancelado")
+    except (Estado_Recepcion.DoesNotExist, Estado_Movimiento_Inventario.DoesNotExist):
+        return JsonResponse({"success": False, "error": "Catálogo de estados incompleto."}, status=400)
+
+    # Si solo alterna completo/parcial: actualizar y salir
+    if nuevo_estado_nombre in ("Recibido Completo", "Recibido Parcialmente"):
+        recepcion.estado_recepcion = estado_nuevo
+        recepcion.save(update_fields=["estado_recepcion"])
+        return JsonResponse({"success": True, "nuevo_estado": nuevo_estado_nombre})
+
+    # Rechazado: validaciones + reversión "blanda"
+    if nuevo_estado_nombre == "Rechazado":
+        if not motivo:
+            return JsonResponse({"success": False, "error": "Debe indicar un motivo para rechazar."}, status=400)
+
+        # Lotes involucrados en esta recepción
+        detalles = list(
+            Detalle_Recepcion.objects.filter(id_recepcion=recepcion).select_related("id_lote", "id_lote__id_producto")
+        )
+        if not detalles:
+            return JsonResponse({"success": False, "error": "La recepción no tiene detalles."}, status=400)
+
+        lote_ids = [d.id_lote_id for d in detalles]
+
+        # Tipos de naturaleza NEGATIVA (-1)
+        tipos_negativos = list(
+            Tipo_Movimiento_Inventario.objects.filter(naturaleza=-1).values_list("id", flat=True)
+        )
+
+        # ¿Hay movimientos de salida (no cancelados) después de la fecha de recepción?
+        conflicto = (
+            Movimientos_Inventario_Sucursal.objects
+            .filter(
+                id_lote_id__in=lote_ids,
+                id_tipo_movimiento_id__in=tipos_negativos,
+                fecha_hora__gte=recepcion.fecha_recepcion,
+            )
+            .exclude(estado_movimiento_inventario__nombre_estado="Cancelado")
+            .select_related("id_lote", "id_lote__id_producto", "id_tipo_movimiento")
+            .order_by("fecha_hora")
+            .first()
+        )
+        if conflicto:
+            prod = conflicto.id_lote.id_producto.nombre if hasattr(conflicto.id_lote, "id_producto") else ""
+            return JsonResponse({
+                "success": False,
+                "error": (
+                    "No es posible RECHAZAR esta recepción porque existen movimientos posteriores "
+                    f"de salida. Ejemplo: {conflicto.id_tipo_movimiento.codigo} "
+                    f"({prod}, lote {conflicto.id_lote.numero_lote}) en {timezone.localtime(conflicto.fecha_hora).strftime('%d/%m/%Y %H:%M')}."
+                )
+            }, status=400)
+
+        # 1) Marcar todos los REC de esta recepción como Cancelado
+        Movimientos_Inventario_Sucursal.objects.filter(
+            referencia_transaccion=recepcion.numero_envio_bodega,
+            id_tipo_movimiento__codigo="REC",
+        ).update(estado_movimiento_inventario=estado_mov_cancelado, comentario=motivo)
+
+        # 2) Revertir stock (restar lo que sumó la recepción)
+        for d in detalles:
+            Lotes.objects.filter(pk=d.id_lote_id).update(
+                cantidad_disponible=F("cantidad_disponible") - int(d.cantidad_recibida or 0)
+            )
+
+        # 3) Guardar estado en el header
+        recepcion.estado_recepcion = estado_nuevo
+        recepcion.save(update_fields=["estado_recepcion"])
+
+        return JsonResponse({"success": True, "nuevo_estado": nuevo_estado_nombre})
+    
 # -------------------------------
 # Listado y detalle de recepciones
 # -------------------------------
@@ -105,8 +222,12 @@ def search_productos(request):
 
     productos = (
         Productos.objects
-        .select_related("id_presentacion", "id_unidad_medida", "id_condicion_almacenamiento")
-        .filter(Q(nombre__icontains=term) | Q(codigo_producto__icontains=term))[:20]
+        .select_related("id_presentacion", "id_unidad_medida", "id_condicion_almacenamiento", "id_estado_producto")
+        .filter(
+            Q(nombre__icontains=term) | Q(codigo_producto__icontains=term),
+            id_estado_producto__nombre_estado__iexact="Activo",   # <- SOLO activos
+        )
+        [:20]
     )
 
     results = []
@@ -131,7 +252,15 @@ def search_lotes(request, producto_id: int):
     Lista lotes de un producto (filtro por número parcial).
     """
     term = request.GET.get("term", "").strip()
-    qs = Lotes.objects.filter(id_producto_id=producto_id)
+    qs = (
+        Lotes.objects
+        .select_related("id_estado_lote")
+        .filter(
+            id_producto_id=producto_id,
+            id_estado_lote__nombre_estado__in=["Disponible", "Próximo a Vencer"],  # <- SOLO estos estados
+        )
+    )
+    
     if term:
         qs = qs.filter(numero_lote__icontains=term)
 

@@ -145,7 +145,6 @@ select.filter-control{
 
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
-    <!-- Header -->
     <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
       <h3 class="mb-0 fs-6">
         <i class="bi bi-box-arrow-in-down me-2"></i> Recepciones de Productos
@@ -153,27 +152,16 @@ select.filter-control{
       <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
     </div>
 
-    <!-- Contenedor de tabla con scroll -->
     <div class="table-container">
-      <!-- OJO: sin table-bordered -->
       <table class="table table-hover align-middle text-center" id="tablaRecepciones">
         <colgroup>
-          <col class="wp-12"><!-- ID -->
-          <col class="wp-20"><!-- NÃºmero EnvÃ­o -->
-          <col class="wp-16"><!-- Fecha -->
-          <col class="wp-20"><!-- Usuario -->
-          <col class="wp-14"><!-- Estado -->
+          <col class="wp-12"><col class="wp-20"><col class="wp-16"><col class="wp-20"><col class="wp-14">
         </colgroup>
 
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
-            <th scope="col">ID</th>
-            <th scope="col">N&uacute;mero Env&iacute;o</th>
-            <th scope="col">Fecha Recepci&oacute;n</th>
-            <th scope="col">Usuario</th>
-            <th scope="col">Estado</th>
+            <th>ID</th><th>Número Envío</th><th>Fecha Recepción</th><th>Usuario</th><th>Estado</th>
           </tr>
-          <!-- Fila de filtros -->
           <tr class="filter-row">
             <th><input id="f-id" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-envio" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
@@ -183,9 +171,9 @@ select.filter-control{
               <div class="filter-wrap">
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
                   <option value="">Todos</option>
-                  <option value="completada">Completada</option>
-                  <option value="pendiente">Pendiente</option>
-                  <option value="anulada">Anulada</option>
+                  <option value="recibido completo">Recibido Completo</option>
+                  <option value="recibido parcialmente">Recibido Parcialmente</option>
+                  <option value="rechazado">Rechazado</option>
                 </select>
               </div>
             </th>
@@ -200,15 +188,17 @@ select.filter-control{
             <td class="text-truncate">{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
             <td class="text-truncate">{{ r.id_usuario }}</td>
             <td class="text-truncate">
-              {% if r.estado_recepcion == "Completada" %}
-                <span class="badge bg-success">Completada</span>
-              {% elif r.estado_recepcion == "Pendiente" %}
-                <span class="badge bg-warning text-dark">Pendiente</span>
-              {% elif r.estado_recepcion == "Anulada" %}
-                <span class="badge bg-danger">Anulada</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ r.estado_recepcion }}</span>
-              {% endif %}
+              {% with nombre=r.estado_recepcion.nombre_estado %}
+                {% if nombre == "Recibido Completo" %}
+                  <span class="badge bg-success badge-pill">Recibido Completo</span>
+                {% elif nombre == "Recibido Parcialmente" %}
+                  <span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>
+                {% elif nombre == "Rechazado" %}
+                  <span class="badge bg-danger badge-pill">Rechazado</span>
+                {% else %}
+                  <span class="badge bg-secondary badge-pill">{{ nombre }}</span>
+                {% endif %}
+              {% endwith %}
             </td>
           </tr>
           {% empty %}
@@ -223,50 +213,89 @@ select.filter-control{
       </table>
     </div>
 
-    <!-- Paginador -->
     <div id="pagerRecepciones" class="saif-pager"></div>
 
-    <!-- Botones -->
     <div class="px-3 py-3 text-center border-top bg-light">
-      <!-- CREAR -->
-      <button id="btnCrear"
-              class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#modalRecepcion"
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#modalRecepcion"
               data-url="{% url 'recepcion:recepcion_create' %}">
         <i class="bi bi-plus-circle"></i> Crear
       </button>
 
-      <!-- CONSULTAR -->
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> Consultar
       </button>
-      <!-- GRÃFICAS -->
+
+      <!-- NUEVO: Cambiar estado -->
+      <button id="btnCambiarEstado" class="btn btn-outline-success rounded-pill px-3 ms-2 shadow-sm" disabled>
+        <i class="bi bi-arrow-repeat"></i> Cambiar estado
+      </button>
+
       <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
-        <i class="bi bi-graph-up"></i> Gr&aacute;ficas
+        <i class="bi bi-graph-up"></i> Gráficas
       </a>
     </div>
   </div>
 </section>
 
-<!-- Modal CREAR: contenedor donde se inyectarÃ¡ el form -->
+<!-- Modal CREAR -->
 <div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-recepcion-content"></div>
   </div>
 </div>
 
-<!-- Modal CONSULTAR: contenedor donde se inyectarÃ¡ el parcial _consultar.html -->
+<!-- Modal CONSULTAR -->
 <div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
 </div>
 
-<!-- Modales auxiliares (se incluyen una sola vez en la pÃ¡gina) -->
+<!-- NUEVO: Modal Cambiar Estado -->
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white py-2">
+        <h5 class="modal-title mb-0"><i class="bi bi-arrow-repeat"></i> Cambiar estado</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning small">
+          <strong>Notas:</strong>
+          <ul class="mb-0">
+            <li><em>Recibido Completo</em> y <em>Recibido Parcialmente</em> no afectan inventario.</li>
+            <li><em>Rechazado</em> revierte la recepción (marca REC como cancelado y resta stock). Solo si no hubo salidas posteriores.</li>
+          </ul>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="estadoNuevo" id="estCompleto" value="Recibido Completo">
+          <label class="form-check-label" for="estCompleto">Recibido Completo</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="estadoNuevo" id="estParcial" value="Recibido Parcialmente">
+          <label class="form-check-label" for="estParcial">Recibido Parcialmente</label>
+        </div>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="estadoNuevo" id="estRechazado" value="Rechazado">
+          <label class="form-check-label" for="estRechazado">Rechazado</label>
+        </div>
+        <div id="motivoWrap" class="d-none">
+          <label class="form-label">Motivo (obligatorio para Rechazado)</label>
+          <textarea id="motivoEstado" class="form-control" rows="2" placeholder="Explique el motivo..."></textarea>
+        </div>
+        <div id="estadoAlert" class="alert alert-danger d-none mt-2"></div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="btnConfirmEstado">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include "recepcion/partials/producto_modal.html" %}
 {% include "recepcion/partials/lote_modal.html" %}
-
 {% endblock %}
 
 {% block extra_js %}
@@ -278,11 +307,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCrear = document.getElementById("btnCrear");
   const modalInstance = new bootstrap.Modal(modalEl);
 
-  // Se vacÃ­a/llena cada vez que se abre el form
+  // Se vacía/llena cada vez que se abre el form
   let detalles = [];
 
   function inicializarFormulario() {
-    // ----- AÃ±adir lÃ­nea al detalle -----
+    // ----- Añadir línea al detalle -----
     const addBtn = document.getElementById("btnAddDetalle");
     if (addBtn) {
       addBtn.addEventListener("click", function () {
@@ -295,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const costoEl       = document.getElementById("costoInput");
         const tableBody     = document.getElementById("detalleTable");
 
-        if (!tableBody) { console.warn("No se encontrÃ³ #detalleTable"); return; }
+        if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
 
         const productoId = (productoIdEl?.value || "").trim();
         const productoTx = (productoTextEl?.value || "").trim();
@@ -306,9 +335,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const costo      = costoEl?.value;
 
         if (!productoId) { alert("Seleccione un producto."); return; }
-        if (!loteId && !numeroLote) { alert("Ingrese o seleccione el nÃºmero de lote."); return; }
+        if (!loteId && !numeroLote) { alert("Ingrese o seleccione el número de lote."); return; }
         if (!loteId && !caducidad) { alert("Para un lote nuevo, ingrese fecha de caducidad."); return; }
-        if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad invÃ¡lida."); return; }
+        if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad inválida."); return; }
 
         const item = {
           producto_id: parseInt(productoId, 10),
@@ -336,20 +365,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         tableBody.appendChild(row);
 
-        // limpiar campos de la lÃ­nea
-        loteIdEl.value = "";
-        loteTextEl.value = "";
-        caducidadEl.value = "";
-        cantidadEl.value = "";
-        costoEl.value = "";
+        // limpiar campos de la línea
+        loteIdEl.value = ""; loteTextEl.value = ""; caducidadEl.value = "";
+        cantidadEl.value = ""; costoEl.value = "";
       });
     }
 
-    // ----- EnvÃ­o del formulario -----
+    // ----- Envío del formulario -----
     const formRecepcion = document.getElementById("form-recepcion");
     if (formRecepcion) {
       const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
-
       formRecepcion.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -358,7 +383,6 @@ document.addEventListener("DOMContentLoaded", function () {
           fecha_recepcion: document.getElementById("id_fecha_recepcion")?.value || ""
         };
         const comentario = document.getElementById("comentarioInput")?.value?.trim() || "";
-
         const payload = { form_data: formData, detalles: detalles, comentario: comentario };
 
         fetch(urlCrearRecepcion, {
@@ -374,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!response.ok) {
             return response.json().then(errorData => {
               console.error("Error del servidor:", errorData);
-              alert("Error: " + (errorData.errors || "OcurriÃ³ un error inesperado."));
+              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
             });
           }
           return response.json();
@@ -382,21 +406,21 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           if (!data) return;
           if (data.success) {
-            alert("Recepci\u00F3n creada exitosamente.");
+            alert("Recepción creada exitosamente.");
             modalInstance.hide();
             window.location.reload();
           } else {
-            alert(data.error || "OcurriÃ³ un error al crear la recepciÃ³n.");
+            alert(data.error || "Ocurrió un error al crear la recepción.");
           }
         })
         .catch(err => {
           console.error(err);
-          alert("OcurriÃ³ un error de red al crear la recepciÃ³n.");
+          alert("Ocurrió un error de red al crear la recepción.");
         });
       });
     }
 
-    // BotÃ³n seleccionar producto/lote abre modales correspondientes ya incluidos por partials
+    // abrir modales auxiliares
     document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
       bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto")).show();
     });
@@ -405,7 +429,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   } // fin inicializarFormulario
 
-  // Abrir modal CREAR y cargar form vÃ­a AJAX
+  // Abrir modal CREAR y cargar form vía AJAX
   btnCrear?.addEventListener("click", (ev) => {
     const url = ev.currentTarget.getAttribute("data-url");
     modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
@@ -413,13 +437,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r => r.text())
-      .then(html => {
-        modalContent.innerHTML = html;
-        inicializarFormulario();
-      })
-      .catch(() => {
-        modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>';
-      });
+      .then(html => { modalContent.innerHTML = html; inicializarFormulario(); })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
   });
 
   /* ==================== AUXILIARES PRODUCTOS/LOTES ==================== */
@@ -431,14 +450,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchLoteInput = document.getElementById("searchLote");
   const tablaLotes      = document.getElementById("tablaBuscarLotes");
 
-  // Autocomplete de productos
   modalBuscar?.addEventListener("shown.bs.modal", () => {
     const productoInput   = document.querySelector("#modalRecepcion #productoInput");
     const productoIdInput = document.querySelector("#modalRecepcion #productoIdInput");
     if (!searchInput || !tbodyResultados) return;
-    searchInput.value = "";
-    tbodyResultados.innerHTML = "";
-    searchInput.focus();
+    searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
 
     searchInput.oninput = function () {
       const term = this.value;
@@ -449,17 +465,21 @@ document.addEventListener("DOMContentLoaded", function () {
           data.forEach(p => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${p.codigo}</td>
-              <td>${p.nombre}</td>
-              <td>${p.descripcion ?? ""}</td>
-              <td>${p.presentacion ?? ""}</td>
-              <td>${p.unidad ?? ""}</td>
-              <td>${p.condicion ?? ""}</td>
-              <td>${p.receta ? "Sí" : "No"}</td>
-              <td>${p.controlado ? "Sí" : "No"}</td>
+              <td>${p.codigo}</td><td>${p.nombre}</td><td>${p.descripcion ?? ""}</td>
+              <td>${p.presentacion ?? ""}</td><td>${p.unidad ?? ""}</td><td>${p.condicion ?? ""}</td>
+              <td>${p.receta ? "Sí" : "No"}</td><td>${p.controlado ? "Sí" : "No"}</td>
               <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
             `;
-            tr.querySelector("button").addEventListener("click", () => { if (typeof window.setProductoSeleccionado === "function") { window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` }); } else { if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`; if (productoIdInput) productoIdInput.value = p.id; } bootstrap.Modal.getInstance(modalBuscar)?.hide(); bootstrap.Modal.getOrCreateInstance(modalEl).show(); });
+            tr.querySelector("button").addEventListener("click", () => {
+              if (typeof window.setProductoSeleccionado === "function") {
+                window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` });
+              } else {
+                if (productoInput)   productoInput.value = `${p.codigo} - ${p.nombre}`;
+                if (productoIdInput) productoIdInput.value = p.id;
+              }
+              bootstrap.Modal.getInstance(modalBuscar)?.hide();
+              bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            });
             tbodyResultados.appendChild(tr);
           });
         })
@@ -471,11 +491,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   modalBuscar?.addEventListener("hidden.bs.modal", () => {
     if (!tbodyResultados || !searchInput) return;
-    tbodyResultados.innerHTML = "";
-    searchInput.value = "";
+    tbodyResultados.innerHTML = ""; searchInput.value = "";
   });
 
-  // Helpers lotes
   function lotesUrl(productoId, term) {
     const base = "{% url 'recepcion:search_lotes' 0 %}".replace("0/", productoId + "/");
     const q = term ? "?term=" + encodeURIComponent(term) : "";
@@ -491,21 +509,18 @@ document.addEventListener("DOMContentLoaded", function () {
     rows.forEach(l => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${l.numero_lote}</td>
-        <td>${l.fecha_caducidad || ""}</td>
-        <td>${l.cantidad}</td>
+        <td>${l.numero_lote}</td><td>${l.fecha_caducidad || ""}</td><td>${l.cantidad}</td>
         <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
       `;
       tr.querySelector("button").addEventListener("click", () => {
-        // Preferir helper global del formulario si existe
         if (typeof window.setLoteSeleccionado === "function") {
           window.setLoteSeleccionado({ id: l.id, numero: l.numero_lote, fecha: l.fecha_caducidad });
         } else {
           const loteIdInput = document.querySelector("#modalRecepcion #loteIdInput");
-          const loteInput = document.querySelector("#modalRecepcion #loteInput");
-          const cadInput = document.querySelector("#modalRecepcion #caducidadInput");
+          const loteInput   = document.querySelector("#modalRecepcion #loteInput");
+          const cadInput    = document.querySelector("#modalRecepcion #caducidadInput");
           if (loteIdInput) loteIdInput.value = l.id;
-          if (loteInput) loteInput.value = l.numero_lote;
+          if (loteInput)   loteInput.value   = l.numero_lote;
           if (cadInput && l.fecha_caducidad) cadInput.value = l.fecha_caducidad;
         }
         bootstrap.Modal.getInstance(modalLote)?.hide();
@@ -531,12 +546,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   modalLote?.addEventListener("shown.bs.modal", () => {
     if (!searchLoteInput) return;
-    searchLoteInput.value = "";
-    loadLotes("");
+    searchLoteInput.value = ""; loadLotes("");
     searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
   });
 
-  // Crear lote rÃ¡pido
+  // Crear lote rápido
   const modalCrearLote = document.getElementById("modalCrearLote");
   const btnGuardarLote = document.getElementById("btnGuardarLote");
   if (btnGuardarLote) {
@@ -553,12 +567,7 @@ document.addEventListener("DOMContentLoaded", function () {
           "Content-Type": "application/json",
           "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
         },
-        body: JSON.stringify({
-          producto_id: productoId,
-          numero_lote: numero,
-          fecha_caducidad: caducidad,
-          ubicacion: ubicacion
-        })
+        body: JSON.stringify({ producto_id: productoId, numero_lote: numero, fecha_caducidad: caducidad, ubicacion: ubicacion })
       })
       .then(r => r.json())
       .then(data => {
@@ -566,7 +575,6 @@ document.addEventListener("DOMContentLoaded", function () {
           bootstrap.Modal.getInstance(modalCrearLote).hide();
           bootstrap.Modal.getOrCreateInstance(modalLote).show();
           loadLotes("");
-          // Pre-cargar en el form principal
           document.getElementById("loteInput").value = data.numero_lote;
           document.getElementById("caducidadInput").value = data.fecha_caducidad || "";
           document.getElementById("loteIdInput").value = data.id;
@@ -576,8 +584,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
-
-  // Botones cerrar auxiliares
   document.getElementById("btnCancelarLote")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalCrearLote).hide();
     bootstrap.Modal.getOrCreateInstance(modalLote).show();
@@ -591,22 +597,20 @@ document.addEventListener("DOMContentLoaded", function () {
     bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
   });
 
-  /* ==================== TABLA: selecciÃ³n, filtros, PaginaciÃ³n ==================== */
+  /* ==================== TABLA: selección, filtros y paginación ==================== */
   const table = document.getElementById("tablaRecepciones");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerRecepciones");
-
+  const btnConsultar = document.getElementById("btnConsultar");
+  const btnCambiarEstado = document.getElementById("btnCambiarEstado");
   let selectedId = null;
 
-  /* Titles auto para truncados */
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
       if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
       else{el.removeAttribute("title")}
     });
   }
-
-  // Elimina posibles filas vacÃ­as (fila fantasma)
   function removeEmptyRows(){
     Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
       if(tr.hasAttribute('data-empty-row')) return;
@@ -614,16 +618,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if(!hasContent){ tr.remove(); }
     });
   }
-
-  /* SelecciÃ³n de fila */
   function selectRow(row){
     if(!row) return;
     tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
     row.classList.add("table-active");
     selectedId = row.getAttribute("data-id");
-    document.getElementById("btnConsultar").disabled = !selectedId;
+    const enabled = !!selectedId;
+    btnConsultar.disabled = !enabled;
+    if (btnCambiarEstado) btnCambiarEstado.disabled = !enabled;
   }
-
   tbody.addEventListener("click",(ev)=>{
     const row = ev.target.closest("tr");
     if(!row || row.hasAttribute("data-empty-row")) return;
@@ -641,6 +644,17 @@ document.addEventListener("DOMContentLoaded", function () {
       abrirModalConsultar(url);
     }
   });
+
+  function abrirModalConsultar(url){
+    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
+    const container = document.getElementById("modal-consultar-content");
+    container.innerHTML = '<div class="p-4">Cargando...</div>';
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => { container.innerHTML = html; modalConsultar.show(); })
+      .catch(() => { container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>'; modalConsultar.show(); });
+  }
 
   // Teclado para navegar/abrir
   table.addEventListener("keydown",(ev)=>{
@@ -663,7 +677,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  /* BotÃ³n Consultar (reutiliza la misma apertura de modal) */
   document.getElementById("btnConsultar").addEventListener("click", () => {
     if (!selectedId) return;
     const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
@@ -671,24 +684,7 @@ document.addEventListener("DOMContentLoaded", function () {
     abrirModalConsultar(url);
   });
 
-  function abrirModalConsultar(url){
-    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
-    const container = document.getElementById("modal-consultar-content");
-    container.innerHTML = '<div class="p-4">Cargando...</div>';
-
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(r => r.text())
-      .then(html => {
-        container.innerHTML = html;
-        modalConsultar.show();
-      })
-      .catch(() => {
-        container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepci&oacute;n.</div>';
-        modalConsultar.show();
-      });
-  }
-
-  /* ====== PaginaciÃ³n ====== */
+  /* ====== Paginación ====== */
   let currentPage=1; let pageSize=15; const rowHeight=42;
 
   function recomputarPageSize(){
@@ -707,7 +703,7 @@ document.addEventListener("DOMContentLoaded", function () {
     prev.className="btn btn-outline-secondary me-2"; prev.innerHTML="&laquo; Anterior";
     prev.disabled=currentPage===1; prev.onclick=()=>{currentPage--;applyPagination();};
     const info=document.createElement("span");
-    info.className="align-self-center mx-2"; info.textContent=`P\u00E1gina ${currentPage} de ${totalPages}`;
+    info.className="align-self-center mx-2"; info.textContent=`Página ${currentPage} de ${totalPages}`;
     const next=document.createElement("button");
     next.className="btn btn-outline-secondary ms-2"; next.innerHTML="Siguiente &raquo;";
     next.disabled=currentPage===totalPages; next.onclick=()=>{currentPage++;applyPagination();};
@@ -720,14 +716,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const start=(currentPage-1)*pageSize; const end=start+pageSize;
     rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
     renderPager(totalPages);
-    // Marcar Ãºltima visible para quitar borde inferior
+    // Marcar última visible para quitar borde inferior
     tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
     const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
     const last = visibles[visibles.length-1];
     if(last) last.classList.add('last-visible');
-    // Normaliza label del pager (evita caracteres raros en "PÃ¡gina")
-    const info=pagerEl.querySelector('span');
-    if(info){ info.textContent=`P\u00E1gina ${currentPage} de ${totalPages}`; }
+
+    // Mantener selección visible
     if(selectedId){
       const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
       if(sel && sel.classList.contains("hidden-by-pagination")){
@@ -761,28 +756,84 @@ document.addEventListener("DOMContentLoaded", function () {
       rows.forEach(tr=>{
         const tds=tr.querySelectorAll("td");
         const txt=i=>cleanAccents(tds[i]?.textContent);
-
-        // Nota: la columna Estado tiene badge, igual se filtra por su texto
         const ok =
           (!idVal     || txt(0).includes(idVal)) &&
           (!envioVal  || txt(1).includes(envioVal)) &&
           (!fechaVal  || txt(2).includes(fechaVal)) &&
           (!usuarioVal|| txt(3).includes(usuarioVal)) &&
           (!estadoVal || txt(4).includes(estadoVal));
-
         tr.style.display = ok ? "" : "none";
       });
 
       currentPage=1; applyPagination();
     }
-
     inputs.forEach(inp=>{
       const ev=(inp.tagName==="SELECT")?"change":"input";
       inp.addEventListener(ev,applyFilters);
     });
   }
 
-  /* ====== Inicializar ====== */
+  /* ====== Cambiar Estado (modal) ====== */
+  const modalEstadoEl = document.getElementById("modalEstado");
+  const modalEstado   = modalEstadoEl ? new bootstrap.Modal(modalEstadoEl) : null;
+  const alertEstado   = document.getElementById("estadoAlert");
+  const motivoWrap    = document.getElementById("motivoWrap");
+  const motivoInput   = document.getElementById("motivoEstado");
+
+  function showErr(msg){ if(alertEstado){ alertEstado.textContent = msg; alertEstado.classList.remove("d-none"); } }
+  function hideErr(){ if(alertEstado){ alertEstado.textContent=""; alertEstado.classList.add("d-none"); } }
+
+  modalEstadoEl?.addEventListener("change", (e)=>{
+    if(e.target.name === "estadoNuevo"){
+      const v = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
+      motivoWrap?.classList.toggle("d-none", v !== "Rechazado");
+    }
+  });
+
+  btnCambiarEstado?.addEventListener("click", ()=>{
+    if(!selectedId || !modalEstado) return;
+    hideErr();
+    document.querySelectorAll('#modalEstado input[name="estadoNuevo"]').forEach(r => r.checked = false);
+    if (motivoInput) motivoInput.value = "";
+    motivoWrap?.classList.add("d-none");
+    modalEstado.show();
+  });
+
+  document.getElementById("btnConfirmEstado")?.addEventListener("click", ()=>{
+    hideErr();
+    const estado = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
+    const motivo = (motivoInput?.value || "").trim();
+    if(!estado){ showErr("Seleccione un estado."); return; }
+    if(estado === "Rechazado" && !motivo){ showErr("Debe indicar un motivo para rechazar."); return; }
+
+    const urlBase = "{% url 'recepcion:cambiar_estado' 0 %}";
+    const url = urlBase.replace("0/", selectedId + "/");
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "X-Requested-With":"XMLHttpRequest",
+        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ nuevo_estado: estado, motivo })
+    })
+    .then(r => r.json().then(j => ({ok:r.ok, data:j})))
+    .then(({ok, data})=>{
+      if(!ok || !data.success){ showErr(data.error || "No se pudo cambiar el estado."); return; }
+      const row = tbody.querySelector(`tr[data-id="${selectedId}"]`);
+      if(row){
+        const td = row.querySelectorAll("td")[4];
+        if(estado === "Recibido Completo") td.innerHTML = '<span class="badge bg-success badge-pill">Recibido Completo</span>';
+        else if(estado === "Recibido Parcialmente") td.innerHTML = '<span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>';
+        else td.innerHTML = '<span class="badge bg-danger badge-pill">Rechazado</span>';
+      }
+      modalEstado?.hide();
+    })
+    .catch(()=> showErr("Error de red al cambiar estado."));
+  });
+
+  /* ====== Inicializar tabla ====== */
   removeEmptyRows();
   recomputarPageSize();
   installFilters();
@@ -792,5 +843,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-
 
