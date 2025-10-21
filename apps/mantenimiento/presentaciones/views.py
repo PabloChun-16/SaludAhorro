@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from apps.mantenimiento.models import Presentaciones
 from .forms import PresentacionForm
 from django.views.decorators.http import require_http_methods
+from django.urls import reverse
 
 
 # Listado de presentaciones
@@ -73,20 +74,21 @@ def editar_presentacion(request, pk):
 @require_http_methods(["GET", "POST"])
 def eliminar_presentacion(request, pk):
     presentacion = get_object_or_404(Presentaciones, pk=pk)
-    
-    # Maneja la petición POST para eliminar el registro
+
     if request.method == "POST":
         try:
             presentacion.delete()
             return JsonResponse({"success": True})
         except Exception as e:
-            # Captura cualquier error de la base de datos (por ejemplo, clave foránea)
             return JsonResponse({"success": False, "error": str(e)}, status=500)
-    
-    # Maneja la petición GET para mostrar el modal de confirmación
+
+    # GET: renderiza el modal de confirmación
     html = render_to_string(
         "mantenimiento_presentaciones/partials/_confirm_delete.html",
-        {"presentacion": presentacion},
+        {
+            "presentacion": presentacion,
+            "action": reverse("mantenimiento:mantenimiento_presentaciones:eliminar", args=[pk]),  # 🔹 aquí defines la acción
+        },
         request=request
     )
     return HttpResponse(html)
