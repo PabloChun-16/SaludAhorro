@@ -10,4 +10,10 @@ urlpatterns = [
     path("<int:pk>/editar/", views.productos_edit, name="editar"),
     path("<int:pk>/inactivar/", views.inactivar_producto, name="inactivar"),
     path("<int:pk>/activar/", views.activar_producto, name="activar"), 
+
+    # 🆕 Nuevas rutas para Kardex
+    path("<int:pk>/kardex/", views.kardex_modal, name="kardex_modal"),  # modal para fechas
+    path("<int:pk>/kardex/resultado/", views.kardex_resultado, name="kardex_resultado"),  # resultado del kardex
+    path("<int:pk>/kardex/exportar/", views.kardex_exportar, name="kardex_exportar"),
+
 ]

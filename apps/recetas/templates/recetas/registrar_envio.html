@@ -457,20 +457,47 @@ document.addEventListener("DOMContentLoaded",function(){
     }
   });
 
-  // ====== Consultar ======
-  document.getElementById("btnConsultar").addEventListener("click",function(){
-    if(!selectedRow){ alert("Selecciona un envío primero."); return; }
-    document.getElementById("detalleReporte").textContent = selectedRow.dataset.reporte || "—";
-    document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario || "—";
-    document.getElementById("detalleEstado").textContent  = selectedRow.dataset.estado  || "—";
-    document.getElementById("detalleFecha").textContent   = selectedRow.dataset.fecha   || "—";
+// ====== Consultar ======
+document.getElementById("btnConsultar").addEventListener("click", async function() {
+  if (!selectedRow) {
+    alert("Selecciona un envío primero.");
+    return;
+  }
 
-    // Limpia tabla de recetas asociadas (si más adelante agregas fetch JSON, rellénala aquí)
-    const recetasBody = document.querySelector("#tablaRecetasDelEnvio tbody");
-    if (recetasBody) recetasBody.innerHTML = "";
+  const idEnvio = selectedRow.dataset.id;
+  document.getElementById("detalleReporte").textContent = selectedRow.dataset.reporte || "—";
+  document.getElementById("detalleUsuario").textContent = selectedRow.dataset.usuario || "—";
+  document.getElementById("detalleEstado").textContent  = selectedRow.dataset.estado  || "—";
+  document.getElementById("detalleFecha").textContent   = selectedRow.dataset.fecha   || "—";
 
-    new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
-  });
+  // ===== Llenar recetas asociadas por fetch =====
+  const recetasBody = document.querySelector("#tablaRecetasDelEnvio tbody");
+  if (recetasBody) recetasBody.innerHTML = "<tr><td colspan='5' class='text-center text-muted'>Cargando...</td></tr>";
+
+  try {
+    const res = await fetch(`/recetas/envios/${idEnvio}/recetas/`);
+    const data = await res.json();
+
+    if (!data.length) {
+      recetasBody.innerHTML = "<tr><td colspan='5' class='text-center text-muted'>No hay recetas asociadas.</td></tr>";
+    } else {
+      recetasBody.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.factura}</td>
+          <td>${r.referente}</td>
+          <td>${r.producto}</td>
+          <td>${r.usuario}</td>
+          <td>${r.fecha}</td>
+        </tr>
+      `).join("");
+    }
+  } catch (error) {
+    recetasBody.innerHTML = "<tr><td colspan='5' class='text-danger text-center'>Error al cargar recetas.</td></tr>";
+    console.error("Error al obtener recetas:", error);
+  }
+
+  new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
+});
 
   // ====== Editar (solo nombre + fecha) ======
   document.getElementById("btnEditar").addEventListener("click",function(){

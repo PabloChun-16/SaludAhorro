@@ -258,61 +258,40 @@ def registrar_envio(request):
 
 @login_required
 def crear_envio(request):
-
-
     if request.method == "POST":
-        envio = EnvioReceta.objects.create(
-            fecha_envio=timezone.now(),
-            nombre_reporte=request.POST.get("nombre_reporte"),
-            id_estado_envio_id=request.POST.get("id_estado_envio"),
-            id_usuario_id=request.POST.get("id_usuario"),
+        nombre_reporte = request.POST.get("nombre_reporte", "").strip()
+        recetas_ids = [rid for rid in request.POST.getlist("recetas[]") if rid]
+
+        # 1) Estado "Enviado" (crea si no existe)
+        estado_enviado, _ = EstadoEnvioReceta.objects.get_or_create(
+            nombre_estado="Enviado"
         )
 
-        # Detalle (IDs enviados como recetas[])
-        recetas_ids = request.POST.getlist("recetas[]")
+        # 2) Usuario del envío (automático)
+        usuario_envio = None
+        if recetas_ids:
+            # Toma el usuario de la primera receta seleccionada
+            r0 = RecetaMedica.objects.select_related("id_usuario_venta").filter(pk=recetas_ids[0]).first()
+            if r0 and r0.id_usuario_venta_id:
+                usuario_envio = r0.id_usuario_venta
+
+        # 3) Crear el envío principal (solo una vez)
+        envio = EnvioReceta.objects.create(
+            fecha_envio=timezone.now(),
+            nombre_reporte=nombre_reporte,
+            id_estado_envio=estado_enviado,
+            id_usuario=usuario_envio,
+        )
+
+        # 4) Crear los detalles de las recetas asociadas
         for rid in recetas_ids:
-            if rid:
-                DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
+            DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
 
-
+        # 5) Redirigir tras crear
         return redirect("recetas:registrar_envio")
 
-    nombre_reporte = request.POST.get("nombre_reporte", "").strip()
-    recetas_ids = [rid for rid in request.POST.getlist("recetas[]") if rid]
-
-    # 1) Estado "Enviado"
-    estado_enviado, _ = EstadoEnvioReceta.objects.get_or_create(
-        nombre_estado="Enviado"
-    )
-
-    # 2) Usuario del envío (automático)
-    usuario_envio = None
-    if recetas_ids:
-        # Tomamos el usuario de la primera receta seleccionada
-        r0 = RecetaMedica.objects.select_related("id_usuario_venta").filter(pk=recetas_ids[0]).first()
-        if r0 and r0.id_usuario_venta_id:
-            usuario_envio = r0.id_usuario_venta
-
-    # Si quisieras mapear al usuario logueado, aquí es el lugar:
-    # try:
-    #     usuario_envio = Usuario.objects.get(<tu lógica con request.user>)
-    # except Usuario.DoesNotExist:
-    #     pass
-
-    envio = EnvioReceta.objects.create(
-        fecha_envio=timezone.now(),
-        nombre_reporte=nombre_reporte,
-        id_estado_envio=estado_enviado,
-        id_usuario=usuario_envio,
-    )
-
-    # 3) Detalle
-    for rid in recetas_ids:
-        DetalleEnvioReceta.objects.create(id_envio=envio, id_receta_id=rid)
-
-    # Tras crear, llevo al listado/tabla de envíos
+    # Si no es POST, simplemente redirige o muestra el formulario
     return redirect("recetas:registrar_envio")
-
 
 @login_required
 def editar_envio(request, pk):
@@ -374,6 +353,28 @@ def lista_envios(request):
     )
     return render(request, "recetas/lista_envios.html", {"detalles": detalles})
 
+@login_required
+def recetas_por_envio(request, envio_id):
+    """
+    Retorna en formato JSON todas las recetas asociadas a un envío.
+    """
+    detalles = (
+        DetalleEnvioReceta.objects
+        .select_related("id_receta", "id_receta__id_producto", "id_receta__id_usuario_venta")
+        .filter(id_envio_id=envio_id)
+    )
+
+    data = []
+    for d in detalles:
+        r = d.id_receta
+        data.append({
+            "factura": r.referencia_factura or "",
+            "referente": r.referente_receta or "",
+            "producto": r.id_producto.nombre if r.id_producto else "",
+            "usuario": r.id_usuario_venta.nombre if r.id_usuario_venta else "",
+            "fecha": r.fecha_venta.strftime("%d/%m/%Y %H:%M") if r.fecha_venta else "",
+        })
+    return JsonResponse(data, safe=False)
 
 @login_required
 def exportar_envios_pdf(request):

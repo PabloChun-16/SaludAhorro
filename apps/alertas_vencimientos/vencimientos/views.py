@@ -77,9 +77,9 @@ def reporte_vencimiento_create(request):
         # Obtener el estado "Retirado" desde la tabla de Estado_Lote
         from apps.mantenimiento.models import Estado_Lote  # Importar dentro para evitar dependencia circular
         try:
-            estado_retirado = Estado_Lote.objects.get(nombre_estado="Retirado")
+            estado_devuelto = Estado_Lote.objects.get(nombre_estado="Devuelto")
         except Estado_Lote.DoesNotExist:
-            raise ValueError("No existe el estado 'Retirado' en la tabla de Estado_Lote.")
+            raise ValueError("No existe el estado 'Devuelto' en la tabla de Estado_Lote.")
 
         # Procesar cada detalle
         for idx, det in enumerate(detalles_data, start=1):
@@ -106,7 +106,7 @@ def reporte_vencimiento_create(request):
 
             # Actualizar el lote (stock y estado)
             lote.cantidad_disponible = 0
-            lote.id_estado_lote = estado_retirado
+            lote.id_estado_lote = estado_devuelto
             lote.save(update_fields=["cantidad_disponible", "id_estado_lote"])
 
             # Crear detalle del vencimiento
