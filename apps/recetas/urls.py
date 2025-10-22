@@ -23,6 +23,7 @@ urlpatterns = [
     path("envio/<int:pk>/editar/", views.editar_envio, name="editar_envio"),
     path("envio/<int:pk>/eliminar/", views.eliminar_envio, name="eliminar_envio"),
     path("envios/lista/", views.lista_envios, name="lista_envios"),
+    path("envios/<int:envio_id>/recetas/", views.recetas_por_envio, name="recetas_por_envio"),
     path("envios/exportar-pdf/", views.exportar_envios_pdf, name="exportar_envios_pdf"),
 
     # ================= ALIASES LEGADOS (para enlaces antiguos) =================
