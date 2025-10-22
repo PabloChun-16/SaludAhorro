@@ -1,0 +1,61 @@
+<div class="modal-header bg-info text-white">
+  <h5 class="modal-title">
+    <i class="bi bi-calendar-range me-2"></i> Kardex de {{ producto.nombre }}
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form id="formKardex" method="get" action="{{ action }}">
+  <div class="modal-body">
+    <div class="mb-3">
+      <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+      <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="fecha_fin" class="form-label">Fecha Fin</label>
+      <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" required>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-info text-white">Ver Kardex</button>
+  </div>
+</form>
+
+<script>
+document.getElementById("formKardex").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const inicio = form.querySelector("[name='fecha_inicio']").value;
+  const fin = form.querySelector("[name='fecha_fin']").value;
+
+  if (!inicio || !fin) {
+    alert("Por favor selecciona ambas fechas.");
+    return;
+  }
+
+  const url = `${form.action}?fecha_inicio=${inicio}&fecha_fin=${fin}`;
+
+  fetch(url, { 
+    method: "GET", 
+    headers: { "X-Requested-With": "XMLHttpRequest" } 
+  })
+  .then(r => {
+    if (!r.ok) throw new Error("Error en la respuesta del servidor");
+    return r.text();
+  })
+  .then(html => {
+    // Reemplaza el contenido del modal por el resultado del Kardex
+    document.getElementById("modal-producto-content").innerHTML = html;
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("modal-producto-content").innerHTML =
+      '<div class="p-4 text-danger">❌ Error al generar el Kardex.</div>';
+  });
+});
+</script>
+

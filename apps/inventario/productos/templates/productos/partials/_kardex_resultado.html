@@ -1,0 +1,54 @@
+<div class="modal-header bg-info text-white">
+  <h5 class="modal-title">
+    <i class="bi bi-clipboard-data me-2"></i>
+    Kardex de {{ producto.nombre }}
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+  <p class="text-muted small mb-3">
+    Desde <strong>{{ fecha_inicio|date:"d/m/Y" }}</strong> hasta <strong>{{ fecha_fin|date:"d/m/Y" }}</strong>
+  </p>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-sm text-center align-middle">
+      <thead class="table-info">
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Origen</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mov in kardex %}
+        <tr>
+          <td>{{ mov.fecha|date:"d/m/Y" }}</td>
+          <td>{{ mov.tipo }}</td>
+          <td>{{ mov.origen }}</td>
+          <td class="text-success fw-semibold">{{ mov.entrada }}</td>
+          <td class="text-danger fw-semibold">{{ mov.salida }}</td>
+          <td>{{ mov.saldo }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-muted py-3">No hay movimientos en el rango seleccionado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-footer">
+   <button class="btn btn-secondary me-2" id="btn-exportar-kardex">
+        <i class="fas fa-file-export"></i> Exportar
+    </button>
+    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        Cerrar
+    </button>
+</div>
+

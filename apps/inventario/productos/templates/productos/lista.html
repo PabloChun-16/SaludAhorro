@@ -138,6 +138,11 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
       <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-pencil"></i> Editar</button>
       <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-x-circle"></i> Inactivar</button>
       <button id="btnActivar" class="btn btn-secondary rounded-pill px-3 shadow-sm" disabled><i class="bi bi-check-circle"></i> Activar</button>
+    
+      <button class="btn btn-info" id="btnKardex" disabled>
+        <i class="bi bi-clipboard-data"></i> Kardex
+      </button>
+
     </div>
   </div>
 </section>
@@ -195,6 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const estado = row.getAttribute("data-estado");
     document.getElementById("btnConsultar").disabled = false;
     document.getElementById("btnEditar").disabled = false;
+     document.getElementById("btnKardex").disabled = false; // ✅ Habilitar el botón
 
     if(estado==="Activo"){
       document.getElementById("btnEliminar").disabled = false;
@@ -240,6 +246,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btnEditar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/editar/`) });
   document.getElementById("btnEliminar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/inactivar/`) });
   document.getElementById("btnActivar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/activar/`) });
+  document.getElementById("btnKardex").addEventListener("click", () => { if (selectedId) abrirModal(`/inventario/productos/${selectedId}/kardex/`) });
+
+
 
   function getCookie(name){
     let cookieValue=null;
@@ -255,6 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return cookieValue;
   }
 
+  /*
   modalContent.addEventListener("submit",function(e){
     const form=e.target.closest("form"); if(!form) return; e.preventDefault();
     fetch(form.action||window.location.href,{ method:"POST", body:new FormData(form), headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") } })
@@ -262,6 +272,54 @@ document.addEventListener("DOMContentLoaded", function () {
     .then(data=>{ if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); } else if(data.html){ modalContent.innerHTML=data.html; } })
     .catch(err=>console.error(err));
   });
+  */
+
+
+  modalContent.addEventListener("submit", async function(e) {
+  const form = e.target.closest("form");
+  if (!form) return;
+  e.preventDefault();
+
+  // ✅ Si es el formulario del Kardex, usar GET en lugar de POST
+  if (form.id === "formKardex") {
+    const inicio = form.querySelector("[name='fecha_inicio']").value;
+    const fin = form.querySelector("[name='fecha_fin']").value;
+    const url = `${form.action}?fecha_inicio=${inicio}&fecha_fin=${fin}`;
+
+    try {
+      const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!r.ok) throw new Error("Error al obtener el Kardex");
+      const html = await r.text();
+      document.getElementById("modal-producto-content").innerHTML = html;
+    } catch (err) {
+      console.error(err);
+      document.getElementById("modal-producto-content").innerHTML =
+        '<div class="p-4 text-danger">❌ Error al generar el Kardex.</div>';
+    }
+    return; // ⛔ Evita que el flujo POST se ejecute
+  }
+
+  // 🔹 Resto de formularios (crear, editar, etc.) siguen con POST
+  fetch(form.action || window.location.href, {
+    method: "POST",
+    body: new FormData(form),
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRFToken": getCookie("csrftoken")
+    }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok || data.success) {
+        modalInstance.hide();
+        window.location.reload();
+      } else if (data.html) {
+        modalContent.innerHTML = data.html;
+      }
+    })
+    .catch(err => console.error(err));
+});
+
 
 /* ====== Paginación ====== */
 let currentPage=1; let pageSize=15; const rowHeight=42;
@@ -356,6 +414,36 @@ function applyPagination(){
   applyPagination();
   refreshAutoTitles();
   window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
+
+  // ===============================
+  // ✅ Exportar Kardex a PDF (dentro del DOMContentLoaded)
+  // ===============================
+  modalContent.addEventListener("click", function (e) {
+    const btn = e.target.closest("#btn-exportar-kardex");
+    if (!btn) return;
+
+    if (!selectedId) {
+      console.warn("❗ No hay producto seleccionado para exportar Kardex.");
+      return;
+    }
+
+    // Extrae las fechas renderizadas en el modal
+    const fechaInicioText = modalContent.querySelector("p strong:nth-child(1)")?.textContent || "";
+    const fechaFinText = modalContent.querySelector("p strong:nth-child(2)")?.textContent || "";
+
+    // Convertir dd/mm/yyyy → yyyy-mm-dd
+    const fechaInicio = fechaInicioText.split("/").reverse().join("-");
+    const fechaFin = fechaFinText.split("/").reverse().join("-");
+
+    // Construir URL de exportación
+    const exportUrl = `/inventario/productos/${selectedId}/kardex/exportar/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+    console.log("📄 Exportando Kardex:", exportUrl);
+
+    // Abrir en nueva pestaña
+    window.open(exportUrl, "_blank");
+  });
+
+
 });
 </script>
 {% endblock %}
