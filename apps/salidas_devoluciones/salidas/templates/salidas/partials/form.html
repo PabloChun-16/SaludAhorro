@@ -1,4 +1,6 @@
 {% load static %}
+{% load tz %}
+{% now "Y-m-d\\TH:i" as current_dt %}
 
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
@@ -10,7 +12,6 @@
   --saif-bg: #ffffff;
   --saif-muted: #6b7280;
 }
-
 .saif-modal .modal-body{ overflow-x:hidden; }
 
 /* Contenedores */
@@ -37,7 +38,13 @@
 /* Tabla */
 .table-bordered{ border:1px solid var(--saif-border)!important; border-radius:10px; overflow:hidden; }
 .table-bordered>:not(caption)>*>*{ border-color:var(--saif-border)!important; color:#1f2937; }
-.table thead.table-light th{ background:#eef6f1; color:#0f172a; }
+.table thead.table-light th{ background:#e9f7ef; color:#0f172a; font-weight:600; }
+
+/* Botón eliminar */
+.btn-del{
+  border:none; background:#fef2f2; color:#dc2626; border-radius:8px; padding:4px 8px; transition:all .2s ease;
+}
+.btn-del:hover{ background:#dc2626; color:#fff; }
 
 /* Total */
 .saif-total{
@@ -48,28 +55,28 @@
 .saif-total small{ font-weight:500; color:var(--saif-muted); }
 #formAlert{ margin-bottom:12px; }
 
-/* === NUEVO: Layout “producto arriba / resto abajo” === */
-.detalle-grid{
-  display:grid; gap:12px;
-}
-/* .detalle-grid__top removed: empty ruleset */
+/* Layout */
+.detalle-grid{ display:grid; gap:12px; }
 .detalle-grid__bottom{
-  display:grid; gap:12px;
-  grid-template-columns: 130px 170px 140px; /* Cantidad | Precio | Añadir */
-  align-items:end;
+  display:grid; gap:12px; grid-template-columns: 130px 140px; align-items:end;
 }
 @media (max-width: 991.98px){
   .detalle-grid__bottom{ grid-template-columns: 1fr; }
   #btnAddDetalle{ width:100%; }
 }
+
+/* Header modal visual */
+.saif-modal .modal-header{ background:#0ea5a0; color:#fff; }
+.saif-badge{ background:#e6fffb; color:#0f766e; border-radius:999px; padding:.2rem .5rem; font-weight:700; margin-left:.5rem; }
+.saif-modal-title{ display:flex; align-items:center; gap:.5rem; font-weight:800; }
 </style>
 
-<div class="saif-modal">
+<div class="saif-modal" id="modalVenta">
   <!-- HEADER -->
   <div class="modal-header">
     <div class="saif-modal-title">
       <span class="saif-modal-icon"><i class="bi bi-receipt-cutoff"></i></span>
-      <span>{{ titulo|default:"Crear Venta" }}</span>
+      <span>{{ titulo|default:"Registrar Venta" }}</span>
     </div>
     <span class="saif-badge">SAIF</span>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -90,7 +97,7 @@
               <label class="form-label">No. Factura</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
-                <input type="text" id="facturaInput" name="numero_factura" class="form-control" placeholder="Ej. F-0001" value="{{ form.numero_factura.value|default_if_none:'' }}">
+                <input type="text" id="facturaInput" name="numero_factura" class="form-control" placeholder="Ej. F-0001">
               </div>
             </div>
 
@@ -98,8 +105,11 @@
               <label class="form-label">Fecha de Venta</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                <input type="datetime-local" id="fechaInput" name="fecha_venta" class="form-control" value="{{ form.fecha_venta.value|default_if_none:now|date:'Y-m-d\\TH:i' }}">
+                <!-- Valor desde servidor para que siempre se vea algo -->
+                <input type="datetime-local" id="fechaInput" name="fecha_venta"
+                       class="form-control" value="{{ current_dt }}" readonly>
               </div>
+              <div class="form-text">Se asigna automáticamente con la fecha y hora actual.</div>
             </div>
 
             <div class="col-12">
@@ -109,12 +119,11 @@
           </div>
         </div>
 
-        <!-- ===== Detalle de productos (producto arriba, resto abajo) ===== -->
+        <!-- ===== Detalle de productos ===== -->
         <div class="section-card">
           <div class="section-title mb-2"><i class="bi bi-box"></i> Detalle de Productos</div>
 
           <div class="detalle-grid">
-            <!-- Fila superior: Producto (100%) -->
             <div class="detalle-grid__top">
               <label class="form-label">Producto</label>
               <div class="input-group">
@@ -128,21 +137,12 @@
               <div class="form-text">Selecciona desde el buscador para evitar errores.</div>
             </div>
 
-            <!-- Fila inferior: Cantidad | Precio | Añadir -->
             <div class="detalle-grid__bottom">
               <div>
                 <label class="form-label">Cantidad</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-hash"></i></span>
                   <input type="number" id="cantidadInput" class="form-control" min="1" step="1" value="1" placeholder="0">
-                </div>
-              </div>
-
-              <div>
-                <label class="form-label">Precio Unit.</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
-                  <input type="number" id="precioInput" class="form-control" min="0" step="0.01" value="0" placeholder="0.00">
                 </div>
               </div>
 
@@ -155,16 +155,14 @@
             </div>
           </div>
 
-          <!-- Tabla de detalle -->
+          <!-- Tabla -->
           <div class="table-responsive mt-3">
             <table class="table table-bordered align-middle text-center">
               <thead class="table-light">
                 <tr>
                   <th class="text-start">Producto</th>
                   <th>Cantidad</th>
-                  <th>Precio Unit.</th>
-                  <th>Subtotal</th>
-                  <th>Acción</th>
+                  <th><i class="bi bi-trash text-danger"></i></th>
                 </tr>
               </thead>
               <tbody id="detalleTable"></tbody>
@@ -173,8 +171,8 @@
 
           <!-- Total -->
           <div class="saif-total mt-2">
-            <small>Total de la venta</small>
-            <div id="totalVenta">Q 0.00</div>
+            <small>Total de ítems</small>
+            <div id="totalItems">0</div>
           </div>
         </div>
 
@@ -194,123 +192,149 @@
   </form>
 </div>
 
-<!-- ====================== JS (sin cambios) ====================== -->
+<!-- ====================== JS ====================== -->
 <script>
 (function () {
-  const detalles = [];
-  const form = document.getElementById('form-venta');
-  const alertBox = document.getElementById('formAlert');
-  const hiddenDetalles = document.getElementById('detallesJson');
-  const totalVentaEl = document.getElementById('totalVenta');
-  const tbody = document.getElementById('detalleTable');
-  const $ = (sel) => document.querySelector(sel);
+  // Utilidades
+  const $  = (sel, root=document) => root.querySelector(sel);
+  const pad = v => String(v).padStart(2,'0');
+  const nowLocal = () => {
+    const d=new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
-  function showAlert(msg){ alertBox.textContent = msg; alertBox.classList.remove('d-none'); }
-  function hideAlert(){ alertBox.classList.add('d-none'); alertBox.textContent=''; }
+  // Inicializador idempotente del modal (soporta contenido inyectado)
+  function initVentaModal(modalEl){
+    if (!modalEl || modalEl.dataset.initialized === "1") return;
+    modalEl.dataset.initialized = "1";
 
-  const money = new Intl.NumberFormat('es-GT', { style:'currency', currency:'GTQ', minimumFractionDigits:2 });
-  const fmtQ = (n) => money.format(Number(n||0));
+    const alertBox       = $('#formAlert', modalEl);
+    const tbody          = $('#detalleTable', modalEl);
+    const totalItemsEl   = $('#totalItems', modalEl);
+    const hiddenDetalles = $('#detallesJson', modalEl);
+    const btnAdd         = $('#btnAddDetalle', modalEl);
+    const form           = $('#form-venta', modalEl);
 
-  window.setProductoSeleccionado = function ({id, texto, precio}) {
-    $('#productoIdInput').value = id || '';
-    $('#productoInput').value = texto || '';
-    if (precio != null && !Number.isNaN(Number(precio))) {
-      $('#precioInput').value = Number(precio);
+    // Estado
+    /** item: { producto_id:number|null, nombre:string, cantidad:number } */
+    const detalles = [];
+
+    function showAlert(msg){ if(alertBox){ alertBox.textContent = msg; alertBox.classList.remove('d-none'); } }
+    function hideAlert(){ if(alertBox){ alertBox.classList.add('d-none'); alertBox.textContent=''; } }
+
+    // FECHA: fijar al abrir
+    const fechaInput = $('#fechaInput', modalEl);
+    if (fechaInput) fechaInput.value = nowLocal();
+
+    // API para el buscador de productos
+    window.setProductoSeleccionado = function({id, texto}){
+      const idInp  = $('#productoIdInput', modalEl);
+      const txtInp = $('#productoInput', modalEl);
+      if (idInp)  idInp.value  = id ?? '';
+      if (txtInp) txtInp.value = texto ?? '';
+    };
+
+    // Render y total
+    function recomputeTotal(){
+      const total = detalles.reduce((acc, it) => acc + (parseInt(it.cantidad,10) || 0), 0);
+      if (totalItemsEl) totalItemsEl.textContent = String(total);
     }
-  };
+    function render(){
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      detalles.forEach((it, idx)=>{
+        const tr = document.createElement('tr');
+        tr.dataset.idx = String(idx);
+        tr.innerHTML = `
+          <td class="text-start">${it.nombre}</td>
+          <td>${it.cantidad}</td>
+          <td><button type="button" class="btn-del" title="Eliminar"><i class="bi bi-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      recomputeTotal();
+    }
 
-  function recomputeTotal(){
-    const items = detalles.filter(Boolean);
-    const total = items.reduce((acc, it) => acc + (Number(it.cantidad) * Number(it.precio_unitario)), 0);
-    totalVentaEl.textContent = fmtQ(total);
-  }
+    // Añadir (fusiona por ID si hay; si no, por nombre)
+    function addDetalle(){
+      hideAlert();
+      const idRaw   = $('#productoIdInput', modalEl)?.value?.trim() ?? '';
+      const nombre  = ($('#productoInput', modalEl)?.value ?? '').trim();
+      const cantVal = parseInt($('#cantidadInput', modalEl)?.value ?? '0', 10);
 
-  function buildRow(idx, item){
-    const tr = document.createElement('tr');
-    tr.dataset.idx = String(idx);
-    const subtotal = Number(item.cantidad) * Number(item.precio_unitario);
-    tr.innerHTML = `
-      <td class="text-start">${item._producto_txt}</td>
-      <td>${Number(item.cantidad)}</td>
-      <td>${fmtQ(item.precio_unitario)}</td>
-      <td>${fmtQ(subtotal)}</td>
-      <td>
-        <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>`;
-    return tr;
-  }
+      if (!nombre && !idRaw){ showAlert('Seleccione o escriba un producto.'); return; }
+      if (!Number.isFinite(cantVal) || cantVal <= 0){ showAlert('Cantidad inválida.'); return; }
 
-  const getCantidad = () => {
-    const v = Math.trunc(Number($('#cantidadInput').value));
-    return Number.isFinite(v) && v > 0 ? v : 0;
-  };
-  const getPrecio = () => {
-    const v = Number($('#precioInput').value);
-    return Number.isFinite(v) && v >= 0 ? Number(v.toFixed(2)) : 0;
-  };
+      const producto_id = idRaw ? parseInt(idRaw,10) : null;
 
-  function findExistingIndex(prodId, precio){
-    return detalles.findIndex(x => x && x.producto_id===prodId && Number(x.precio_unitario)===Number(precio));
-  }
-
-  function addDetalle(){
-    hideAlert();
-    const productoId = parseInt($('#productoIdInput').value,10);
-    const productoTxt = ($('#productoInput').value||'').trim();
-    const cantidad = getCantidad();
-    const precio = getPrecio();
-
-    if (!productoId){ showAlert('Seleccione un producto.'); $('#productoInput').focus(); return; }
-    if (!cantidad){ showAlert('Cantidad inválida.'); $('#cantidadInput').focus(); return; }
-
-    const existingIdx = findExistingIndex(productoId, precio);
-    if (existingIdx >= 0){
-      detalles[existingIdx].cantidad += cantidad;
-      const tr = tbody.querySelector(`tr[data-idx="${existingIdx}"]`);
-      if(tr){
-        const item = detalles[existingIdx];
-        tr.children[1].textContent = item.cantidad;
-        const subt = Number(item.cantidad) * Number(item.precio_unitario);
-        tr.children[3].textContent = fmtQ(subt);
+      let idx = -1;
+      if (producto_id !== null){
+        idx = detalles.findIndex(x => x.producto_id === producto_id);
+      } else {
+        idx = detalles.findIndex(x => x.producto_id === null && x.nombre.toLowerCase() === nombre.toLowerCase());
       }
-    } else {
-      const item = { producto_id: productoId, cantidad, precio_unitario: precio, _producto_txt: productoTxt };
-      const idx = detalles.push(item) - 1;
-      tbody.appendChild(buildRow(idx, item));
+
+      if (idx >= 0){
+        detalles[idx].cantidad = (parseInt(detalles[idx].cantidad,10)||0) + cantVal;
+      } else {
+        detalles.push({ producto_id, nombre, cantidad: cantVal });
+      }
+
+      // limpiar
+      const pInp = $('#productoInput', modalEl), pIdInp = $('#productoIdInput', modalEl), cInp = $('#cantidadInput', modalEl);
+      if (pInp) pInp.value = '';
+      if (pIdInp) pIdInp.value = '';
+      if (cInp) cInp.value = '1';
+
+      render(); // actualiza filas y total
     }
 
-    $('#productoInput').value = '';
-    $('#productoIdInput').value = '';
-    $('#cantidadInput').value = '1';
-    $('#precioInput').value = '0';
-    $('#productoInput').focus();
-    recomputeTotal();
+    // Eventos
+    btnAdd?.addEventListener('click', addDetalle);
+    $('#cantidadInput', modalEl)?.addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); addDetalle(); }});
+    $('#productoInput', modalEl)?.addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); addDetalle(); }});
+
+    tbody?.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.btn-del');
+      if (!btn) return;
+      const tr = btn.closest('tr');
+      const idx = parseInt(tr?.dataset.idx ?? '-1', 10);
+      if (Number.isInteger(idx) && idx >= 0){
+        detalles.splice(idx, 1);
+        render();
+      }
+    });
+
+    form?.addEventListener('submit', (e)=>{
+      const factura = ($('#facturaInput', modalEl)?.value ?? '').trim();
+      if (!factura){ e.preventDefault(); showAlert('Ingrese el número de factura.'); return; }
+      if (!detalles.length){ e.preventDefault(); showAlert('Agregue al menos un producto.'); return; }
+      const faltanIds = detalles.some(it => it.producto_id === null || Number.isNaN(it.producto_id));
+      if (faltanIds){
+        e.preventDefault();
+        showAlert('Hay productos sin asociar (ID). Selecciónalos desde el buscador.');
+        return;
+      }
+      if (hiddenDetalles) hiddenDetalles.value = JSON.stringify(detalles);
+    });
+
+    render(); // pinta “0” inicial
   }
 
-  document.getElementById('btnAddDetalle').addEventListener('click', addDetalle);
-  $('#cantidadInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addDetalle(); }});
-  $('#precioInput').addEventListener('keydown',   (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addDetalle(); }});
-
-  tbody.addEventListener('click', (e) => {
-    const del = e.target.closest('.btn-del'); if(!del) return;
-    const tr = del.closest('tr'); const idx = parseInt(tr.dataset.idx,10);
-    detalles[idx] = null; tr.remove();
-    recomputeTotal();
+  // Bootstrap: inicializar al abrir el modal
+  document.addEventListener('shown.bs.modal', (ev)=>{
+    const modalEl = ev.target.closest('#modalVenta');
+    if (modalEl) initVentaModal(modalEl);
   });
 
-  document.getElementById('form-venta').addEventListener('submit', (e) => {
-    const items = detalles.filter(Boolean);
-    const factura = ($('#facturaInput').value || '').trim();
-    if (!factura){ e.preventDefault(); showAlert('Ingrese el número de factura.'); return false; }
-    if (!items.length){ e.preventDefault(); showAlert('Agregue al menos un producto.'); return false; }
-    hiddenDetalles.value = JSON.stringify(items);
-    hideAlert();
-  });
+  // Si ya está en DOM, intenta inicializar
+  const initial = document.getElementById('modalVenta');
+  if (initial) initVentaModal(initial);
 
-  window.inicializarFormularioVenta = function(){
-    try{ document.getElementById('productoInput')?.focus(); }catch(_){ }
-  }
+  // Si usas HTMX y reemplazas el contenido del modal:
+  document.addEventListener('htmx:afterSwap', ()=>{
+    const modalEl = document.getElementById('modalVenta');
+    if (modalEl) initVentaModal(modalEl);
+  });
 })();
 </script>

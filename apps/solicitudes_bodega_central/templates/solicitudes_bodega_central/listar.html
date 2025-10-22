@@ -128,23 +128,77 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body py-3">
-        <div class="kv-grid">
-          <div class="kv"><div class="kv__key">Documento</div><div class="kv__val" id="detalleDocumento">—</div></div>
-          <div class="kv"><div class="kv__key">Producto</div><div class="kv__val" id="detalleProducto">—</div></div>
-          <div class="kv"><div class="kv__key">Cantidad</div><div class="kv__val" id="detalleCantidad">—</div></div>
-          <div class="kv"><div class="kv__key">Urgente</div><div class="kv__val" id="detalleUrgente">—</div></div>
-          <div class="kv"><div class="kv__key">Observaciones</div><div class="kv__val" id="detalleObservaciones">—</div></div>
-          <div class="kv"><div class="kv__key">Estado</div><div class="kv__val" id="detalleEstado">—</div></div>
-          <div class="kv"><div class="kv__key">Fecha</div><div class="kv__val" id="detalleFecha">—</div></div>
+      <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <div class="saif-summary row g-3 mb-4">
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-file-earmark-text"></i></div>
+              <div>
+                <span class="saif-info-card__label">Documento</span>
+                <span class="saif-info-card__value" id="detalleDocumento">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-capsule-pill"></i></div>
+              <div>
+                <span class="saif-info-card__label">Producto</span>
+                <span class="saif-info-card__value" id="detalleProducto">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-hash"></i></div>
+              <div>
+                <span class="saif-info-card__label">Cantidad</span>
+                <span class="saif-info-card__value" id="detalleCantidad">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon saif-info-card__icon--alert"><i class="bi bi-lightning-charge"></i></div>
+              <div>
+                <span class="saif-info-card__label">Urgente</span>
+                <span class="saif-info-card__value"><span id="detalleUrgente" class="saif-pill">-</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon saif-info-card__icon--state"><i class="bi bi-flag"></i></div>
+              <div>
+                <span class="saif-info-card__label">Estado</span>
+                <span class="saif-info-card__value"><span id="detalleEstado" class="saif-pill saif-pill--neutral">-</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-calendar-event"></i></div>
+              <div>
+                <span class="saif-info-card__label">Fecha</span>
+                <span class="saif-info-card__value" id="detalleFecha">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="saif-block saif-block--highlight">
+          <div class="saif-block__header"><i class="bi bi-chat-dots me-2"></i> Observaciones</div>
+          <div class="saif-block__body" id="detalleObservaciones">-</div>
         </div>
       </div>
 
-      <div class="modal-footer py-2 bg-white">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+      <div class="modal-footer justify-content-between saif-footer">
+        <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
       </div>
+
     </div>
   </div>
 </div>
@@ -257,11 +311,28 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 /* Modal + tarjetas de detalle */
 .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
 .saif-modal .modal-header { background:#0f7a3a; color:#fff; border-bottom:0; padding:.9rem 1.1rem }
-.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
-.kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
-.kv__key { font-weight:700; color:#0b1220 }
-.kv__val { color:#0f172a }
-@media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+#consultarSolicitudModal .saif-modal-body{background:#f6fdf8}
+#consultarSolicitudModal .saif-summary .saif-info-card{display:flex;gap:.75rem;align-items:center;background:linear-gradient(145deg,#f5fbf7 0%,#e8f5ed 100%);border:1px solid rgba(207,233,215,.9);border-radius:1.05rem;padding:1rem 1.15rem;box-shadow:0 14px 26px rgba(16,122,58,.12);height:100%}
+#consultarSolicitudModal .saif-info-card__icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e1f8eb 0%,#c8efd8 100%);color:#0f7a3a;display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:inset 0 0 0 2px rgba(15,122,58,.08)}
+#consultarSolicitudModal .saif-info-card__icon--state{background:linear-gradient(135deg,#e8edff 0%,#d6dcff 100%);color:#2563eb}
+#consultarSolicitudModal .saif-info-card__icon--alert{background:linear-gradient(135deg,#fff4e6 0%,#ffe1b2 100%);color:#b45309}
+#consultarSolicitudModal .saif-info-card__label{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.045em;color:#166534}
+#consultarSolicitudModal .saif-info-card__value{font-size:1.05rem;font-weight:700;color:#0b3f2e}
+#consultarSolicitudModal .saif-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:999px;font-weight:600;font-size:.78rem}
+#consultarSolicitudModal .saif-pill--neutral{background:#eef2f7;color:#334155}
+#consultarSolicitudModal .saif-pill--success{background:#dcfce7;color:#166534}
+#consultarSolicitudModal .saif-pill--alert{background:#fef3c7;color:#b45309}
+#consultarSolicitudModal .saif-block{background:#fff;border:1px solid #d7ebe0;border-radius:1rem;box-shadow:0 16px 32px rgba(15,122,58,.1);overflow:hidden}
+#consultarSolicitudModal .saif-block--highlight{background:linear-gradient(145deg,#f4fbf6 0%,#eef7f1 100%);border-color:#cfe9d7}
+#consultarSolicitudModal .saif-block__header{padding:.9rem 1.2rem;font-weight:700;color:#14532d;background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);display:flex;align-items:center;gap:.6rem}
+#consultarSolicitudModal .saif-block__body{padding:1rem 1.25rem;color:#0f172a;white-space:pre-wrap;font-size:.95rem}
+#consultarSolicitudModal .saif-footer{background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);border-top:0;padding:.9rem 1.3rem}
+#consultarSolicitudModal .saif-btn-light{background:#f8fff9;border:1px solid #cfe9d7;color:#166534;font-weight:600}
+#consultarSolicitudModal .saif-btn-light:hover{background:#ecfdf5;border-color:#a7f3d0;color:#0f7a3a}
+#consultarSolicitudModal .modal-header{background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 60%,#074d24 100%);}
+#consultarSolicitudModal .saif-modal-title span:last-child{font-weight:700;letter-spacing:.02em;}
+#consultarSolicitudModal .saif-info-card__value .saif-pill{display:inline-flex;}
+
 </style>
 
 <!-- ================== LIBRERÍAS ================== -->
@@ -280,6 +351,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const table = document.getElementById("tablaSolicitudes");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerSolicitudes");
+  const btnConsultar = document.getElementById("btnConsultar");
+  const modalEl = document.getElementById("consultarSolicitudModal");
 
   let selectedId = null;
 
@@ -288,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active","bg-emerald-100"));
     row.classList.add("table-active");
     selectedId = row.getAttribute("data-id");
-    document.getElementById("btnConsultar").disabled = false;
+    if(btnConsultar) btnConsultar.disabled = false;
   }
 
   tbody.addEventListener("click", (ev)=>{
@@ -301,24 +374,59 @@ document.addEventListener("DOMContentLoaded", function () {
     const row = ev.target.closest("tr");
     if(!row || row.hasAttribute("data-empty-row")) return;
     selectRow(row);
-    document.getElementById("btnConsultar").click();
+    if(btnConsultar) btnConsultar.click();
   });
 
   document.addEventListener("keydown",(ev)=>{
-    if(ev.key==='Enter' && selectedId){ document.getElementById("btnConsultar").click(); ev.preventDefault(); }
+    if(ev.key==='Enter' && selectedId){
+      if(btnConsultar) btnConsultar.click();
+      ev.preventDefault();
+    }
   });
 
-  document.getElementById("btnConsultar").addEventListener("click", ()=>{
-    const row = tbody.querySelector("tr.table-active");
-    if(!row){ alert("Selecciona una solicitud primero."); return; }
-    document.getElementById("detalleDocumento").innerText = row.dataset.documento || "—";
-    document.getElementById("detalleProducto").innerText = row.dataset.producto || "—";
-    document.getElementById("detalleCantidad").innerText = row.dataset.cantidad || "—";
-    document.getElementById("detalleUrgente").innerText = (row.dataset.urgente==="True"||row.dataset.urgente==="true")?"Sí":"No";
-    document.getElementById("detalleObservaciones").innerText = row.dataset.observaciones || "—";
-    document.getElementById("detalleEstado").innerText = row.dataset.estado || "—";
-    document.getElementById("detalleFecha").innerText = row.dataset.fecha || "—";
-    new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
+  if(btnConsultar && modalEl){
+    btnConsultar.addEventListener("click", ()=>{
+      const row = tbody.querySelector("tr.table-active");
+      if(!row){ alert("Selecciona una solicitud primero."); return; }
+    const docEl = document.getElementById("detalleDocumento");
+    if(docEl) docEl.textContent = row.dataset.documento || "-";
+
+    const prodEl = document.getElementById("detalleProducto");
+    if(prodEl) prodEl.textContent = row.dataset.producto || "-";
+
+    const cantEl = document.getElementById("detalleCantidad");
+    if(cantEl) cantEl.textContent = row.dataset.cantidad || "-";
+
+    const urgEl = document.getElementById("detalleUrgente");
+    if(urgEl){
+      const esUrgente = row.dataset.urgente === "True" || row.dataset.urgente === "true" || row.dataset.urgente === "1";
+      urgEl.textContent = esUrgente ? "Sí" : "No";
+      urgEl.className = "saif-pill " + (esUrgente ? "saif-pill--alert" : "saif-pill--neutral");
+    }
+
+    const obsEl = document.getElementById("detalleObservaciones");
+    if(obsEl){
+      const obs = (row.dataset.observaciones || "-").trim();
+      obsEl.textContent = obs || "Sin observaciones";
+    }
+
+    const estadoEl = document.getElementById("detalleEstado");
+    if(estadoEl){
+      const estado = (row.dataset.estado || "-").trim();
+      estadoEl.textContent = estado || "-";
+      const key = estado.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+      let cls = "saif-pill saif-pill--neutral";
+      if(["enviada","activo","completado","aprobada"].includes(key)){
+        cls = "saif-pill saif-pill--success";
+      } else if(["rechazada","anulada","cancelada","inactivo"].includes(key)){
+        cls = "saif-pill saif-pill--alert";
+      }
+      estadoEl.className = cls;
+    }
+
+    const fechaEl = document.getElementById("detalleFecha");
+    if(fechaEl) fechaEl.textContent = row.dataset.fecha || "-";
+new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
   });
 
   function refreshAutoTitles(){

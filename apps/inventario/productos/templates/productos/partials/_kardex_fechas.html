@@ -1,28 +1,140 @@
-<div class="modal-header bg-info text-white">
-  <h5 class="modal-title">
-    <i class="bi bi-calendar-range me-2"></i> Kardex de {{ producto.nombre }}
-  </h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="saif-modal kardex-modal">
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-calendar-range"></i></span>
+      <span>Kardex de {{ producto.nombre }}</span>
+    </div>
+    <span class="saif-badge">SAIF</span>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+
+  <form id="formKardex" method="get" action="{{ action }}">
+    <div class="modal-body p-3 p-md-4 saif-modal-body">
+      <div class="saif-block saif-block--form">
+        <div class="saif-block__header"><i class="bi bi-calendar-week me-2"></i> Rango de fechas</div>
+        <div class="saif-block__body">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label for="fecha_inicio" class="form-label saif-label">Fecha Inicio</label>
+              <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control saif-input" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="fecha_fin" class="form-label saif-label">Fecha Fin</label>
+              <input type="date" id="fecha_fin" name="fecha_fin" class="form-control saif-input" required>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="saif-hint mt-3 mb-0"><i class="bi bi-info-circle me-2"></i>El kardex mostrará los movimientos registrados entre las fechas seleccionadas.</p>
+    </div>
+
+    <div class="modal-footer justify-content-between saif-footer">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-eye"></i> Ver Kardex
+      </button>
+    </div>
+  </form>
 </div>
 
-<form id="formKardex" method="get" action="{{ action }}">
-  <div class="modal-body">
-    <div class="mb-3">
-      <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-      <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-      <label for="fecha_fin" class="form-label">Fecha Fin</label>
-      <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" required>
-    </div>
-  </div>
-
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    <button type="submit" class="btn btn-info text-white">Ver Kardex</button>
-  </div>
-</form>
+<style>
+  .kardex-modal{
+    background:#ffffff;
+    border-radius:18px;
+    box-shadow:0 18px 45px rgba(15,122,58,.25);
+    overflow:hidden;
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .kardex-modal form{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+  }
+  .kardex-modal .modal-body{ flex:1; }
+  .kardex-modal .modal-header{
+    background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
+    color:#fff;
+    border-bottom:0;
+    padding:1rem 1.2rem;
+  }
+  .kardex-modal .saif-modal-title span:last-child{
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .kardex-modal .modal-body{
+    background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+    padding:1rem 1.2rem;
+  }
+  .kardex-modal .saif-block{
+    background:#fff;
+    border:1px solid #cfe9d7;
+    border-radius:1rem;
+    box-shadow:0 14px 30px rgba(15,122,58,.12);
+  }
+  .kardex-modal .saif-block__header{
+    font-weight:700;
+    color:#14532d;
+    background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);
+    padding:.9rem 1.1rem;
+  }
+  .kardex-modal .saif-block__body{
+    padding:1.1rem 1.25rem;
+  }
+  .kardex-modal .saif-label{
+    font-weight:600;
+    color:#14532d;
+  }
+  .kardex-modal .saif-input{
+    border:1px solid #cfe9d7;
+    border-radius:.75rem;
+  }
+  .kardex-modal .saif-input:focus{
+    border-color:#22c55e;
+    box-shadow:0 0 0 .15rem rgba(34,197,94,.18);
+  }
+  .kardex-modal .saif-hint{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    background:rgba(15,122,58,.08);
+    border:1px solid rgba(34,197,94,.18);
+    border-radius:.9rem;
+    padding:.75rem 1rem;
+    color:#0f5132;
+    font-size:.9rem;
+  }
+  .kardex-modal .saif-footer{
+    background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+    border-top:0;
+    padding:.9rem 1.3rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+  }
+  .kardex-modal .saif-btn-light{
+    border:1px solid #cfe9d7;
+    color:#166534;
+    font-weight:600;
+  }
+  .kardex-modal .saif-btn-light:hover{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+    color:#0f7a3a;
+  }
+  .kardex-modal .btn-success{
+    background:#0f7a3a;
+    border-color:#0f7a3a;
+    font-weight:600;
+  }
+  .kardex-modal .btn-success:hover{
+    background:#0c5d2c;
+    border-color:#0c5d2c;
+  }
+</style>
 
 <script>
 document.getElementById("formKardex").addEventListener("submit", function(e) {
@@ -39,16 +151,15 @@ document.getElementById("formKardex").addEventListener("submit", function(e) {
 
   const url = `${form.action}?fecha_inicio=${inicio}&fecha_fin=${fin}`;
 
-  fetch(url, { 
-    method: "GET", 
-    headers: { "X-Requested-With": "XMLHttpRequest" } 
+  fetch(url, {
+    method: "GET",
+    headers: { "X-Requested-With": "XMLHttpRequest" }
   })
   .then(r => {
     if (!r.ok) throw new Error("Error en la respuesta del servidor");
     return r.text();
   })
   .then(html => {
-    // Reemplaza el contenido del modal por el resultado del Kardex
     document.getElementById("modal-producto-content").innerHTML = html;
   })
   .catch(err => {
@@ -58,4 +169,3 @@ document.getElementById("formKardex").addEventListener("submit", function(e) {
   });
 });
 </script>
-
