@@ -1,6 +1,8 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'consult/consult.css' %}">
 
+<div class="saif-modal">
+
 <div class="modal-header">
   <div class="saif-modal-title">
     <span class="saif-modal-icon"><i class="bi bi-calendar-x-fill"></i></span>
@@ -12,58 +14,78 @@
 
 <div class="modal-body p-3 p-md-4 saif-modal-body">
   <!-- RESUMEN SUPERIOR -->
-  <div class="saif-summary row g-3 mb-4 text-center">
-    <div class="col-6 col-md-3">
-      <div class="saif-chip">
-        <div class="saif-chip__label">ID</div>
-        <div class="saif-chip__value">#{{ reporte.id }}</div>
+  <div class="saif-summary row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+      <div class="saif-info-card">
+        <div class="saif-info-card__icon">
+          <i class="bi bi-hash"></i>
+        </div>
+        <div>
+          <span class="saif-info-card__label">ID</span>
+          <span class="saif-info-card__value">#{{ reporte.id }}</span>
+        </div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="saif-chip">
-        <div class="saif-chip__label">Usuario</div>
-        <div class="saif-chip__value">{{ reporte.id_usuario }}</div>
+    <div class="col-12 col-sm-6 col-lg-3">
+      <div class="saif-info-card">
+        <div class="saif-info-card__icon">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div>
+          <span class="saif-info-card__label">Usuario</span>
+          <span class="saif-info-card__value">{{ reporte.id_usuario }}</span>
+        </div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="saif-chip">
-        <div class="saif-chip__label">Fecha</div>
-        <div class="saif-chip__value">{{ reporte.fecha_reporte|date:"d/m/Y" }}</div>
+    <div class="col-12 col-sm-6 col-lg-3">
+      <div class="saif-info-card">
+        <div class="saif-info-card__icon">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+        <div>
+          <span class="saif-info-card__label">Fecha</span>
+          <span class="saif-info-card__value">{{ reporte.fecha_reporte|date:"d/m/Y" }}</span>
+        </div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="saif-chip">
-        <div class="saif-chip__label">Estado</div>
-        <div class="saif-chip__value">
-          {% if reporte.id_estado.nombre_estado == "Completado" %}
-            <span class="badge rounded-pill bg-success px-3">Completado</span>
-          {% else %}
-            <span class="badge rounded-pill bg-secondary px-3">{{ reporte.id_estado.nombre_estado }}</span>
-          {% endif %}
+    <div class="col-12 col-sm-6 col-lg-3">
+      <div class="saif-info-card">
+        <div class="saif-info-card__icon saif-info-card__icon--state">
+          <i class="bi bi-flag"></i>
+        </div>
+        <div>
+          <span class="saif-info-card__label">Estado</span>
+          <span class="saif-info-card__value">
+            {% if reporte.id_estado.nombre_estado == "Completado" %}
+              <span class="saif-pill saif-pill--success">Completado</span>
+            {% else %}
+              <span class="saif-pill saif-pill--neutral">{{ reporte.id_estado.nombre_estado }}</span>
+            {% endif %}
+          </span>
         </div>
       </div>
     </div>
   </div>
 
   <!-- OBSERVACIONES -->
-  <div class="saif-section mb-4">
-    <div class="saif-section__title">
+  <div class="saif-block saif-block--highlight mb-4">
+    <div class="saif-block__header">
       <i class="bi bi-journal-text me-2"></i> Observaciones
     </div>
-    <div class="saif-note mt-2">
+    <div class="saif-block__body">
       {{ reporte.observaciones|default:"Sin observaciones" }}
     </div>
   </div>
 
   <!-- DETALLES -->
-  <div class="saif-section">
-    <div class="saif-section__title">
+  <div class="saif-block">
+    <div class="saif-block__header">
       <i class="bi bi-list-ul me-2"></i> Detalles reportados
     </div>
 
-    <div class="table-responsive mt-2">
-      <table class="table table-hover align-middle text-center saif-table">
-        <thead class="table-success">
+    <div class="table-responsive mt-3">
+      <table class="table table-hover align-middle text-center saif-table saif-table--rounded">
+        <thead>
           <tr>
             <th class="text-center">Código</th>
             <th class="text-center">Producto</th>
@@ -94,46 +116,149 @@
   </div>
 </div>
 
-<div class="modal-footer d-flex justify-content-between">
+<div class="modal-footer justify-content-between saif-footer">
   <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
-  <button type="button" class="btn btn-light border-success text-success rounded-pill px-3 saif-btn-light" data-bs-dismiss="modal">
+  <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
     <i class="bi bi-x-lg"></i> Cerrar
   </button>
 </div>
 
+</div>
+
 <!-- Estilos verdes SAIF locales -->
 <style>
-  .saif-modal-body{ background:#f7fcf8; }
-
-  .saif-section__title{
-    font-weight:700; color:#14532d; display:flex; align-items:center;
-    background:#e8f5ec; border:1px solid #d7ebe0; padding:.5rem .75rem; border-radius:.6rem;
+  .saif-modal .modal-header{
+    background:linear-gradient(135deg,#0f7a3a 0%,#0c5f2d 55%,#0a4e23 100%);
+    color:#ffffff;
+    border-bottom:0;
+    padding:1.05rem 1.2rem;
+    align-items:center;
+    gap:.85rem;
+  }
+  .saif-modal .saif-modal-title span:last-child{
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .saif-modal-body{
+    background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
   }
 
-  .saif-note{
-    background:#f0fdf4; border:1px solid #cfe9d7; color:#166534;
-    border-radius:.6rem; padding:.75rem .9rem;
+  .saif-summary .saif-info-card{
+    display:flex;
+    gap:.75rem;
+    align-items:center;
+    background:linear-gradient(145deg,#f5fbf7 0%,#e8f5ed 100%);
+    border:1px solid rgba(207,233,215,.9);
+    border-radius:1.05rem;
+    padding:1rem 1.15rem;
+    box-shadow:0 14px 26px rgba(16,122,58,.12);
+    height:100%;
+  }
+  .saif-info-card__icon{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#e1f8eb 0%,#c8efd8 100%);
+    color:#0f7a3a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.15rem;
+    box-shadow:inset 0 0 0 2px rgba(15,122,58,.08);
+  }
+  .saif-info-card__icon--state{
+    background:linear-gradient(135deg,#e8edff 0%,#d6dcff 100%);
+    color:#2563eb;
+  }
+  .saif-info-card__label{
+    display:block;
+    font-size:.74rem;
+    text-transform:uppercase;
+    letter-spacing:.045em;
+    color:#166534;
+  }
+  .saif-info-card__value{
+    font-size:1.12rem;
+    font-weight:700;
+    color:#0b3f2e;
+  }
+
+  .saif-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    padding:.28rem .7rem;
+    border-radius:999px;
+    font-weight:600;
+    font-size:.8rem;
+  }
+  .saif-pill--success{ background:#dcfce7; color:#166534; }
+  .saif-pill--neutral{ background:#edf2f7; color:#334155; }
+
+  .saif-block{
+    background:#ffffff;
+    border:1px solid #d7ebe0;
+    border-radius:1.15rem;
+    box-shadow:0 16px 34px rgba(15,122,58,.1);
+    overflow:hidden;
+  }
+  .saif-block--highlight{
+    background:linear-gradient(145deg,#f4fbf6 0%,#eef7f1 100%);
+    border-color:#cfe9d7;
+  }
+  .saif-block__header{
+    padding:.95rem 1.2rem;
+    font-weight:700;
+    color:#14532d;
+    background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+  }
+  .saif-block__body{
+    padding:1.1rem 1.25rem;
+    color:#0f172a;
     white-space:pre-wrap;
+    font-size:.95rem;
   }
 
   .saif-table{
-    border:1px solid #e3e6ea; border-radius:.65rem; overflow:hidden;
+    border:1px solid #d7ebe0;
+    border-radius:1rem;
+    overflow:hidden;
   }
-  .saif-table thead th{
-    background:#e8f5ec !important; color:#065f46; border-bottom:1px solid #d7ebe0 !important;
+  .saif-table--rounded thead{
+    background:linear-gradient(145deg,#e8f5ec 0%,#dcf0e1 100%);
   }
-  .saif-table tbody tr:hover{ background:#f3fbf6; }
-  .saif-table td, .saif-table th{
-    vertical-align:middle; padding:.6rem .5rem; font-size:.9rem;
+  .saif-table--rounded thead th{
+    color:#0d4d32;
+    border-bottom:1px solid #cce5d5 !important;
+    font-weight:700;
+  }
+  .saif-table--rounded tbody tr:hover{
+    background:#f3fbf6;
+  }
+  .saif-table--rounded td,
+  .saif-table--rounded th{
+    vertical-align:middle;
+    padding:.7rem .6rem;
+    font-size:.92rem;
   }
 
-  .saif-summary .saif-chip{
-    background:#f0fdf4; border:1px solid #cfe9d7; border-radius:.75rem; padding:.6rem .75rem;
-    height:100%; display:flex; flex-direction:column; justify-content:center;
+  .saif-footer{
+    background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+    border-top:0;
+    padding:.9rem 1.3rem;
   }
-  .saif-chip__label{ font-size:.75rem; color:#166534; text-transform:uppercase; letter-spacing:.02em; }
-  .saif-chip__value{ font-weight:700; color:#065f46; }
-
-  .saif-btn-light{ background:#f8fff9; }
-  .rounded-pill{ border-radius:9999px !important; }
+  .saif-btn-light{
+    background:#f8fff9;
+    border:1px solid #cfe9d7;
+    color:#166534;
+    font-weight:600;
+  }
+  .saif-btn-light:hover{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+    color:#0f7a3a;
+  }
 </style>

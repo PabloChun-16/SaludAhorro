@@ -99,20 +99,17 @@
 </section>
 
 <!-- ============================= MODAL CONSULTAR ============================= -->
-<div class="modal fade" id="consultarEnvioModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal" id="consultarEnvioModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
 
       <!-- HEADER -->
-      <div class="modal-header bg-emerald-700 text-white">
-        <div class="d-flex align-items-center gap-2">
-          <img src="{% static 'home/img/logo_empresa.png' %}" 
-               alt="Logo" 
-               class="rounded-circle bg-white p-2 shadow-sm" 
-               style="width: 38px; height: 38px;">
-          <h5 class="modal-title mb-0 fw-bold">Detalle de Envío</h5>
-          <span class="saif-badge ms-2"><i class="bi bi-shield-check"></i> SAIF</span>
+            <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-send-check"></i></span>
+          <span>Detalle de Envío</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
@@ -145,7 +142,7 @@
 
       <!-- FOOTER -->
       <div class="modal-footer py-2 bg-white">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
       </div>
@@ -188,8 +185,8 @@
 #tablaEnvios tbody tr:hover{ background:#fafafa; }
 
 .saif-modal .modal-content{ border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
-.saif-modal .modal-header{ background:#0E7A3A; color:#fff; border-bottom:0; padding:.6rem .9rem }
-.saif-modal .saif-badge{ background:rgba(255,255,255,.15); backdrop-filter:blur(4px); border-radius:999px; padding:.12rem .5rem; font-weight:600; font-size:.8rem }
+.saif-modal .modal-header{ background:#0f7a3a; color:#fff; border-bottom:0; padding:.9rem 1.1rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem }
+.saif-modal .saif-badge{ background:rgba(255,255,255,.2); border-radius:999px; padding:.18rem .65rem; font-weight:600; font-size:.78rem; display:inline-flex; align-items:center; gap:.35rem; color:#0f7a3a }
 .kv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
 .kv{ display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
 .kv__key{ font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
@@ -198,11 +195,15 @@
 </style>
 
 <!-- ============================= MODAL DASHBOARD ============================= -->
-<div class="modal fade" id="dashboardModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal" id="dashboardModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-purple-600 text-white">
-        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart"></i> Dashboard de Envíos</h5>
+            <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-bar-chart"></i></span>
+          <span>Dashboard de Envíos</span>
+        </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
@@ -239,7 +240,7 @@
       </div>
 
       <div class="modal-footer bg-white">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
       </div>

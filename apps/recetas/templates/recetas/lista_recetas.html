@@ -85,13 +85,12 @@
 <div class="modal fade" id="consultarRecetaModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
-      <div class="modal-header bg-emerald-700 text-white">
-        <div class="d-flex align-items-center gap-2">
-          <img src="{% static 'home/img/logo_empresa.png' %}" alt="Logo"
-               class="rounded-circle bg-white p-2 shadow-sm" style="width:38px;height:38px;">
-          <h5 class="modal-title mb-0 fw-bold">Detalle de Receta</h5>
-          <span class="saif-badge ms-2"><i class="bi bi-capsule"></i> SAIF</span>
+            <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-journal-medical"></i></span>
+          <span>Detalle de Receta</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
@@ -148,8 +147,12 @@
 <div class="modal fade" id="dashboardModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-purple-700 text-white">
-        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart"></i> Dashboard de Recetas</h5>
+            <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-bar-chart"></i></span>
+          <span>Dashboard de Recetas</span>
+        </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body bg-slate-50">
