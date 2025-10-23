@@ -13,6 +13,105 @@ from apps.mantenimiento.models import (
 
 from apps.inventario.models import Productos, Lotes
 from apps.salidas_devoluciones.models import Movimientos_Inventario_Sucursal
+from django.views.decorators.http import require_POST
+from django.db.models import Max, Sum, F, Subquery, OuterRef
+
+@login_required
+@require_POST
+@transaction.atomic
+def devolucion_cancel(request, ref: str):
+    """
+    Cancela TODOS los movimientos DEV 'Completado' de la referencia dada.
+    - Valida que exista al menos un DEV completado y que no esté ya totalmente cancelada.
+    - Verifica que haya stock suficiente para revertir cada renglón (no dejar lotes en negativo).
+    - Descuenta del inventario (resta lo devuelto).
+    - Marca los DEV originales como 'Cancelado'.
+    - Crea un movimiento DEV con cantidad NEGATIVA por cada renglón revertido (auditoría).
+    """
+    # Estados
+    try:
+        estado_ok = Estado_Movimiento_Inventario.objects.get(nombre_estado="Completado")
+        estado_cancel = Estado_Movimiento_Inventario.objects.get(nombre_estado="Cancelado")
+    except Estado_Movimiento_Inventario.DoesNotExist:
+        return JsonResponse({"success": False, "errors": "Estados 'Completado/Cancelado' no configurados."}, status=400)
+
+    # Tipo DEV
+    try:
+        tipo_dev = Tipo_Movimiento_Inventario.objects.get(codigo="DEV")
+    except Tipo_Movimiento_Inventario.DoesNotExist:
+        return JsonResponse({"success": False, "errors": "No existe el tipo de movimiento 'DEV'."}, status=400)
+
+    # Movimientos DEV de esta referencia
+    devs = (
+        Movimientos_Inventario_Sucursal.objects
+        .select_for_update()
+        .select_related("id_lote")
+        .filter(id_tipo_movimiento=tipo_dev, referencia_transaccion=ref)
+        .order_by("id")
+    )
+    if not devs.exists():
+        return JsonResponse({"success": False, "errors": "No hay devoluciones registradas para esta referencia."}, status=404)
+
+    # ¿Ya están todos cancelados?
+    hay_completados = devs.filter(estado_movimiento_inventario=estado_ok).exists()
+    if not hay_completados:
+        return JsonResponse({"success": False, "errors": "La devolución ya está cancelada."}, status=400)
+
+    # Agrupa por lote la cantidad a revertir (solo los completados, que suman stock)
+    a_revertir = {}  # lote_id -> cantidad_total
+    for m in devs.filter(estado_movimiento_inventario=estado_ok):
+        qty = int(m.cantidad or 0)
+        if qty <= 0:
+            # Un DEV negativo no suma stock (p. ej., ajustes previos); lo saltamos
+            continue
+        a_revertir[m.id_lote_id] = a_revertir.get(m.id_lote_id, 0) + qty
+
+    if not a_revertir:
+        return JsonResponse({"success": False, "errors": "No hay renglones revertibles en estado 'Completado'."}, status=400)
+
+    # Validar stock suficiente para revertir (no dejar lotes en negativo)
+    lotes = {l.id: l for l in Lotes.objects.select_for_update().filter(id__in=a_revertir.keys())}
+    faltantes = []
+    for lote_id, qty in a_revertir.items():
+        lote = lotes.get(lote_id)
+        disp = int(lote.cantidad_disponible or 0)
+        if disp < qty:
+            faltantes.append(f"Lote {lote.numero_lote}: disponible {disp}, a revertir {qty}.")
+
+    if faltantes:
+        return JsonResponse({
+            "success": False,
+            "errors": ["Stock insuficiente para revertir la devolución en:"] + faltantes
+        }, status=400)
+
+    # Aplicar reverso por cada renglón completado
+    usuario = request.user
+    for m in devs.filter(estado_movimiento_inventario=estado_ok):
+        qty = int(m.cantidad or 0)
+        if qty <= 0:
+            continue  # solo revertimos los DEV positivos
+
+        # 1) Descontar del lote
+        Lotes.objects.filter(pk=m.id_lote_id).update(
+            cantidad_disponible=F("cantidad_disponible") - qty
+        )
+
+        # 2) Marcar original como Cancelado
+        m.estado_movimiento_inventario = estado_cancel
+        m.save(update_fields=["estado_movimiento_inventario"])
+
+        # 3) Asiento inverso (DEV negativo) para auditoría
+        Movimientos_Inventario_Sucursal.objects.create(
+            id_lote=m.id_lote,
+            id_tipo_movimiento=tipo_dev,
+            cantidad=-qty,
+            id_usuario=usuario,
+            referencia_transaccion=ref,
+            comentario="Reversa por cancelación de devolución",
+            estado_movimiento_inventario=estado_cancel,
+        )
+
+    return JsonResponse({"success": True})
 
 
 # ============================================================
@@ -21,25 +120,29 @@ from apps.salidas_devoluciones.models import Movimientos_Inventario_Sucursal
 
 @login_required
 def devolucion_list(request):
-    """
-    Tabla de devoluciones. Mostramos una fila por movimiento más reciente
-    de cada referencia (No. de factura) con tipo DEV.
-    """
-    movs = (
+    # 1) Ids del último movimiento DEV por referencia
+    latest_ids = (
         Movimientos_Inventario_Sucursal.objects
         .filter(id_tipo_movimiento__codigo="DEV")
-        .select_related("id_usuario", "estado_movimiento_inventario")
-        .order_by("-id")[:200]
+        .values('referencia_transaccion')
+        .annotate(last_id=Max('id'))
+        .values_list('last_id', flat=True)
     )
 
-    devoluciones = []
-    for m in movs:
-        devoluciones.append({
-            "referencia_transaccion": m.referencia_transaccion,
-            "fecha": m.fecha_hora,
-            "usuario": m.id_usuario,
-            "estado": m.estado_movimiento_inventario,
-        })
+    # 2) Carga solo esos movimientos
+    qs = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(id__in=latest_ids)
+        .select_related("id_usuario", "estado_movimiento_inventario")
+        .order_by('-fecha_hora')   # más recientes primero
+    )
+
+    devoluciones = [{
+        "referencia_transaccion": m.referencia_transaccion,
+        "fecha": m.fecha_hora,
+        "usuario": m.id_usuario,
+        "estado": m.estado_movimiento_inventario,
+    } for m in qs]
 
     return render(request, "devoluciones/lista.html", {"devoluciones": devoluciones})
 

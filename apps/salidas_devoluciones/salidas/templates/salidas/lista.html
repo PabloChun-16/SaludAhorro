@@ -93,9 +93,8 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
               <div class="filter-wrap">
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
                   <option value="">Todos</option>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                  <option value="anulado">Anulado</option>
+                  <option value="completado">Completado</option>
+                  <option value="cancelado">Cancelado</option>
                 </select>
               </div>
             </th>
@@ -133,6 +132,9 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
+      <button id="btnCancelar" class="btn btn-outline-danger rounded-pill px-3 ms-2 shadow-sm" disabled>
+        <i class="bi bi-x-octagon"></i> CANCELAR
+      </button>
     </div>
   </div>
 </section>
@@ -142,6 +144,38 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
      data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-venta-content"></div>
+  </div>
+</div>
+
+<!-- Modal: Confirmar cancelación de venta -->
+<div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-x-octagon me-2"></i>
+          Cancelar venta
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="cancelAlert" class="alert alert-danger d-none" role="alert"></div>
+        <p class="mb-0">
+          ¿Seguro que deseas <strong>cancelar</strong> la venta
+          <span class="text-danger fw-semibold" id="cancelRef"></span>?<br>
+          Esta acción revertirá el inventario de todos sus renglones.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-arrow-left"></i> Volver
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmCancel">
+          <i class="bi bi-x-octagon"></i> Cancelar venta
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -173,6 +207,105 @@ document.addEventListener("DOMContentLoaded", function () {
     selectedRef = tr.getAttribute("data-ref");
     btnConsultar.disabled = !selectedRef;
   });
+
+  const btnCancelar = document.getElementById("btnCancelar");
+
+  // Al seleccionar fila, habilita/inhabilita según estado
+  table.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-ref]");
+    if (!tr) return;
+
+    // ... lo que ya tienes ...
+    const estadoTxt = (tr.getAttribute("data-estado") || tr.cells[3]?.textContent || "").toLowerCase();
+    btnCancelar.disabled = !selectedRef || estadoTxt.includes("cancelado"); // solo si no está cancelada
+  });
+
+    // ====== Cancelación por modal (configurar una sola vez) ======
+    const cancelModalEl = document.getElementById("cancelConfirmModal");
+    const cancelModal = new bootstrap.Modal(cancelModalEl, { backdrop: 'static', keyboard: false });
+    const cancelRefEl = document.getElementById("cancelRef");
+    const cancelAlert = document.getElementById("cancelAlert");
+    const btnConfirmCancel = document.getElementById("btnConfirmCancel");
+
+    function showCancelAlert(msg){
+      cancelAlert.textContent = Array.isArray(msg) ? msg.join("\n") : String(msg || "Error");
+      cancelAlert.classList.remove("d-none");
+    }
+    function hideCancelAlert(){
+      cancelAlert.classList.add("d-none");
+      cancelAlert.textContent = "";
+    }
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return "";
+    }
+
+    // Habilitar/inhabilitar botón según fila seleccionada y estado
+    table.addEventListener("click", (e) => {
+      const tr = e.target.closest("tr[data-ref]");
+      if(!tr) return;
+      const estadoTxt = (tr.getAttribute("data-estado") || tr.cells[3]?.textContent || "").toLowerCase();
+      btnCancelar.disabled = !selectedRef || estadoTxt.includes("cancelado");
+    });
+
+    // Abrir modal al pulsar CANCELAR
+    btnCancelar.addEventListener("click", () => {
+      if (!selectedRef) return;
+      hideCancelAlert();
+      cancelRefEl.textContent = `'${selectedRef}'`;
+      btnConfirmCancel.disabled = false;
+      btnConfirmCancel.innerHTML = '<i class="bi bi-x-octagon"></i> Cancelar venta';
+      btnConfirmCancel.dataset.ref = selectedRef;
+      cancelModal.show();
+    });
+
+    // Cerrar/Resetear al ocultar (X o Volver)
+    cancelModalEl.addEventListener('hidden.bs.modal', () => {
+      hideCancelAlert();
+      cancelRefEl.textContent = '';
+      btnConfirmCancel.disabled = false;
+      btnConfirmCancel.removeAttribute('data-ref');
+      btnConfirmCancel.innerHTML = '<i class="bi bi-x-octagon"></i> Cancelar venta';
+    });
+
+    // Confirmar cancelación (POST)
+    btnConfirmCancel.addEventListener("click", async () => {
+      const ref = btnConfirmCancel.dataset.ref;
+      if (!ref) return;
+
+      hideCancelAlert();
+      btnConfirmCancel.disabled = true;
+      btnConfirmCancel.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cancelando...';
+
+      try {
+        const resp = await fetch("{% url 'sd:salidas:cancel' 'REF' %}".replace("REF", encodeURIComponent(ref)), {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": (document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken'))
+          }
+        });
+        const data = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || !data.success) {
+          showCancelAlert((data && data.errors) ? data.errors : "No se pudo cancelar la venta.");
+          btnConfirmCancel.disabled = false;
+          btnConfirmCancel.innerHTML = '<i class="bi bi-x-octagon"></i> Cancelar venta';
+          return;
+        }
+
+        cancelModal.hide();
+        window.location.reload();
+      } catch (e) {
+        showCancelAlert("Error de red al cancelar la venta.");
+        btnConfirmCancel.disabled = false;
+        btnConfirmCancel.innerHTML = '<i class="bi bi-x-octagon"></i> Cancelar venta';
+      }
+    });
+
+  
 
   /* ====== Abrir modal CREAR (misma ruta y comportamiento) ====== */
   btnCrear.addEventListener("click", function () {
@@ -361,6 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   }
+
 
   /* ====== Buscador de productos (reuso) (TAL CUAL) ====== */
   const modalBuscar   = document.getElementById("modalBuscarProducto");
