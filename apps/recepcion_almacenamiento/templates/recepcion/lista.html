@@ -118,9 +118,9 @@ select.filter-control{
 
 /* MÃ­nimos para inputs angostos */
 #tablaRecepciones thead .filter-row th{ min-width:100px; }
-#tablaRecepciones thead .filter-row th:nth-child(1){ min-width:110px; } /* ID */
-#tablaRecepciones thead .filter-row th:nth-child(3){ min-width:140px; } /* Fecha */
-#tablaRecepciones thead .filter-row th:nth-child(5){ min-width:120px; } /* Estado */
+#tablaRecepciones thead .filter-row th:nth-child(1){ min-width:140px; } /* Numero Envio */
+#tablaRecepciones thead .filter-row th:nth-child(2){ min-width:140px; } /* Fecha */
+#tablaRecepciones thead .filter-row th:nth-child(4){ min-width:120px; } /* Estado */
 
 /* ====== Utilidades de ancho ====== */
 .wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
@@ -155,15 +155,14 @@ select.filter-control{
     <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaRecepciones">
         <colgroup>
-          <col class="wp-12"><col class="wp-20"><col class="wp-16"><col class="wp-20"><col class="wp-14">
+          <col style="width:25%"><col style="width:20%"><col style="width:25%"><col style="width:30%">
         </colgroup>
 
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
-            <th>ID</th><th>Número Envío</th><th>Fecha Recepción</th><th>Usuario</th><th>Estado</th>
+            <th>Numero Envio</th><th>Fecha Recepcion</th><th>Usuario</th><th>Estado</th>
           </tr>
           <tr class="filter-row">
-            <th><input id="f-id" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-envio" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
             <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
@@ -183,7 +182,6 @@ select.filter-control{
         <tbody>
           {% for r in recepciones %}
           <tr data-id="{{ r.id }}" style="cursor:pointer;">
-            <td class="text-truncate">{{ r.id }}</td>
             <td class="text-truncate">{{ r.numero_envio_bodega }}</td>
             <td class="text-truncate">{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
             <td class="text-truncate">{{ r.id_usuario }}</td>
@@ -203,7 +201,7 @@ select.filter-control{
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" class="py-5 text-muted" data-empty-row>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
               <i class="bi bi-inbox fs-3 d-block mb-2"></i>
               No hay recepciones registradas.
             </td>
@@ -738,17 +736,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ====== Filtros ====== */
   function installFilters(){
-    const fId=document.getElementById("f-id");
     const fEnvio=document.getElementById("f-envio");
     const fFecha=document.getElementById("f-fecha");
     const fUsuario=document.getElementById("f-usuario");
     const fEstado=document.getElementById("f-estado");
 
-    const inputs=[fId,fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
+    const inputs=[fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
     const cleanAccents=(s)=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     function applyFilters(){
-      const idVal=cleanAccents(fId?.value);
       const envioVal=cleanAccents(fEnvio?.value);
       const fechaVal=cleanAccents(fFecha?.value);
       const usuarioVal=cleanAccents(fUsuario?.value);
@@ -760,11 +756,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const tds=tr.querySelectorAll("td");
         const txt=i=>cleanAccents(tds[i]?.textContent);
         const ok =
-          (!idVal     || txt(0).includes(idVal)) &&
-          (!envioVal  || txt(1).includes(envioVal)) &&
-          (!fechaVal  || txt(2).includes(fechaVal)) &&
-          (!usuarioVal|| txt(3).includes(usuarioVal)) &&
-          (!estadoVal || txt(4).includes(estadoVal));
+          (!envioVal  || txt(0).includes(envioVal)) &&
+          (!fechaVal  || txt(1).includes(fechaVal)) &&
+          (!usuarioVal|| txt(2).includes(usuarioVal)) &&
+          (!estadoVal || txt(3).includes(estadoVal));
         tr.style.display = ok ? "" : "none";
       });
 
@@ -826,7 +821,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if(!ok || !data.success){ showErr(data.error || "No se pudo cambiar el estado."); return; }
       const row = tbody.querySelector(`tr[data-id="${selectedId}"]`);
       if(row){
-        const td = row.querySelectorAll("td")[4];
+        const td = row.querySelectorAll("td")[3];
         if(estado === "Recibido Completo") td.innerHTML = '<span class="badge bg-success badge-pill">Recibido Completo</span>';
         else if(estado === "Recibido Parcialmente") td.innerHTML = '<span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>';
         else td.innerHTML = '<span class="badge bg-danger badge-pill">Rechazado</span>';

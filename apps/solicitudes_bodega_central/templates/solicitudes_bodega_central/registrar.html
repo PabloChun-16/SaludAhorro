@@ -5,8 +5,10 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+<link rel="stylesheet" href="{% static 'consult/consult.css' %}">
 
 <style>
+/* =================== LISTA =================== */
 .table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; }
 
 #tablaSolicitudes{
@@ -48,6 +50,146 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 
 #tablaSolicitudes tr.selected, #tablaSolicitudes tr.table-active { background-color: rgba(25,135,84,.12); }
 #tablaSolicitudes tr { cursor: pointer; }
+
+/* =============== CONSULTAR: Tarjetas y bloques =============== */
+.saif-modal .modal-content{ border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+.saif-modal .modal-header{ background:#0f7a3a;color:#fff;border-bottom:0;padding:.85rem 1rem; }
+.saif-modal .btn-close.btn-close-white{ filter: invert(1); opacity:.9; }
+
+.saif-modal-body{ background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%); }
+
+/* Tarjetas resumen */
+.saif-summary > [class*="col"]{
+  display:flex; flex-direction:column;
+}
+.saif-summary .saif-info-card{
+  display:flex; gap:.75rem; align-items:center;
+  background:linear-gradient(145deg,#f5fbf7 0%,#e8f5ed 100%);
+  border:1px solid rgba(207,233,215,.9);
+  border-radius:1rem; padding:.85rem 1rem;
+  box-shadow:0 10px 22px rgba(16,122,58,.10);
+  min-height:72px;
+  width:100%;
+  height:100%;
+}
+.saif-info-card__icon{
+  width:42px; height:42px; border-radius:50%;
+  background:linear-gradient(135deg,#e1f8eb 0%,#c8efd8 100%);
+  color:#0f7a3a; display:flex; align-items:center; justify-content:center; font-size:1rem;
+  box-shadow:inset 0 0 0 2px rgba(15,122,58,.08);
+  flex: 0 0 42px;
+}
+.saif-info-card__icon--state{
+  background:linear-gradient(135deg,#e8edff 0%,#d6dcff 100%); color:#2563eb;
+}
+.saif-info-card__label{
+  display:block; font-size:.74rem; text-transform:uppercase; letter-spacing:.045em; color:#166534; margin-bottom:.15rem;
+}
+.saif-info-card__value{
+  display:block; font-size:1.05rem; font-weight:700; color:#0b3f2e; max-width:100%;
+  word-break:break-word; white-space:normal; line-height:1.4;
+}
+.saif-info-card .text-truncate{ max-width:100%; white-space:normal; word-break:break-word; }
+.saif-info-card > :not(.saif-info-card__icon){ min-width:0; }
+
+/* Modal buscar producto */
+.saif-modal--search .saif-search-group{
+  display:flex; align-items:center;
+  border:1px solid #cfe9d7;
+  border-radius:.95rem;
+  background:#ffffff;
+  box-shadow:0 10px 24px rgba(15,122,58,.14);
+}
+.saif-modal--search .saif-search-group .saif-ig{
+  border:0;
+  background:linear-gradient(145deg,#f4fbf6 0%,#e5f3eb 100%);
+  color:#0f7a3a;
+  font-weight:700;
+  padding:.65rem .9rem;
+}
+.saif-modal--search .saif-search-group .saif-input{
+  border:0;
+  background:transparent;
+  padding:.7rem .9rem;
+  box-shadow:none;
+}
+.saif-modal--search .saif-search-group .saif-input:focus{
+  box-shadow:none;
+}
+.saif-modal--search .saif-table-wrapper{
+  border:1px solid #d7ebe0;
+  border-radius:1rem;
+  background:#ffffff;
+  box-shadow:0 14px 30px rgba(15,122,58,.12);
+  overflow:hidden;
+}
+.saif-modal--search .saif-table-scroll{ max-height:50vh; overflow:auto; }
+.saif-modal--search table{ margin:0; font-size:.88rem; color:#0f172a; }
+.saif-modal--search thead th{
+  background:linear-gradient(145deg,#e1f5ea 0%,#d4ecdd 100%);
+  color:#14532d;
+  font-weight:800;
+  border-bottom:1px solid #cfe9d7;
+  padding:.65rem .75rem;
+}
+.saif-modal--search tbody td{
+  padding:.6rem .75rem;
+  border-color:#e5f2ea;
+  vertical-align:middle;
+}
+.saif-modal--search tbody tr:nth-child(even){ background:#f8fffb; }
+.saif-modal--search tbody tr:hover{ background:#effcf4; }
+
+/* Chips */
+.saif-pill{ display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .6rem; border-radius:999px; font-weight:700; font-size:.8rem; }
+.saif-pill--success{ background:#dcfce7; color:#166534; }
+.saif-pill--neutral{ background:#edf2f7; color:#334155; }
+.saif-pill--warning{ background:#fef3c7; color:#92400e; }
+.saif-pill--danger{ background:#fee2e2; color:#991b1b; }
+
+/* Bloques */
+.saif-block{
+  background:#ffffff; border:1px solid #d7ebe0; border-radius:1rem; box-shadow:0 12px 28px rgba(15,122,58,.09); overflow:hidden;
+}
+.saif-block--highlight{ background:linear-gradient(145deg,#f4fbf6 0%,#eef7f1 100%); border-color:#cfe9d7; }
+.saif-block__header{
+  padding:.8rem 1rem; font-weight:800; color:#14532d;
+  background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%); display:flex; align-items:center; gap:.5rem;
+}
+.saif-block__body{
+  padding:1rem 1rem; color:#0f172a; white-space:pre-wrap; font-size:.95rem; line-height:1.35;
+  word-break:break-word;
+}
+.saif-block__body.--empty{ color:#64748b; font-style:italic; }
+
+/* Footer modal */
+.saif-footer{ background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%); border-top:0; padding:.8rem 1rem; }
+.saif-btn-light{ background:#f8fff9; border:1px solid #cfe9d7; color:#166534; font-weight:700; }
+.saif-btn-light:hover{ background:#ecfdf5; border-color:#a7f3d0; color:#0f7a3a; }
+
+/* =============== NUEVO: Grid limpio para “Seguimiento” =============== */
+.dv-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: .9rem;
+  align-items:start;
+}
+.dv{ display:flex; flex-direction:column; gap:.35rem; }
+.dv__label{ font-size:.78rem; color:#166534; font-weight:700; }
+.dv__field{
+  display:flex; align-items:center; gap:.6rem;
+  background:#f8fafc; border:1px solid #e5e7eb; border-radius:.75rem;
+  padding:.6rem .75rem;
+}
+.dv__icon{
+  width:28px; height:28px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+  background:#e8f5ec; color:#0f7a3a; font-size:.9rem; flex:0 0 28px;
+}
+.dv__value{ font-weight:800; color:#0b3f2e; word-break:break-word; white-space:normal; line-height:1.35; }
+.dv__value.--empty{ color:#64748b; font-style:italic; }
+
+/* Aux */
+.text-truncate{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 
 <section class="p-6 md:p-8">
@@ -161,21 +303,21 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 <!-- ====== CSRF a mano para fetch ====== -->
 <form style="display:none">{% csrf_token %}</form>
 
-<!-- ====== MODAL: CREAR (todo aquí) ====== -->
+<!-- ====== MODAL: CREAR ====== -->
 <div class="modal fade" id="modalSolicitud" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content saif-modal">
-        <div class="modal-header">
-          <div class="saif-modal-title">
-            <span class="saif-modal-icon"><i class="bi bi-inboxes"></i></span>
-            <span>Crear Solicitud</span>
-          </div>
-          <span class="saif-badge">SAIF</span>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-content saif-modal">
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-inboxes"></i></span>
+          <span>Crear Solicitud</span>
         </div>
+        <span class="saif-badge">SAIF</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
 
-        <div class="modal-body saif-modal-body">
-          <div id="formAlertSolicitud" class="alert alert-danger d-none"></div>
+      <div class="modal-body saif-modal-body">
+        <div id="formAlertSolicitud" class="alert alert-danger d-none"></div>
 
         <form id="form-solicitud">
           <div class="saif-section mb-4">
@@ -264,7 +406,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
   </div>
 </div>
 
-<!-- ====== MODAL: CONSULTAR (rellenado desde la fila seleccionada) ====== -->
+<!-- ====== MODAL: CONSULTAR ====== -->
 <div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -276,25 +418,95 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
         <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body py-3 bg-slate-50">
-        <div class="kv-grid">
-          <div class="kv"><div class="kv__key fw-bold">Documento</div><div class="kv__val" id="detalleDocumento"></div></div>
-          <div class="kv"><div class="kv__key fw-bold">Producto</div><div class="kv__val" id="detalleProducto"></div></div>
-          <div class="kv"><div class="kv__key fw-bold">Cantidad</div><div class="kv__val" id="detalleCantidad"></div></div>
-          <div class="kv"><div class="kv__key fw-bold">Urgente</div><div class="kv__val" id="detalleUrgente"></div></div>
-          <div class="kv kv--block"><div class="kv__key fw-bold">Observaciones</div><div class="kv__val" id="detalleObservaciones"></div></div>
-          <div class="kv"><div class="kv__key fw-bold">Estado</div><div class="kv__val" id="detalleEstado"></div></div>
+
+      <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <!-- Resumen compacto -->
+        <div class="saif-summary row g-3 mb-4">
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-file-earmark-text"></i></div>
+              <div class="w-100">
+                <span class="saif-info-card__label">Documento</span>
+                <span class="saif-info-card__value" id="detalleDocumento">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-box-seam"></i></div>
+              <div class="w-100">
+                <span class="saif-info-card__label">Producto</span>
+                <span class="saif-info-card__value text-truncate" id="detalleProducto" title="">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon"><i class="bi bi-capsule"></i></div>
+              <div>
+                <span class="saif-info-card__label">Cantidad</span>
+                <span class="saif-info-card__value" id="detalleCantidad">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="saif-info-card">
+              <div class="saif-info-card__icon saif-info-card__icon--state"><i class="bi bi-lightning-charge"></i></div>
+              <div>
+                <span class="saif-info-card__label">Urgente</span>
+                <span class="saif-info-card__value" id="detalleUrgente">-</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="modal-footer bg-white">
-        <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
+
+        <!-- Observaciones -->
+        <div class="saif-block saif-block--highlight mb-3">
+          <div class="saif-block__header">
+            <i class="bi bi-chat-dots me-2"></i> Observaciones
+          </div>
+          <div class="saif-block__body" id="detalleObservaciones">-</div>
+        </div>
+
+        <!-- Seguimiento (grid ordenado) -->
+        <div class="saif-block">
+          <div class="saif-block__header">
+            <i class="bi bi-info-circle me-2"></i> Seguimiento
+          </div>
+          <div class="saif-block__body">
+            <div class="dv-grid">
+              <div class="dv">
+                <span class="dv__label">Estado</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-flag"></i></span>
+                  <span class="dv__value" id="detalleEstado">-</span>
+                </div>
+              </div>
+              <div class="dv">
+                <span class="dv__label">Fecha</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-calendar-event"></i></span>
+                  <span class="dv__value" id="detalleFecha">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /modal-body -->
+
+      <div class="modal-footer justify-content-between saif-footer">
+        <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
+        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ====== MODAL: BUSCAR PRODUCTO (clonado del de recepción) ====== -->
-<div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+<!-- ====== MODAL: BUSCAR PRODUCTO ====== -->
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -302,26 +514,37 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
           <span class="saif-modal-icon"><i class="bi bi-search"></i></span>
           <span>Buscar producto</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <input id="searchProducto" type="text" class="form-control" placeholder="Escribe código o nombre...">
+      <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <div class="saif-search-group input-group mb-3">
+          <span class="input-group-text saif-ig"><i class="bi bi-search"></i></span>
+          <input id="searchProducto" type="text" class="form-control saif-input" placeholder="Escribe codigo o nombre...">
         </div>
-        <div class="table-responsive" style="max-height:50vh;overflow:auto">
-          <table class="table table-hover table-sm">
-            <thead class="table-success">
-              <tr>
-                <th>Código</th><th>Nombre</th><th>Descripción</th><th>Presentación</th>
-                <th>Unidad</th><th>Condición</th><th>Receta</th><th>Ctrl.</th><th>Elegir</th>
-              </tr>
-            </thead>
-            <tbody id="tablaBuscarProductos"></tbody>
-          </table>
+        <div class="saif-table-wrapper">
+          <div class="saif-table-scroll table-responsive">
+            <table class="table table-hover table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Codigo</th>
+                  <th>Nombre</th>
+                  <th>Descripcion</th>
+                  <th>Presentacion</th>
+                  <th>Unidad</th>
+                  <th>Condicion</th>
+                  <th>Receta</th>
+                  <th>Ctrl.</th>
+                  <th>Elegir</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBuscarProductos"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      <div class="modal-footer justify-content-end saif-footer">
+        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
       </div>
     </div>
   </div>
@@ -344,6 +567,44 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"));
 
   let selectedRow = null;
+  const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  const escapeHtml = (str = "") => str.replace(/[&<>"']/g, ch => ESC_MAP[ch] || ch);
+  const cleanValue = (value) => {
+    const val = (value || "").toString().trim();
+    const lower = val.toLowerCase();
+    if (!val || val === "-" || lower === "n/a" || lower === "none" || val === "\u2014") return "";
+    return val;
+  };
+  const setValue = (id, value, fallback = "-") => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = cleanValue(value);
+    if (val) {
+      el.textContent = val;
+      el.classList.remove("--empty");
+    } else {
+      el.textContent = fallback;
+      el.classList.add("--empty");
+    }
+  };
+  const formatDateTime = (value = "") => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const parts = trimmed.split(" ");
+    const dateBits = (parts[0] || "").split("-");
+    if (dateBits.length !== 3) return trimmed;
+    const [year, month, day] = dateBits;
+    let timeLabel = "";
+    if (parts[1]) {
+      const bits = parts[1].split(":");
+      const hh = bits[0] ? bits[0].padStart(2, "0") : "";
+      const mm = bits[1] ? bits[1].padStart(2, "0") : "";
+      timeLabel = hh && mm ? ` ${hh}:${mm}` : "";
+    }
+    if (!year || !month || !day) return trimmed;
+    return `${day}/${month}/${year}${timeLabel}`;
+  };
+  const buildPill = (label, tone) => `<span class="saif-pill ${tone}">${escapeHtml(label)}</span>`;
 
   // ========== Selección de fila y consultar ==========
   table.addEventListener("click", (e) => {
@@ -368,28 +629,85 @@ document.addEventListener("DOMContentLoaded", function () {
   btnConsultar.addEventListener("click", function () {
     const row = selectedRow;
     if (!row) return;
-    document.getElementById("detalleDocumento").textContent = row.dataset.documento || "";
-    document.getElementById("detalleProducto").textContent = row.dataset.producto || "";
-    document.getElementById("detalleCantidad").textContent = row.dataset.cantidad || "";
-    document.getElementById("detalleUrgente").textContent = (row.dataset.urgente === "True") ? "Sí" : "No";
-    document.getElementById("detalleObservaciones").textContent = row.dataset.observaciones || "—";
-    document.getElementById("detalleEstado").textContent = row.dataset.estado || "";
+
+    const doc = cleanValue(row.dataset.documento);
+    setValue("detalleDocumento", doc, "-");
+    const docEl = document.getElementById("detalleDocumento");
+    if (docEl) {
+      if (doc) docEl.setAttribute("title", doc);
+      else docEl.removeAttribute("title");
+    }
+
+    const producto = cleanValue(row.dataset.producto);
+    const productoEl = document.getElementById("detalleProducto");
+    if (productoEl) {
+      if (producto) {
+        productoEl.textContent = producto;
+        productoEl.classList.remove("--empty");
+        productoEl.setAttribute("title", producto);
+      } else {
+        productoEl.textContent = "Sin producto";
+        productoEl.classList.add("--empty");
+        productoEl.removeAttribute("title");
+      }
+    }
+
+    const cantidad = cleanValue(row.dataset.cantidad);
+    setValue("detalleCantidad", cantidad, "-");
+
+    const urgenteEl = document.getElementById("detalleUrgente");
+    if (urgenteEl) {
+      const esUrgente = row.dataset.urgente === "True";
+      urgenteEl.innerHTML = buildPill(esUrgente ? "Urgente" : "No urgente", esUrgente ? "saif-pill--warning" : "saif-pill--neutral");
+      urgenteEl.classList.remove("--empty");
+    }
+
+    const observaciones = cleanValue(row.dataset.observaciones);
+    setValue("detalleObservaciones", observaciones, "Sin observaciones");
+
+    const estadoEl = document.getElementById("detalleEstado");
+    if (estadoEl) {
+      const estado = cleanValue(row.dataset.estado);
+      const estadoLower = (estado || "").toLowerCase();
+      let tone = "saif-pill--neutral";
+      if (["activo", "aprobado", "enviada", "enviado", "completado", "completada"].includes(estadoLower)) {
+        tone = "saif-pill--success";
+      } else if (["inactivo", "rechazado", "rechazada", "anulado", "anulada"].includes(estadoLower)) {
+        tone = "saif-pill--danger";
+      } else if (estadoLower === "pendiente") {
+        tone = "saif-pill--warning";
+      }
+      const label = estado || "Sin estado";
+      estadoEl.innerHTML = buildPill(label, tone);
+      estadoEl.classList.remove("--empty");
+    }
+
+    const fechaEl = document.getElementById("detalleFecha");
+    if (fechaEl) {
+      const fechaFormateada = formatDateTime(row.dataset.fecha || "");
+      if (fechaFormateada) {
+        fechaEl.textContent = fechaFormateada;
+        fechaEl.classList.remove("--empty");
+      } else {
+        fechaEl.textContent = "-";
+        fechaEl.classList.add("--empty");
+      }
+    }
+
     modalConsultar.show();
   });
 
   // ========== Crear ==========
-  btnCrear.addEventListener("click", function () {
-    // Limpia el formulario cada vez
-    document.getElementById("formAlertSolicitud").classList.add("d-none");
-    document.getElementById("formAlertSolicitud").textContent = "";
-    document.getElementById("form-solicitud").reset?.();
-    document.getElementById("detalleTable").innerHTML = "";
-    modalCrear.show();
-  });
-
   const alertBox = document.getElementById("formAlertSolicitud");
   const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
   const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
+
+  btnCrear.addEventListener("click", function () {
+    document.getElementById("form-solicitud").reset?.();
+    document.getElementById("detalleTable").innerHTML = "";
+    hideAlert();
+    modalCrear.show();
+  });
 
   // API global para setear producto desde el buscador
   window.setProductoSeleccionado = function({id, texto}) {
@@ -422,7 +740,6 @@ document.addEventListener("DOMContentLoaded", function () {
     tr.querySelector(".btn-del").addEventListener("click", () => tr.remove());
     tbodyDet.appendChild(tr);
 
-    // limpiar captura
     document.getElementById("productoIdInput").value = "";
     document.getElementById("productoInput").value  = "";
     document.getElementById("cantidadInput").value  = "1";
@@ -437,14 +754,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const doc = (document.getElementById("documentoInput").value || "").trim();
     if (!doc){ showAlert("Ingrese nombre del documento."); return; }
 
-    // Construye detalles desde la tabla
     const detalles = [];
     document.querySelectorAll("#detalleTable tr").forEach(tr=>{
       const tds = tr.children;
       const nombre = tds[0].dataset.nombre || tds[0].textContent.trim();
       const pid    = parseInt(tds[0].dataset.id || "0", 10);
       const qty    = parseInt((tds[1].textContent||"0").trim(), 10);
-      const urg    = (tds[2].textContent||"").trim().toLowerCase().startsWith('s'); // Sí
+      const urg    = (tds[2].textContent||"").trim().toLowerCase().startsWith('s');
       const obs    = (tds[3].textContent||"").trim();
       if(pid && qty>0){
         detalles.push({producto_id: pid, cantidad: qty, urgente: urg, observaciones: (obs==="—"? "" : obs), producto:nombre});
@@ -453,10 +769,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!detalles.length){ showAlert("Agregue al menos un producto."); return; }
 
-    const payload = {
-      form_data: { nombre_documento: doc },
-      detalles: detalles
-    };
+    const payload = { form_data: { nombre_documento: doc }, detalles };
 
     try{
       const resp = await fetch("{% url 'solicitudes_bodega_central:crear_solicitud' %}", {
@@ -490,7 +803,6 @@ document.addEventListener("DOMContentLoaded", function () {
       searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
     });
     modalBuscar.addEventListener("hidden.bs.modal", () => {
-      // Regresa al modal de crear
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
   }
@@ -517,10 +829,7 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             tr.querySelector("button").addEventListener("click", () => {
               if (window.setProductoSeleccionado) {
-                window.setProductoSeleccionado({
-                  id: p.id,
-                  texto: `${p.codigo} - ${p.nombre}`
-                });
+                window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` });
               }
               bootstrap.Modal.getInstance(modalBuscar).hide();
             });
@@ -533,7 +842,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 
-  // ========== Utilidades: paginación y filtros ==========
+  // ========== Paginación y filtros ==========
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
       if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
@@ -631,4 +940,3 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
-

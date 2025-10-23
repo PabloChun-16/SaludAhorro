@@ -427,16 +427,30 @@ function applyPagination(){
       return;
     }
 
-    // Extrae las fechas renderizadas en el modal
-    const fechaInicioText = modalContent.querySelector("p strong:nth-child(1)")?.textContent || "";
-    const fechaFinText = modalContent.querySelector("p strong:nth-child(2)")?.textContent || "";
+    // Extrae las fechas desde los dataset del rango o formatea desde el texto
+    const rangeNote = modalContent.querySelector(".saif-range-note");
+    let fechaInicio = rangeNote?.dataset.fechaInicio ?? "";
+    let fechaFin = rangeNote?.dataset.fechaFin ?? "";
 
-    // Convertir dd/mm/yyyy → yyyy-mm-dd
-    const fechaInicio = fechaInicioText.split("/").reverse().join("-");
-    const fechaFin = fechaFinText.split("/").reverse().join("-");
+    if (!fechaInicio || !fechaFin) {
+      const fechaInicioText = modalContent.querySelector(".kardex-fecha-inicio")?.textContent?.trim() || "";
+      const fechaFinText = modalContent.querySelector(".kardex-fecha-fin")?.textContent?.trim() || "";
+      const toIso = (txt) => {
+        const parts = txt.split("/");
+        if (parts.length !== 3) return "";
+        return [parts[2], parts[1], parts[0]].join("-");
+      };
+      fechaInicio = fechaInicio || toIso(fechaInicioText);
+      fechaFin = fechaFin || toIso(fechaFinText);
+    }
+
+    if (!fechaInicio || !fechaFin) {
+      console.warn("⚠️ No se pudieron determinar las fechas para exportar el Kardex.");
+      return;
+    }
 
     // Construir URL de exportación
-    const exportUrl = `/inventario/productos/${selectedId}/kardex/exportar/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+    const exportUrl = `/inventario/productos/${selectedId}/kardex/exportar/?fecha_inicio=${encodeURIComponent(fechaInicio)}&fecha_fin=${encodeURIComponent(fechaFin)}`;
     console.log("📄 Exportando Kardex:", exportUrl);
 
     // Abrir en nueva pestaña

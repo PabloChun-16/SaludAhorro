@@ -222,9 +222,11 @@
     function showAlert(msg){ if(alertBox){ alertBox.textContent = msg; alertBox.classList.remove('d-none'); } }
     function hideAlert(){ if(alertBox){ alertBox.classList.add('d-none'); alertBox.textContent=''; } }
 
-    // FECHA: fijar al abrir
+    // FECHA: fijar al abrir y cada vez que se muestre el modal
     const fechaInput = $('#fechaInput', modalEl);
-    if (fechaInput) fechaInput.value = nowLocal();
+    const setFechaActual = () => { if (fechaInput) fechaInput.value = nowLocal(); };
+    setFechaActual();
+    modalEl.addEventListener('show.bs.modal', setFechaActual);
 
     // API para el buscador de productos
     window.setProductoSeleccionado = function({id, texto}){
@@ -235,9 +237,28 @@
     };
 
     // Render y total
-    function recomputeTotal(){
-      const total = detalles.reduce((acc, it) => acc + (parseInt(it.cantidad,10) || 0), 0);
-      if (totalItemsEl) totalItemsEl.textContent = String(total);
+    const parseCantidad = (value) => {
+      const num = Number(String(value ?? '').replace(',', '.'));
+      return Number.isFinite(num) ? num : 0;
+    };
+
+    function totalDesdeDom(){
+      if (!tbody) return 0;
+      return Array.from(tbody.querySelectorAll('tr')).reduce((acc, tr)=>{
+        const cell = tr.querySelector('[data-role="cantidad"]') ?? tr.cells?.[1];
+        return acc + parseCantidad(cell?.textContent ?? '');
+      }, 0);
+    }
+
+    function actualizarTotal(){
+      if (!totalItemsEl) return;
+      const totalState = detalles.reduce((acc, it) => acc + parseCantidad(it.cantidad), 0);
+      const total = detalles.length ? totalState : totalDesdeDom();
+      totalItemsEl.textContent = String(total);
+    }
+    if (tbody){
+      const observer = new MutationObserver(actualizarTotal);
+      observer.observe(tbody, { childList: true, subtree: true, characterData: true });
     }
     function render(){
       if (!tbody) return;
@@ -252,7 +273,7 @@
         `;
         tbody.appendChild(tr);
       });
-      recomputeTotal();
+      actualizarTotal();
     }
 
     // Añadir (fusiona por ID si hay; si no, por nombre)
@@ -318,7 +339,8 @@
       if (hiddenDetalles) hiddenDetalles.value = JSON.stringify(detalles);
     });
 
-    render(); // pinta “0” inicial
+    render(); // pinta "0" inicial
+    actualizarTotal();
   }
 
   // Bootstrap: inicializar al abrir el modal

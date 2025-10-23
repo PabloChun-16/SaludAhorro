@@ -1,54 +1,197 @@
-<div class="modal-header bg-info text-white">
-  <h5 class="modal-title">
-    <i class="bi bi-clipboard-data me-2"></i>
-    Kardex de {{ producto.nombre }}
-  </h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
+<div class="saif-modal kardex-modal">
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-clipboard-data"></i></span>
+      <span>Kardex de {{ producto.nombre }}</span>
+    </div>
+    <span class="saif-badge">SAIF</span>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
 
-<div class="modal-body">
-  <p class="text-muted small mb-3">
-    Desde <strong>{{ fecha_inicio|date:"d/m/Y" }}</strong> hasta <strong>{{ fecha_fin|date:"d/m/Y" }}</strong>
-  </p>
+  <div class="modal-body p-3 p-md-4 saif-modal-body">
+    <p class="saif-range-note" data-fecha-inicio="{{ fecha_inicio|date:'Y-m-d' }}" data-fecha-fin="{{ fecha_fin|date:'Y-m-d' }}">
+      <i class="bi bi-calendar-event me-2"></i>
+      Desde <strong class="kardex-fecha-inicio">{{ fecha_inicio|date:"d/m/Y" }}</strong>
+      <span class="saif-range-note__separator">hasta</span>
+      <strong class="kardex-fecha-fin">{{ fecha_fin|date:"d/m/Y" }}</strong>
+    </p>
 
-  <div class="table-responsive">
-    <table class="table table-striped table-sm text-center align-middle">
-      <thead class="table-info">
-        <tr>
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th>Origen</th>
-          <th>Entrada</th>
-          <th>Salida</th>
-          <th>Saldo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for mov in kardex %}
-        <tr>
-          <td>{{ mov.fecha|date:"d/m/Y" }}</td>
-          <td>{{ mov.tipo }}</td>
-          <td>{{ mov.origen }}</td>
-          <td class="text-success fw-semibold">{{ mov.entrada }}</td>
-          <td class="text-danger fw-semibold">{{ mov.salida }}</td>
-          <td>{{ mov.saldo }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="text-muted py-3">No hay movimientos en el rango seleccionado.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="saif-block saif-block--table">
+      <div class="saif-block__header">
+        <i class="bi bi-list-check me-2"></i> Movimientos registrados
+      </div>
+      <div class="saif-block__body p-0">
+        <div class="saif-table-wrap">
+          <table class="table saif-table align-middle text-center mb-0">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Origen</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mov in kardex %}
+              <tr>
+                <td>{{ mov.fecha|date:"d/m/Y" }}</td>
+                <td>{{ mov.tipo }}</td>
+                <td>{{ mov.origen }}</td>
+                <td class="text-success fw-semibold">{{ mov.entrada }}</td>
+                <td class="text-danger fw-semibold">{{ mov.salida }}</td>
+                <td>{{ mov.saldo }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="saif-table-empty">
+                  <i class="bi bi-inbox me-2"></i>No hay movimientos en el rango seleccionado.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer justify-content-between saif-footer">
+    <div class="d-flex gap-2">
+      <button class="btn btn-success saif-btn-success" id="btn-exportar-kardex">
+        <i class="bi bi-download me-1"></i> Exportar
+      </button>
+    </div>
+    <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg me-1"></i> Cerrar
+    </button>
   </div>
 </div>
 
-<div class="modal-footer">
-   <button class="btn btn-secondary me-2" id="btn-exportar-kardex">
-        <i class="fas fa-file-export"></i> Exportar
-    </button>
-    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
-        Cerrar
-    </button>
-</div>
-
+<style>
+  .kardex-modal{
+    background:#ffffff;
+    border-radius:18px;
+    box-shadow:0 18px 45px rgba(15,122,58,.25);
+    overflow:hidden;
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .kardex-modal .modal-header{
+    background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
+    color:#fff;
+    border-bottom:0;
+    padding:1rem 1.2rem;
+    align-items:center;
+    gap:1rem;
+  }
+  .kardex-modal .saif-modal-title span:last-child{
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .kardex-modal .modal-body{
+    background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+  }
+  .kardex-modal .saif-range-note{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    background:rgba(15,122,58,.08);
+    border:1px solid rgba(34,197,94,.2);
+    color:#0f5132;
+    border-radius:.9rem;
+    padding:.75rem 1rem;
+    font-weight:600;
+    margin-bottom:1.5rem;
+  }
+  .kardex-modal .saif-range-note__separator{
+    text-transform:uppercase;
+    font-size:.75rem;
+    letter-spacing:.08em;
+    color:rgba(15,81,50,.75);
+  }
+  .kardex-modal .saif-block{
+    background:#fff;
+    border:1px solid #cfe9d7;
+    border-radius:1rem;
+    box-shadow:0 14px 30px rgba(15,122,58,.12);
+  }
+  .kardex-modal .saif-block__header{
+    font-weight:700;
+    color:#14532d;
+    background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);
+    padding:.95rem 1.2rem;
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+  }
+  .kardex-modal .saif-block__body{
+    padding:0;
+  }
+  .kardex-modal .saif-table-wrap{
+    border-radius:0 0 1rem 1rem;
+    overflow:hidden;
+  }
+  .kardex-modal .saif-table thead{
+    background:linear-gradient(135deg,rgba(15,122,58,.18) 0%,rgba(15,122,58,.12) 100%);
+    color:#0f5132;
+    text-transform:uppercase;
+    font-size:.78rem;
+    letter-spacing:.05em;
+  }
+  .kardex-modal .saif-table thead th{
+    padding:.85rem .75rem;
+    border-bottom:1px solid rgba(15,122,58,.15);
+  }
+  .kardex-modal .saif-table tbody td{
+    padding:.85rem .75rem;
+    font-size:.95rem;
+    background:#ffffff;
+  }
+  .kardex-modal .saif-table tbody tr:nth-child(even) td{
+    background:#f5fbf7;
+  }
+  .kardex-modal .saif-table tbody tr:hover td{
+    background:rgba(34,197,94,.12);
+  }
+  .kardex-modal .saif-table tbody td.text-success{
+    color:#0f7a3a !important;
+  }
+  .kardex-modal .saif-table tbody td.text-danger{
+    color:#b91c1c !important;
+  }
+  .kardex-modal .saif-table-empty{
+    padding:1.5rem;
+    color:#64748b;
+    font-weight:600;
+    background:#f8fafc;
+  }
+  .kardex-modal .saif-footer{
+    background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+    border-top:0;
+    padding:.9rem 1.3rem;
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+  }
+  .kardex-modal .saif-btn-light{
+    border:1px solid #cfe9d7;
+    color:#166534;
+    font-weight:600;
+  }
+  .kardex-modal .saif-btn-light:hover{
+    background:#ecfdf5;
+    border-color:#a7f3d0;
+    color:#0f7a3a;
+  }
+  .kardex-modal .saif-btn-success{
+    background:#0f7a3a;
+    border-color:#0f7a3a;
+    font-weight:600;
+    color:#fff;
+  }
+  .kardex-modal .saif-btn-success:hover{
+    background:#0c5d2c;
+    border-color:#0c5d2c;
+  }
+</style>

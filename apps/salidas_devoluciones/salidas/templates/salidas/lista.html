@@ -227,18 +227,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ====== Inicializador del FORM (TAL CUAL TU LÓGICA) ====== */
   function inicializarFormularioVenta(){
-    const alertBox = document.getElementById("formAlert");
-    const detalles = []; // vive mientras esté abierto el modal
+    const alertBox        = document.getElementById("formAlert");
+    const detalles        = []; // vive mientras está abierto el modal
+    const fechaInput      = document.querySelector("#modalVenta #fechaInput");
+    const totalItemsEl    = document.querySelector("#modalVenta #totalItems");
+    const productoInput   = document.querySelector("#modalVenta #productoInput");
+    const productoIdInput = document.querySelector("#modalVenta #productoIdInput");
+    const cantidadInput   = document.querySelector("#modalVenta #cantidadInput");
+    const tbodyDet        = document.querySelector("#modalVenta #detalleTable");
 
     const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
     const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
 
+    const toLocalInputValue = ()=>{
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      return now.toISOString().slice(0,16);
+    };
+
+    const setFechaActual = ()=>{
+      if (fechaInput) fechaInput.value = toLocalInputValue();
+    };
+
+    const actualizarTotal = ()=>{
+      if (!totalItemsEl) return;
+      const total = detalles.reduce((acc, item)=>acc + (parseInt(item.cantidad,10) || 0), 0);
+      totalItemsEl.textContent = String(total);
+    };
+
+    setFechaActual();
+    if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
+    actualizarTotal();
+
     // API global para el buscador (modal reutilizado)
     window.setProductoSeleccionado = function({id, texto}) {
-      const idEl  = document.querySelector("#modalVenta #productoIdInput");
-      const txtEl = document.querySelector("#modalVenta #productoInput");
-      if (idEl)  idEl.value  = id || "";
-      if (txtEl) txtEl.value = texto || "";
+      if (productoIdInput) productoIdInput.value = id || "";
+      if (productoInput)   productoInput.value   = texto || "";
+      if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
     };
 
     // Añadir detalle
@@ -246,9 +271,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (addBtn){
       addBtn.addEventListener("click", () => {
         hideAlert();
-        const pid = document.querySelector("#modalVenta #productoIdInput")?.value || "";
-        const ptx = (document.querySelector("#modalVenta #productoInput")?.value || "").trim();
-        const qty = parseInt(document.querySelector("#modalVenta #cantidadInput")?.value || 0, 10);
+        const pid = productoIdInput?.value || "";
+        const ptx = (productoInput?.value || "").trim();
+        const qty = parseInt(cantidadInput?.value || 0, 10);
 
         if (!pid){ showAlert("Seleccione un producto."); return; }
         if (!qty || qty <= 0){ showAlert("Cantidad inválida."); return; }
@@ -256,7 +281,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const item = { producto_id: parseInt(pid,10), cantidad: qty, producto: ptx };
         detalles.push(item);
 
-        const tbodyDet = document.querySelector("#modalVenta #detalleTable");
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="text-start">${item.producto}</td>
@@ -266,13 +290,33 @@ document.addEventListener("DOMContentLoaded", function () {
           tr.remove();
           const idx = detalles.indexOf(item);
           if (idx >= 0) detalles.splice(idx,1);
+          actualizarTotal();
         });
         tbodyDet.appendChild(tr);
+        actualizarTotal();
 
         // limpiar captura
-        document.querySelector("#modalVenta #productoIdInput").value = "";
-        document.querySelector("#modalVenta #productoInput").value  = "";
-        document.querySelector("#modalVenta #cantidadInput").value  = "";
+        if (productoIdInput) productoIdInput.value = "";
+        if (productoInput)  productoInput.value  = "";
+        if (cantidadInput)  cantidadInput.value  = "1";
+      });
+    }
+
+    if (cantidadInput){
+      cantidadInput.addEventListener("keydown", (ev)=>{
+        if (ev.key === "Enter"){
+          ev.preventDefault();
+          addBtn?.click();
+        }
+      });
+    }
+
+    if (productoInput){
+      productoInput.addEventListener("keydown", (ev)=>{
+        if (ev.key === "Enter"){
+          ev.preventDefault();
+          addBtn?.click();
+        }
       });
     }
 

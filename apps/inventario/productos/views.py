@@ -1,4 +1,6 @@
 from urllib import request
+from datetime import datetime, time
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
@@ -12,10 +14,16 @@ from apps.salidas_devoluciones.models import Movimientos_Inventario_Sucursal
 from apps.ajustes_inventario.models import Detalle_Conteo
 from django.db.models import F, Value, Case, When, IntegerField, CharField
 from django.utils.dateparse import parse_date
-from django.utils.timezone import is_aware, make_naive, make_aware, get_current_timezone
+from django.utils.timezone import (
+    is_aware,
+    make_naive,
+    make_aware,
+    get_current_timezone,
+    localdate,
+)
 
 from django.db.models import F, Value, Case, When, IntegerField, CharField, ExpressionWrapper
-from django.db.models.functions import Abs
+from django.db.models.functions import Abs, Cast
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
@@ -154,13 +162,37 @@ def kardex_modal(request, pk):
     return HttpResponse(html)
 
 
+def _resolver_rango_fechas(request):
+    """
+    Normaliza los parámetros de fecha recibidos vía GET.
+    Si uno de los extremos viene vacío se reutiliza el otro, y si ambos vienen
+    vacíos se usa la fecha actual. El resultado siempre es consciente de zona.
+    """
+    fecha_inicio_raw = request.GET.get("fecha_inicio")
+    fecha_fin_raw = request.GET.get("fecha_fin")
+
+    fecha_inicio = parse_date(fecha_inicio_raw) if fecha_inicio_raw else None
+    fecha_fin = parse_date(fecha_fin_raw) if fecha_fin_raw else None
+
+    hoy = localdate()
+    if fecha_inicio is None and fecha_fin is None:
+        fecha_inicio = fecha_fin = hoy
+    elif fecha_inicio is None:
+        fecha_inicio = fecha_fin or hoy
+    elif fecha_fin is None:
+        fecha_fin = fecha_inicio
+
+    if fecha_inicio > fecha_fin:
+        fecha_inicio, fecha_fin = fecha_fin, fecha_inicio
+
+    tz = get_current_timezone()
+    fecha_inicio_dt = make_aware(datetime.combine(fecha_inicio, time.min), tz)
+    fecha_fin_dt = make_aware(datetime.combine(fecha_fin, time.max), tz)
+    return fecha_inicio_dt, fecha_fin_dt
+
+
 def obtener_kardex_data(producto, fecha_inicio, fecha_fin):
     """Devuelve los movimientos del kardex con su saldo calculado"""
-    from datetime import datetime, time
-    from itertools import chain
-    from django.utils.timezone import is_aware, make_naive, get_current_timezone
-    from django.db.models.functions import Cast
-
     tz = get_current_timezone()
 
     # 🔹 Movimientos normales
@@ -256,17 +288,8 @@ def obtener_kardex_data(producto, fecha_inicio, fecha_fin):
 # RESULTADO DEL KARDEX (PASO 2)
 # ---------------------------------------------------------------
 def kardex_resultado(request, pk):
-    from datetime import datetime, time
-    from django.utils.timezone import make_aware, get_current_timezone
-    from django.utils.dateparse import parse_date
-
     producto = get_object_or_404(Productos, pk=pk)
-    fecha_inicio = parse_date(request.GET.get("fecha_inicio"))
-    fecha_fin = parse_date(request.GET.get("fecha_fin"))
-
-    tz = get_current_timezone()
-    fecha_inicio = make_aware(datetime.combine(fecha_inicio, time.min), tz)
-    fecha_fin = make_aware(datetime.combine(fecha_fin, time.max), tz)
+    fecha_inicio, fecha_fin = _resolver_rango_fechas(request)
 
     kardex_data = obtener_kardex_data(producto, fecha_inicio, fecha_fin)
 
@@ -285,14 +308,7 @@ def kardex_resultado(request, pk):
 
 def kardex_exportar(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
-    fecha_inicio = parse_date(request.GET.get("fecha_inicio"))
-    fecha_fin = parse_date(request.GET.get("fecha_fin"))
-
-    from datetime import datetime, time
-    from django.utils.timezone import make_aware, get_current_timezone
-    tz = get_current_timezone()
-    fecha_inicio = make_aware(datetime.combine(fecha_inicio, time.min), tz)
-    fecha_fin = make_aware(datetime.combine(fecha_fin, time.max), tz)
+    fecha_inicio, fecha_fin = _resolver_rango_fechas(request)
 
     kardex_data = obtener_kardex_data(producto, fecha_inicio, fecha_fin)
 

@@ -318,6 +318,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 #consultarSolicitudModal .saif-info-card__icon--alert{background:linear-gradient(135deg,#fff4e6 0%,#ffe1b2 100%);color:#b45309}
 #consultarSolicitudModal .saif-info-card__label{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.045em;color:#166534}
 #consultarSolicitudModal .saif-info-card__value{font-size:1.05rem;font-weight:700;color:#0b3f2e}
+#consultarSolicitudModal .saif-info-card__value.--empty{color:#64748b;font-style:italic}
 #consultarSolicitudModal .saif-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:999px;font-weight:600;font-size:.78rem}
 #consultarSolicitudModal .saif-pill--neutral{background:#eef2f7;color:#334155}
 #consultarSolicitudModal .saif-pill--success{background:#dcfce7;color:#166534}
@@ -326,6 +327,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 #consultarSolicitudModal .saif-block--highlight{background:linear-gradient(145deg,#f4fbf6 0%,#eef7f1 100%);border-color:#cfe9d7}
 #consultarSolicitudModal .saif-block__header{padding:.9rem 1.2rem;font-weight:700;color:#14532d;background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);display:flex;align-items:center;gap:.6rem}
 #consultarSolicitudModal .saif-block__body{padding:1rem 1.25rem;color:#0f172a;white-space:pre-wrap;font-size:.95rem}
+#consultarSolicitudModal .saif-block__body.--empty{color:#64748b;font-style:italic}
 #consultarSolicitudModal .saif-footer{background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);border-top:0;padding:.9rem 1.3rem}
 #consultarSolicitudModal .saif-btn-light{background:#f8fff9;border:1px solid #cfe9d7;color:#166534;font-weight:600}
 #consultarSolicitudModal .saif-btn-light:hover{background:#ecfdf5;border-color:#a7f3d0;color:#0f7a3a}
@@ -353,15 +355,60 @@ document.addEventListener("DOMContentLoaded", function () {
   const pagerEl = document.getElementById("pagerSolicitudes");
   const btnConsultar = document.getElementById("btnConsultar");
   const modalEl = document.getElementById("consultarSolicitudModal");
+  const modalConsultar = modalEl ? new bootstrap.Modal(modalEl) : null;
 
   let selectedId = null;
-
+  const cleanValue = (value) => {
+    const val = (value || "").toString().trim();
+    const lower = val.toLowerCase();
+    if (!val || val === "-" || val === "\u2014" || lower === "n/a" || lower === "none") return "";
+    return val;
+  };
+  const normalizeText = (text = "") => {
+    if (typeof text.normalize === "function") {
+      return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+    return text;
+  };
+  const setValue = (id, value, fallback = "-") => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = cleanValue(value);
+    if (val) {
+      el.textContent = val;
+      el.classList.remove("--empty");
+    } else {
+      el.textContent = fallback;
+      el.classList.add("--empty");
+    }
+  };
+  const formatDateTime = (value = "") => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const parts = trimmed.split(" ");
+    const dateBits = (parts[0] || "").split("-");
+    if (dateBits.length !== 3) return trimmed;
+    const [year, month, day] = dateBits;
+    if (!year || !month || !day) return trimmed;
+    let timeLabel = "";
+    if (parts[1]) {
+      const bits = parts[1].split(":");
+      const hh = bits[0] ? bits[0].padStart(2, "0") : "";
+      const mm = bits[1] ? bits[1].padStart(2, "0") : "";
+      timeLabel = hh && mm ? ` ${hh}:${mm}` : "";
+    }
+    return `${day}/${month}/${year}${timeLabel}`;
+  };
   function selectRow(row){
     if(!row) return;
-    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active","bg-emerald-100"));
-    row.classList.add("table-active");
-    selectedId = row.getAttribute("data-id");
-    if(btnConsultar) btnConsultar.disabled = false;
+    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active","table-success","bg-emerald-100"));
+    row.classList.add("table-active","table-success");
+    selectedId = row.getAttribute("data-id") || null;
+    if(btnConsultar){
+      btnConsultar.disabled = !selectedId;
+      if(selectedId) btnConsultar.dataset.id = selectedId;
+      else delete btnConsultar.dataset.id;
+    }
   }
 
   tbody.addEventListener("click", (ev)=>{
@@ -378,56 +425,102 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.addEventListener("keydown",(ev)=>{
-    if(ev.key==='Enter' && selectedId){
-      if(btnConsultar) btnConsultar.click();
+    const activeTag = (document.activeElement && document.activeElement.tagName) || "";
+    if(["INPUT","SELECT","TEXTAREA"].includes(activeTag)) return;
+
+    const rows = getDataRows().filter(r=>!r.classList.contains("hidden-by-pagination"));
+    if(!rows.length) return;
+
+    if(ev.key==="ArrowUp" || ev.key==="ArrowDown"){
+      let idx = rows.findIndex(r=>r.classList.contains("table-active"));
+      if(idx===-1) idx = 0;
+      else idx += (ev.key==="ArrowDown" ? 1 : -1);
+      idx = Math.max(0, Math.min(rows.length-1, idx));
+      selectRow(rows[idx]);
+      rows[idx].scrollIntoView({ block:'nearest' });
+      ev.preventDefault();
+      return;
+    }
+
+    if(ev.key==='Enter' && btnConsultar && !btnConsultar.disabled){
+      btnConsultar.click();
       ev.preventDefault();
     }
   });
 
-  if(btnConsultar && modalEl){
+  if(btnConsultar && modalConsultar){
     btnConsultar.addEventListener("click", ()=>{
       const row = tbody.querySelector("tr.table-active");
-      if(!row){ alert("Selecciona una solicitud primero."); return; }
-    const docEl = document.getElementById("detalleDocumento");
-    if(docEl) docEl.textContent = row.dataset.documento || "-";
-
-    const prodEl = document.getElementById("detalleProducto");
-    if(prodEl) prodEl.textContent = row.dataset.producto || "-";
-
-    const cantEl = document.getElementById("detalleCantidad");
-    if(cantEl) cantEl.textContent = row.dataset.cantidad || "-";
-
-    const urgEl = document.getElementById("detalleUrgente");
-    if(urgEl){
-      const esUrgente = row.dataset.urgente === "True" || row.dataset.urgente === "true" || row.dataset.urgente === "1";
-      urgEl.textContent = esUrgente ? "Sí" : "No";
-      urgEl.className = "saif-pill " + (esUrgente ? "saif-pill--alert" : "saif-pill--neutral");
-    }
-
-    const obsEl = document.getElementById("detalleObservaciones");
-    if(obsEl){
-      const obs = (row.dataset.observaciones || "-").trim();
-      obsEl.textContent = obs || "Sin observaciones";
-    }
-
-    const estadoEl = document.getElementById("detalleEstado");
-    if(estadoEl){
-      const estado = (row.dataset.estado || "-").trim();
-      estadoEl.textContent = estado || "-";
-      const key = estado.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-      let cls = "saif-pill saif-pill--neutral";
-      if(["enviada","activo","completado","aprobada"].includes(key)){
-        cls = "saif-pill saif-pill--success";
-      } else if(["rechazada","anulada","cancelada","inactivo"].includes(key)){
-        cls = "saif-pill saif-pill--alert";
+      if(!row){
+        alert("Selecciona una solicitud primero.");
+        return;
       }
-      estadoEl.className = cls;
-    }
 
-    const fechaEl = document.getElementById("detalleFecha");
-    if(fechaEl) fechaEl.textContent = row.dataset.fecha || "-";
-new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
-  });
+      const documento = cleanValue(row.dataset.documento);
+      setValue("detalleDocumento", documento, "-");
+      const docEl = document.getElementById("detalleDocumento");
+      if(docEl){
+        if(documento) docEl.setAttribute("title", documento);
+        else docEl.removeAttribute("title");
+      }
+
+      const producto = cleanValue(row.dataset.producto);
+      const prodEl = document.getElementById("detalleProducto");
+      if(prodEl){
+        if(producto){
+          prodEl.textContent = producto;
+          prodEl.classList.remove("--empty");
+          prodEl.setAttribute("title", producto);
+        } else {
+          prodEl.textContent = "Sin producto";
+          prodEl.classList.add("--empty");
+          prodEl.removeAttribute("title");
+        }
+      }
+
+      const cantidad = cleanValue(row.dataset.cantidad);
+      setValue("detalleCantidad", cantidad, "-");
+
+      const urgEl = document.getElementById("detalleUrgente");
+      if(urgEl){
+        const rawUrg = normalizeText((row.dataset.urgente || "").toString().trim().toLowerCase());
+        const esUrgente = ["true","1","si","s"].includes(rawUrg);
+        urgEl.textContent = esUrgente ? "Urgente" : "No urgente";
+        urgEl.className = "saif-pill " + (esUrgente ? "saif-pill--alert" : "saif-pill--neutral");
+      }
+
+      const observaciones = cleanValue(row.dataset.observaciones);
+      setValue("detalleObservaciones", observaciones, "Sin observaciones");
+
+      const estadoEl = document.getElementById("detalleEstado");
+      if(estadoEl){
+        const estado = cleanValue(row.dataset.estado);
+        const estadoKey = normalizeText((estado || "").toLowerCase());
+        let cls = "saif-pill saif-pill--neutral";
+        if(["enviada","activo","completado","aprobada","aprobado"].includes(estadoKey)){
+          cls = "saif-pill saif-pill--success";
+        } else if(["rechazada","anulada","cancelada","inactivo"].includes(estadoKey)){
+          cls = "saif-pill saif-pill--alert";
+        }
+        estadoEl.textContent = estado || "Sin estado";
+        estadoEl.className = cls;
+      }
+
+      const fechaEl = document.getElementById("detalleFecha");
+      if(fechaEl){
+        const fechaFormateada = formatDateTime(row.dataset.fecha || "");
+        if(fechaFormateada){
+          fechaEl.textContent = fechaFormateada;
+          fechaEl.classList.remove("--empty");
+        } else {
+          fechaEl.textContent = "-";
+          fechaEl.classList.add("--empty");
+        }
+      }
+
+      modalConsultar.show();
+    });
+  }
 
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
@@ -506,6 +599,14 @@ new bootstrap.Modal(document.getElementById("consultarSolicitudModal")).show();
     const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
     const last = visibles[visibles.length-1];
     if(last) last.classList.add('last-visible');
+
+    if(!visibles.length){
+      selectedId = null;
+      if(btnConsultar){
+        btnConsultar.disabled = true;
+        delete btnConsultar.dataset.id;
+      }
+    }
 
     if(selectedId){
       const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
