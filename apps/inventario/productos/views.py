@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from apps.mantenimiento.models import Estado_Producto
-from apps.inventario.models import Productos
+from apps.inventario.models import Productos, Lotes
 from .forms import ProductoForm
 
 from itertools import chain
@@ -29,6 +29,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
+from django.db.models import Sum  
+
 
 # Listado
 def productos_list(request):
@@ -95,55 +97,113 @@ def productos_edit(request, pk):
     return HttpResponse(html)
 
 
-# Inactivar
 @require_http_methods(["GET", "POST"])
 def inactivar_producto(request, pk):
+    """
+    Reglas:
+      - Si ya está Inactivo -> OK (idempotente).
+      - Bloquear si hay stock disponible en cualquier lote.
+    """
     producto = get_object_or_404(Productos, pk=pk)
 
     if request.method == "POST":
         try:
             inactivo = Estado_Producto.objects.get(nombre_estado="Inactivo")
-            producto.id_estado_producto = inactivo
-            producto.save()
-            return JsonResponse({"success": True})
         except Estado_Producto.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Estado 'Inactivo' no encontrado."}, status=500)
+            return JsonResponse(
+                {"success": False, "error": "Estado 'Inactivo' no existe."}, status=500
+            )
 
+        # Idempotente
+        if producto.id_estado_producto_id == inactivo.id:
+            return JsonResponse({"success": True, "message": "El producto ya estaba inactivo."})
+
+        # Validación de stock
+        tot = (
+            Lotes.objects.filter(id_producto=producto, cantidad_disponible__gt=0)
+            .aggregate(total=Sum("cantidad_disponible"))
+            .get("total") or 0
+        )
+        if tot > 0:
+            lotes = list(
+                Lotes.objects.filter(id_producto=producto, cantidad_disponible__gt=0)
+                .values("numero_lote", "cantidad_disponible")
+                .order_by("-cantidad_disponible")[:10]
+            )
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No se puede inactivar. El producto aún tiene stock disponible.",
+                    "total": int(tot),
+                    "lotes": [{"numero_lote": l["numero_lote"], "cantidad": int(l["cantidad_disponible"])} for l in lotes],
+                },
+                status=400,
+            )
+
+        # Cambiar estado
+        producto.id_estado_producto = inactivo
+        producto.save(update_fields=["id_estado_producto"])
+        return JsonResponse({"success": True})
+
+    # GET -> modal de confirmación
     html = render_to_string(
-        "productos/partials/_confirm_inactivar.html",  # cambiamos nombre del template
+        "productos/partials/_confirm_inactivar.html",
         {"producto": producto, "action": request.path},
         request=request,
     )
     return HttpResponse(html)
 
-# Activar
+
 @require_http_methods(["GET", "POST"])
 def activar_producto(request, pk):
+    """
+    Reglas:
+      - Si ya está Activo -> OK (idempotente).
+      - (Opcional) Validar datos mínimos del maestro antes de activar.
+    """
     producto = get_object_or_404(Productos, pk=pk)
 
     if request.method == "POST":
         try:
-            estado_activo = Estado_Producto.objects.get(nombre_estado="Activo")
-            # idempotente: si ya está activo, igual devolvemos ok
-            if producto.id_estado_producto_id == estado_activo.id:
-                return JsonResponse({"success": True, "message": "El producto ya estaba activo"})
-            producto.id_estado_producto = estado_activo
-            producto.save(update_fields=["id_estado_producto"])
-            return JsonResponse({"success": True})
+            activo = Estado_Producto.objects.get(nombre_estado="Activo")
         except Estado_Producto.DoesNotExist:
             return JsonResponse(
-                {"success": False, "error": "Estado 'Activo' no existe"},
-                status=500
+                {"success": False, "error": "Estado 'Activo' no existe."}, status=500
             )
 
-    # GET: render del modal de confirmación
+        # Idempotente
+        if producto.id_estado_producto_id == activo.id:
+            return JsonResponse({"success": True, "message": "El producto ya estaba activo."})
+
+        # (Opcional) Validación de maestro mínimo
+        faltantes = []
+        if not producto.id_unidad_medida_id:
+            faltantes.append("Unidad de medida")
+        if not producto.id_presentacion_id:
+            faltantes.append("Presentación")
+        if not producto.id_laboratorio_id:
+            faltantes.append("Laboratorio")
+        if faltantes:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No se puede activar: faltan datos mínimos -> " + ", ".join(faltantes),
+                },
+                status=400,
+            )
+
+        # Activar
+        producto.id_estado_producto = activo
+        producto.save(update_fields=["id_estado_producto"])
+        return JsonResponse({"success": True})
+
+    # GET -> modal de confirmación
     html = render_to_string(
         "productos/partials/_confirm_activar.html",
         {"producto": producto, "action": request.path},
         request=request,
     )
     return HttpResponse(html)
-
 
 # ---------------------------------------------------------------
 # MODAL DE FECHAS (PASO 1)

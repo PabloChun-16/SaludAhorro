@@ -126,16 +126,16 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
       <button id="btnEditar" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-pencil"></i> Editar
       </button>
-      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
-        <i class="bi bi-trash"></i> Eliminar
+      <button id="btnRetirar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-recycle"></i> Retirar
       </button>
 
       <!-- patrones de URL (con id=0) para reemplazar en JS -->
       <span id="urlPatterns"
             data-consultar="{% url 'inventario:lotes:consultar' 0 %}"
             data-editar="{% url 'inventario:lotes:editar' 0 %}"
-            data-eliminar="{% url 'inventario:lotes:eliminar' 0 %}"
-            data-puede-eliminar="{% url 'inventario:lotes:puede_eliminar' 0 %}"
+            data-retirar="{% url 'inventario:lotes:retirar' 0 %}"
+            data-puede-retirar="{% url 'inventario:lotes:puede_retirar' 0 %}"
             hidden></span>
     </div>
   </div>
@@ -149,28 +149,31 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 </div>
 
 <!-- Modal de confirmación -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmRetirarModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
-            <div class="modal-header">
+      <div class="modal-header">
         <div class="saif-modal-title">
-          <span class="saif-modal-icon"><i class="bi bi-trash"></i></span>
-          <span>Eliminar lote</span>
+          <span class="saif-modal-icon"><i class="bi bi-recycle"></i></span>
+          <span>Retirar lote</span>
         </div>
         <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        ¿Eliminar el lote <strong id="confirmLoteText"></strong>?
-        <div class="small text-muted mt-2">Esta acción no se puede deshacer.</div>
+        ¿Pasar a <strong>Retirado</strong> el lote <strong id="confirmLoteText"></strong>?
+        <div class="small text-muted mt-2">
+          No se elimina: queda como baja lógica. Requiere stock disponible = 0.
+        </div>
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmDelete">Eliminar</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmRetirar">Retirar</button>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -183,20 +186,22 @@ document.addEventListener("DOMContentLoaded", function () {
   const modal        = new bootstrap.Modal(document.getElementById("modalLotes"));
   const modalContent = document.getElementById("modalLotesContent");
 
-  const confirmModal   = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
-  const confirmText    = document.getElementById("confirmLoteText");
-  const btnConfirmDel  = document.getElementById("btnConfirmDelete");
+  const confirmModal = new bootstrap.Modal(document.getElementById("confirmRetirarModal"));
+  const confirmText  = document.getElementById("confirmLoteText");
+  const btnConfirm   = document.getElementById("btnConfirmRetirar");
 
   const btnConsultar = document.getElementById("btnConsultar");
   const btnEditar    = document.getElementById("btnEditar");
-  const btnEliminar  = document.getElementById("btnEliminar");
+  const btnRetirar   = document.getElementById("btnRetirar");
+
 
   const patternsEl = document.getElementById('urlPatterns');
-  const withId = (pat, id) => pat.replace('/0/', `/${id}/`);
+  const withId = (pat, id) => pat.replace(/\/0\/?$/, `/${id}/`);
 
   let selectedId  = null;
   let selectedRow = null;
-  let puedeEliminarCache = { allow:false, reason:"" };
+  let puedeRetirarCache = { allow:false, reason:"" };
+
 
   /* ====== Helpers ====== */
   function getCookie(name){
@@ -291,25 +296,44 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   /* ====== Selección de fila + Doble clic para consultar ====== */
-  async function fetchPuedeEliminar(id){
-    const url = withId(patternsEl.dataset.puedeEliminar, id);
-    const r = await fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}});
-    puedeEliminarCache = await r.json(); // {allow, reason}
+  async function fetchPuedeRetirar(id){
+    try{
+      const url = withId(patternsEl.dataset.puedeRetirar, id);
+      const r = await fetch(url, { headers:{ 'X-Requested-With':'XMLHttpRequest' }});
+      if(!r.ok){
+        throw new Error(`HTTP ${r.status}`);
+      }
+      puedeRetirarCache = await r.json(); // {allow, reason}
+    }catch(err){
+      // Si falla, deja deshabilitado Retirar pero NO los demás botones.
+      puedeRetirarCache = { allow:false, reason:"No se pudo verificar si puede retirarse." };
+      console.warn("Pre-chequeo retirar falló:", err);
+    }
+    // repinta botones (Retirar dependerá de puedeRetirarCache)
     setButtonsEnabled(true);
   }
+  
   function setButtonsEnabled(enabled){
     btnConsultar.disabled = !enabled;
     btnEditar.disabled    = !enabled;
-    btnEliminar.disabled  = !enabled || !puedeEliminarCache.allow;
-    btnEliminar.title     = puedeEliminarCache.allow ? "" : (puedeEliminarCache.reason || "Este lote no puede eliminarse.");
+
+    // Retirar solo si además lo permite el pre-chequeo
+    btnRetirar.disabled = !enabled || !puedeRetirarCache.allow;
+    btnRetirar.title    = puedeRetirarCache.allow ? "" : (puedeRetirarCache.reason || "No puede retirarse.");
   }
+
   async function selectRow(row){
     if(!row) return;
     tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
     row.classList.add("table-active");
     selectedRow = row;
     selectedId  = row.dataset.id;
-    await fetchPuedeEliminar(selectedId);
+
+    // 1) Habilita de inmediato Consultar/Editar (Retirar se ajusta luego).
+    setButtonsEnabled(true);
+
+    // 2) Luego hace el pre-chequeo para Retirar; si falla, no “rompemos” los otros botones.
+    await fetchPuedeRetirar(selectedId);
   }
 
   // click = seleccionar
@@ -346,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
       abrirModal(withId(patternsEl.dataset.editar, selectedId)); ev.preventDefault();
     }
     if((ev.ctrlKey||ev.metaKey) && ev.key.toLowerCase()==='d' && selectedId){
-      btnEliminar.click(); ev.preventDefault();
+      btnRetirar.click(); ev.preventDefault();
     }
   });
 
@@ -357,31 +381,33 @@ document.addEventListener("DOMContentLoaded", function () {
   btnEditar.addEventListener("click", () => {
     if (selectedId) abrirModal(withId(patternsEl.dataset.editar, selectedId));
   });
-  btnEliminar.addEventListener("click", async () => {
+
+  btnRetirar.addEventListener("click", async () => {
     if (!selectedId) return;
-    if (!puedeEliminarCache.allow){
-      alert(puedeEliminarCache.reason || "Este lote no puede eliminarse.");
+    if (!puedeRetirarCache.allow){
+      alert(puedeRetirarCache.reason || "No puede retirarse.");
       return;
     }
+
     const numLote = selectedRow?.children[2]?.textContent?.trim() || "";
     const prod    = selectedRow?.children[1]?.textContent?.trim() || "";
     confirmText.textContent = `${numLote} · ${prod}`;
 
-    btnConfirmDel.onclick = async () => {
-      btnConfirmDel.disabled = true;
+    btnConfirm.onclick = async () => {
+      btnConfirm.disabled = true;
 
       // doble verificación
-      const again = await fetch(withId(patternsEl.dataset.puedeEliminar, selectedId));
+      const again = await fetch(withId(patternsEl.dataset.puedeRetirar, selectedId));
       const againInfo = await again.json();
       if (!againInfo.allow) {
-        btnConfirmDel.disabled = false;
+        btnConfirm.disabled = false;
         confirmModal.hide();
-        alert(againInfo.reason || "Este lote ya no puede eliminarse.");
+        alert(againInfo.reason || "No puede retirarse.");
         return;
       }
 
-      const delUrl = withId(patternsEl.dataset.eliminar, selectedId);
-      const res = await fetch(delUrl, {
+      const retirarUrl = withId(patternsEl.dataset.retirar, selectedId);
+      const res = await fetch(retirarUrl, {
         method: "POST",
         headers: {
           "X-CSRFToken": getCookie("csrftoken"),
@@ -391,17 +417,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
       confirmModal.hide();
       const data = await res.json();
-      btnConfirmDel.disabled = false;
+      btnConfirm.disabled = false;
 
       if (data.success) {
         window.location.reload();
       } else {
-        alert(data.error || "No se pudo eliminar el lote.");
+        alert(data.error || "No se pudo retirar el lote.");
       }
     };
 
     confirmModal.show();
   });
+
 
   /* ====== Submit universal dentro del modal ====== */
   modalContent.addEventListener("submit", function (e) {

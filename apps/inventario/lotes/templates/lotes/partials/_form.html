@@ -3,7 +3,6 @@
 <link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
-  <!-- HEADER -->
   <div class="modal-header">
     <div class="saif-modal-title">
       <span class="saif-modal-icon"><i class="bi bi-layers"></i></span>
@@ -16,14 +15,20 @@
   <form method="post" id="form-lote" action="{% url 'inventario:lotes:editar' lote.id %}" novalidate autocomplete="off">
     {% csrf_token %}
 
-    <!-- BODY -->
     <div class="modal-body saif-modal-body">
       <div class="saif-section">
         <div class="saif-section__title">
           <i class="bi bi-clipboard-data"></i> Datos del lote
         </div>
+
+        <div class="alert alert-info small mb-3">
+          <strong>Nota:</strong> <em>Vencido</em> y <em>Próximo a Vencer</em> se asignan automáticamente según la caducidad. 
+          <em>Devuelto</em> lo establece el proceso de devolución. Desde aquí solo puedes cambiar a 
+          <strong>Disponible</strong> o <strong>En Cuarentena</strong>.
+        </div>
+
         <div class="row g-3 mt-1">
-          <!-- Fecha de caducidad -->
+
           <div class="col-md-6">
             <label class="form-label">Fecha de caducidad</label>
             <div class="input-group">
@@ -33,9 +38,8 @@
             </div>
           </div>
 
-          <!-- Ubicacion -->
           <div class="col-md-6">
-            <label class="form-label">Ubicacion</label>
+            <label class="form-label">Ubicación</label>
             <div class="input-group">
               <span class="input-group-text saif-ig"><i class="bi bi-geo-alt"></i></span>
               <input type="text" name="ubicacion_almacen" class="form-control saif-input"
@@ -43,25 +47,24 @@
             </div>
           </div>
 
-          <!-- Estado -->
           <div class="col-md-6">
             <label class="form-label">Estado</label>
             <div class="input-group">
               <span class="input-group-text saif-ig"><i class="bi bi-info-circle"></i></span>
               <select name="estado" class="form-select saif-input">
                 {% for e in estados %}
-                  <option value="{{ e.id }}" {% if lote.id_estado_lote.id == e.id %}selected{% endif %}>
+                  <option value="{{ e.id }}" {% if lote.id_estado_lote_id == e.id %}selected{% endif %}>
                     {{ e.nombre_estado }}
                   </option>
                 {% endfor %}
               </select>
             </div>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- FOOTER -->
     <div class="modal-footer">
       <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar

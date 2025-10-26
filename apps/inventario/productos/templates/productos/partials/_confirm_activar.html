@@ -4,26 +4,27 @@
 
 <div class="saif-modal">
   <!-- Header -->
-  <div class="modal-header">
+  <div class="modal-header bg-success text-white">
     <div class="saif-modal-title">
       <span class="saif-modal-icon"><i class="bi bi-check2-circle"></i></span>
       <span>Activar Producto</span>
     </div>
     <span class="saif-badge">SAIF</span>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
   <!-- Form -->
   <form method="post" id="form-activar-producto" action="{{ action }}">
     {% csrf_token %}
     <div class="modal-body">
+      <!-- 🧯 contenedor de errores del servidor -->
+      <div id="formAlert" class="alert alert-danger d-none" role="alert"></div>
+
       <div class="d-flex align-items-start gap-3">
-        <!-- Ícono verde -->
         <i class="bi bi-check-circle-fill text-success" style="font-size:1.4rem;"></i>
         <div>
           <p class="mb-1">
-            ¿Estás seguro de que deseas <b class="text-success">activar</b> el producto
-            <b>{{ producto.nombre }}</b>?
+            ¿Deseas <b class="text-success">activar</b> el producto <b>{{ producto.nombre }}</b>?
           </p>
           <p class="text-muted mb-0">
             Código: <span class="fw-semibold">{{ producto.codigo_producto }}</span>
@@ -31,10 +32,13 @@
         </div>
       </div>
 
-      <!-- Nota informativa en verde claro -->
       <div class="alert alert-success small mt-3 mb-0">
         <i class="bi bi-info-circle"></i>
-        El producto volverá a estar <b>activo</b> y disponible para su uso.
+        El producto volverá a estar <b>Activo</b> y disponible para su uso.
+        {% comment %} Si configuraste validación de maestro mínimo, deja esta nota contextual: {% endcomment %}
+        <div class="mt-2 mb-1 text-success-emphasis">
+          * Debe contar con <b>Unidad de medida</b>, <b>Presentación</b> y <b>Laboratorio</b>.
+        </div>
       </div>
     </div>
 

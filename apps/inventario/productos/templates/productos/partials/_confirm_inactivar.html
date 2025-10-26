@@ -4,26 +4,27 @@
 
 <div class="saif-modal">
   <!-- Header -->
-  <div class="modal-header">
+  <div class="modal-header bg-danger text-white">
     <div class="saif-modal-title">
       <span class="saif-modal-icon"><i class="bi bi-slash-circle"></i></span>
       <span>Inactivar Producto</span>
     </div>
     <span class="saif-badge">SAIF</span>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
   <!-- Form -->
   <form method="post" id="form-inactivar-producto" action="{{ action }}">
     {% csrf_token %}
     <div class="modal-body">
+      <!-- 🧯 contenedor de errores del servidor -->
+      <div id="formAlert" class="alert alert-danger d-none" role="alert"></div>
+
       <div class="d-flex align-items-start gap-3">
-        <!-- Ícono rojo -->
         <i class="bi bi-exclamation-octagon-fill text-danger" style="font-size:1.4rem;"></i>
         <div>
           <p class="mb-1">
-            ¿Estás seguro de que deseas <b class="text-danger">inactivar</b> el producto
-            <b>{{ producto.nombre }}</b>?
+            ¿Deseas <b class="text-danger">inactivar</b> el producto <b>{{ producto.nombre }}</b>?
           </p>
           <p class="text-muted mb-0">
             Código: <span class="fw-semibold">{{ producto.codigo_producto }}</span>
@@ -31,10 +32,12 @@
         </div>
       </div>
 
-      <!-- Nota informativa en rojo claro -->
       <div class="alert alert-danger small mt-3 mb-0">
         <i class="bi bi-info-circle"></i>
-        El producto no se eliminará, solo quedará <b>inactivo</b>.
+        El producto no se elimina, solo queda <b>Inactivo</b>.
+        <div class="mt-2 mb-1">
+          * No podrás inactivar si existen <b>lotes con stock disponible</b>. Realiza primero la salida/ajuste.
+        </div>
       </div>
     </div>
 

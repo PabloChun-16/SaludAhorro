@@ -308,16 +308,59 @@ document.addEventListener("DOMContentLoaded", function () {
       "X-CSRFToken": getCookie("csrftoken")
     }
   })
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok || data.success) {
-        modalInstance.hide();
-        window.location.reload();
-      } else if (data.html) {
-        modalContent.innerHTML = data.html;
+
+  .then(async (r) => {
+    const isJson = (r.headers.get("content-type") || "").includes("application/json");
+    const data = isJson ? await r.json() : { success: false, error: await r.text() };
+    return { ok: r.ok, data };
+  })
+  .then(({ ok, data }) => {
+    if (ok && (data.ok || data.success)) {
+      modalInstance.hide();
+      window.location.reload();
+      return;
+    }
+
+    // Caso: el servidor devolvió HTML de formulario con errores
+    if (data.html) {
+      modalContent.innerHTML = data.html;
+      return;
+    }
+
+    // Caso: error JSON (nuestro flujo)
+    const alertBox = modalContent.querySelector("#formAlert");
+    if (alertBox) {
+      // Si hay "lotes" estructurados, pintamos una lista
+      if (Array.isArray(data.lotes) && data.lotes.length) {
+        const items = data.lotes
+          .map(l => `<li><b>Lote ${l.numero_lote}</b>: ${l.cantidad}</li>`)
+          .join("");
+        alertBox.innerHTML = `
+          <div class="fw-semibold mb-1">${data.error || "No se pudo completar la acción."}</div>
+          <div>Total disponible: <b>${data.total ?? ""}</b></div>
+          <div class="mt-2">Detalle:</div>
+          <ul class="mb-0">${items}</ul>
+        `;
+      } else {
+        // Mensaje plano
+        alertBox.textContent = data.error || "No se pudo completar la acción.";
       }
-    })
-    .catch(err => console.error(err));
+      alertBox.classList.remove("d-none");
+    } else {
+      alert(data.error || "No se pudo completar la acción."); // fallback
+    }
+  })
+  .catch((err) => {
+    const alertBox = modalContent.querySelector("#formAlert");
+    if (alertBox) {
+      alertBox.textContent = "Error de red o del servidor.";
+      alertBox.classList.remove("d-none");
+    } else {
+      console.error(err);
+      alert("Error de red o del servidor.");
+    }
+  });
+
 });
 
 
