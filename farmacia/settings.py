@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'apps.ajustes_inventario',
     'apps.alertas_vencimientos',
     'apps.dashboard',
-    'apps.inventario',
+    #'apps.inventario',
+    'apps.inventario.apps.InventarioConfig',
     'apps.mantenimiento',
     'apps.recepcion_almacenamiento',
     'apps.recetas',
@@ -110,6 +111,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'farmacia.wsgi.application'
+
+PROXIMO_VENCER_DIAS = 30
 
 
 # Database
