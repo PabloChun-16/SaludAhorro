@@ -216,7 +216,7 @@ tbody tr.estado-retirado td:nth-child(5){
   </div>
 </section>
 
-<div class="modal fade" id="modalStock" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalStock" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-stock-content"></div>
   </div>
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const pagerEl      = document.getElementById("pagerStock");
   const modalEl      = document.getElementById("modalStock");
   const modalContent = document.getElementById("modal-stock-content");
-  const modal        = new bootstrap.Modal(modalEl);
+  const modal        = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
 
   let selectedId = null;
   const norm = (s)=> (s ?? "").toString().trim().toLowerCase();

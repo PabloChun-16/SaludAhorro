@@ -258,14 +258,14 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 </section>
 
 <!-- MODAL GENÉRICO -->
-<div class="modal fade" id="modalLotes" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalLotes" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modalLotesContent"></div>
   </div>
 </div>
 
 <!-- Modal de confirmación -->
-<div class="modal fade" id="confirmRetirarModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmRetirarModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content saif-modal saif-modal--confirm">
       <div class="modal-header">
@@ -274,7 +274,6 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
           <span>Retirar lote</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <div class="saif-confirm-body">
@@ -311,10 +310,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const table        = document.getElementById("tablaLotes");
   const tbody        = table.querySelector("tbody");
   const pagerEl      = document.getElementById("pagerLotes");
-  const modal        = new bootstrap.Modal(document.getElementById("modalLotes"));
+  const modal        = new bootstrap.Modal(document.getElementById("modalLotes"), { backdrop: "static", keyboard: false });
   const modalContent = document.getElementById("modalLotesContent");
 
-  const confirmModal = new bootstrap.Modal(document.getElementById("confirmRetirarModal"));
+  const confirmModal = new bootstrap.Modal(document.getElementById("confirmRetirarModal"), { backdrop: "static", keyboard: false });
   const confirmText  = document.getElementById("confirmLoteText");
   const btnConfirm   = document.getElementById("btnConfirmRetirar");
 

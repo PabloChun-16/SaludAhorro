@@ -94,21 +94,21 @@
 </section>
 
 <!-- MODAL CREAR -->
-<div class="modal fade" id="modalCrearReporte" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCrearReporte" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-reporte-content"></div>
   </div>
 </div>
 
 <!-- MODAL CONSULTAR -->
-<div class="modal fade" id="modalConsultarReporte" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalConsultarReporte" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
 </div>
 
 <!-- MODAL CAMBIAR ESTADO -->
-<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content" id="modal-cambiar-estado-content"></div>
   </div>
@@ -171,11 +171,25 @@ document.addEventListener("DOMContentLoaded", function () {
   /* =======================
      TU LÓGICA ORIGINAL (sin cambios)
      ======================= */
+  const modalConfig = { backdrop: "static", keyboard: false };
   const modalEl = document.getElementById("modalCrearReporte");
   const modalContent = document.getElementById("modal-reporte-content");
   const btnCrear = document.getElementById("btnCrearReporte");
-  const modalInstance = new bootstrap.Modal(modalEl);
+  const modalInstance = new bootstrap.Modal(modalEl, modalConfig);
   let detalles = [];
+
+  function attachChildModalBehavior(childEl) {
+    if (!childEl || childEl.dataset.parentSync === "1") return;
+    childEl.addEventListener("show.bs.modal", () => {
+      if (modalInstance) modalInstance.hide();
+    });
+    childEl.addEventListener("hidden.bs.modal", () => {
+      if (modalInstance && !modalEl.classList.contains("show")) {
+        modalInstance.show();
+      }
+    });
+    childEl.dataset.parentSync = "1";
+  }
 
   // === ABRIR FORMULARIO ===
   btnCrear?.addEventListener("click", (ev) => {
@@ -202,12 +216,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const productoIdInput = document.getElementById("productoIdInput");
     const loteInput = document.getElementById("loteInput");
     const loteIdInput = document.getElementById("loteIdInput");
+    const modalProductoEl = document.getElementById("modalBuscarProducto");
+    const modalLoteEl = document.getElementById("modalBuscarLote");
     let detalles = [];
 
+    attachChildModalBehavior(modalProductoEl);
+    attachChildModalBehavior(modalLoteEl);
     // === MODALES ===
     document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
-      const modalProducto = document.getElementById("modalBuscarProducto");
-      bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+      if (!modalProductoEl) return;
+      bootstrap.Modal.getOrCreateInstance(modalProductoEl, modalConfig).show();
     });
 
     document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
@@ -215,51 +233,54 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Seleccione primero un producto con lotes vencidos.");
         return;
       }
-      const modalLote = document.getElementById("modalBuscarLote");
-      bootstrap.Modal.getOrCreateInstance(modalLote).show();
+      if (!modalLoteEl) return;
+      bootstrap.Modal.getOrCreateInstance(modalLoteEl, modalConfig).show();
       cargarLotes();
     });
 
     // === BUSCAR PRODUCTOS (solo con lotes vencidos) ===
-    const modalProducto = document.getElementById("modalBuscarProducto");
-    modalProducto?.addEventListener("shown.bs.modal", () => {
-      const searchInput = document.getElementById("searchProducto");
-      const tbodyResultados = document.getElementById("tablaBuscarProductos");
-      tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
+    if (modalProductoEl && !modalProductoEl.dataset.searchBound) {
+      modalProductoEl.addEventListener("shown.bs.modal", () => {
+        const searchInput = document.getElementById("searchProducto");
+        const tbodyResultados = document.getElementById("tablaBuscarProductos");
+        if (!searchInput || !tbodyResultados) return;
+        tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
 
-      searchInput.oninput = function () {
-        const term = this.value.trim();
-        fetch("{% url 'alertas_vencimientos:vencimientos:search_productos' %}?term=" + encodeURIComponent(term))
-          .then(r => r.json())
-          .then(data => {
-            tbodyResultados.innerHTML = "";
-            if (!data.length) {
-              tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
-              return;
-            }
-            data.forEach(p => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${p.codigo}</td>
-                <td>${p.nombre}</td>
-                <td>${p.descripcion || "-"}</td>
-                <td>${p.presentacion || "-"}</td>
-                <td>${p.unidad || "-"}</td>
-                <td>${p.condicion || "-"}</td>
-                <td>${p.receta ? "Sí" : "No"}</td>
-                <td>${p.controlado ? "Sí" : "No"}</td>
-                <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
-              `;
-              tr.querySelector("button").addEventListener("click", () => {
-                productoInput.value = `${p.codigo} - ${p.nombre}`;
-                productoIdInput.value = p.id;
-                bootstrap.Modal.getInstance(modalProducto).hide();
+        searchInput.oninput = function () {
+          const term = this.value.trim();
+          fetch("{% url 'alertas_vencimientos:vencimientos:search_productos' %}?term=" + encodeURIComponent(term))
+            .then(r => r.json())
+            .then(data => {
+              tbodyResultados.innerHTML = "";
+              if (!data.length) {
+                tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Sin resultados.</td></tr>';
+                return;
+              }
+              data.forEach(p => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${p.codigo}</td>
+                  <td>${p.nombre}</td>
+                  <td>${p.descripcion || "-"}</td>
+                  <td>${p.presentacion || "-"}</td>
+                  <td>${p.unidad || "-"}</td>
+                  <td>${p.condicion || "-"}</td>
+                  <td>${p.receta ? "Sí" : "No"}</td>
+                  <td>${p.controlado ? "Sí" : "No"}</td>
+                  <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+                `;
+                tr.querySelector("button").addEventListener("click", () => {
+                  productoInput.value = `${p.codigo} - ${p.nombre}`;
+                  productoIdInput.value = p.id;
+                  bootstrap.Modal.getInstance(modalProductoEl)?.hide();
+                });
+                tbodyResultados.appendChild(tr);
               });
-              tbodyResultados.appendChild(tr);
             });
-          });
-      };
-    });
+        };
+      });
+      modalProductoEl.dataset.searchBound = "1";
+    }
 
     // === BUSCAR LOTES VENCIDOS ===
     function cargarLotes() {
@@ -290,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function () {
               loteIdInput.value = l.id;
               // Agregar directamente a la tabla
               agregarDetalle(productoInput.value, productoIdInput.value, l.numero_lote, l.id, l.cantidad);
-              bootstrap.Modal.getInstance(document.getElementById("modalBuscarLote")).hide();
+              bootstrap.Modal.getInstance(modalLoteEl)?.hide();
             });
             tablaLotes.appendChild(tr);
           });
@@ -350,11 +371,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === CONSULTAR REPORTE ===
   const btnConsultar = document.getElementById("btnConsultarReporte");
-  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarReporte"));
+  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarReporte"), modalConfig);
   const modalConsultarContent = document.getElementById("modal-consultar-content");
 
   const btnCambiar = document.getElementById("btnCambiarEstado");
-  const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"));
+  const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"), modalConfig);
   const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
   const urlPatterns = document.getElementById("urlPatterns");
 

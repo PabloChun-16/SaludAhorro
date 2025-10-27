@@ -399,6 +399,7 @@ SAIF.initAgotamiento = function (modalEl) {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   // ====== Config de modales (PADRE) ======
   const modalDefs = [
     {
@@ -443,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Inicializamos los filtros ANTES de abrir el modal
             if (typeof init === "function") init(el);
 
-            new bootstrap.Modal(el).show();
+            new bootstrap.Modal(el, modalConfig).show();
           })
           .catch(() => {
             container.innerHTML =

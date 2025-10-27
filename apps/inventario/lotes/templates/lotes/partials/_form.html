@@ -9,7 +9,6 @@
       <span>{{ titulo|default:"Editar Lote" }}</span>
     </div>
     <span class="saif-badge">SAIF</span>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
   </div>
 
   <form method="post" id="form-lote" action="{% url 'inventario:lotes:editar' lote.id %}" novalidate autocomplete="off">

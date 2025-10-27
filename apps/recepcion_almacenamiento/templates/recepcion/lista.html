@@ -403,21 +403,21 @@ select.filter-control{
 </section>
 
 <!-- Modal CREAR -->
-<div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-recepcion-content"></div>
   </div>
 </div>
 
 <!-- Modal CONSULTAR -->
-<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
 </div>
 
 <!-- NUEVO: Modal Cambiar Estado -->
-<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog">
     <div class="modal-content saif-modal saif-modal--estado">
       <div class="modal-header">
@@ -426,7 +426,6 @@ select.filter-control{
           <span>Cambiar estado</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body saif-modal-body">
         <div class="saif-block saif-block--warning mb-4">
@@ -479,11 +478,12 @@ select.filter-control{
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   /* ==================== MODAL CREAR ==================== */
   const modalEl = document.getElementById("modalRecepcion");
   const modalContent = document.getElementById("modal-recepcion-content");
   const btnCrear = document.getElementById("btnCrear");
-  const modalInstance = new bootstrap.Modal(modalEl);
+  const modalInstance = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
 
   // Se vacía/llena cada vez que se abre el form
   let detalles = [];
@@ -600,10 +600,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // abrir modales auxiliares
     document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto")).show();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto"), modalConfig).show();
     });
     document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarLote")).show();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarLote"), modalConfig).show();
     });
   } // fin inicializarFormulario
 
@@ -656,7 +656,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (productoIdInput) productoIdInput.value = p.id;
               }
               bootstrap.Modal.getInstance(modalBuscar)?.hide();
-              bootstrap.Modal.getOrCreateInstance(modalEl).show();
+              bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
             });
             tbodyResultados.appendChild(tr);
           });
@@ -702,7 +702,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (cadInput && l.fecha_caducidad) cadInput.value = l.fecha_caducidad;
         }
         bootstrap.Modal.getInstance(modalLote)?.hide();
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
       });
       tablaLotes.appendChild(tr);
     });
@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(data => {
         if (data.success) {
           bootstrap.Modal.getInstance(modalCrearLote).hide();
-          bootstrap.Modal.getOrCreateInstance(modalLote).show();
+          bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
           loadLotes("");
           document.getElementById("loteInput").value = data.numero_lote;
           document.getElementById("caducidadInput").value = data.fecha_caducidad || "";
@@ -764,15 +764,15 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   document.getElementById("btnCancelarLote")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalCrearLote).hide();
-    bootstrap.Modal.getOrCreateInstance(modalLote).show();
+    bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
   });
   document.getElementById("btnCerrarProducto")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalBuscar)?.hide();
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
   });
   document.getElementById("btnCerrarLote")?.addEventListener("click", () => {
     bootstrap.Modal.getInstance(modalLote).hide();
-    bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion")).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion"), modalConfig).show();
   });
 
   /* ==================== TABLA: selección, filtros y paginación ==================== */
@@ -824,7 +824,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function abrirModalConsultar(url){
-    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
+    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"), { backdrop: "static", keyboard: false });
     const container = document.getElementById("modal-consultar-content");
     container.innerHTML = '<div class="p-4">Cargando...</div>';
 
@@ -950,7 +950,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ====== Cambiar Estado (modal) ====== */
   const modalEstadoEl = document.getElementById("modalEstado");
-  const modalEstado   = modalEstadoEl ? new bootstrap.Modal(modalEstadoEl) : null;
+  const modalEstado   = modalEstadoEl ? new bootstrap.Modal(modalEstadoEl, { backdrop: "static", keyboard: false }) : null;
   const alertEstado   = document.getElementById("estadoAlert");
   const motivoWrap    = document.getElementById("motivoWrap");
   const motivoInput   = document.getElementById("motivoEstado");

@@ -178,7 +178,7 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
   </div>
 </section>
 
-<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-producto-content"></div>
   </div>
@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const pagerEl = document.getElementById("pagerProductos");
   const modalEl = document.getElementById("modalProducto");
   const modalContent = document.getElementById("modal-producto-content");
-  const modalInstance = new bootstrap.Modal(modalEl);
+  const modalInstance = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
 
   let selectedId = null;
 
