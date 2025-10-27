@@ -1,20 +1,108 @@
+# apps/alertas_vencimientos/vencimientos/views.py
 from __future__ import annotations
+
 import json
 import logging
-from datetime import date
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import F, Q, Exists, OuterRef
+from django.db.models import Q, Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
 
 from .forms import ReporteVencimientoForm
 from apps.alertas_vencimientos.models import Reportes_Vencimiento, Detalle_Reporte_Vencimiento
 from apps.inventario.models import Lotes, Productos
-from apps.mantenimiento.models import Estado_Vencimiento
+from apps.mantenimiento.models import Estado_Vencimiento, Estado_Lote
 
 logger = logging.getLogger(__name__)
+
+PROXIMO_DIAS = getattr(settings, "PROXIMO_VENCER_DIAS", 30)
+
+# Transiciones permitidas en el reporte
+TRANSICIONES = {
+    "Completado": {"Enviado", "Cancelado"},
+    "Enviado": set(),
+    "Cancelado": set(),
+}
+
+def _estado_lote_por_regla(lote, hoy, proximo_dias):
+    if lote.fecha_caducidad and lote.fecha_caducidad < hoy:
+        nombre = "Vencido"
+    elif lote.fecha_caducidad and (lote.fecha_caducidad - hoy).days <= proximo_dias:
+        nombre = "Próximo a Vencer"
+    else:
+        nombre = "Disponible"
+    return Estado_Lote.objects.only("id").get(nombre_estado=nombre).id
+
+@login_required
+def reporte_cambiar_estado_modal(request, reporte_id):
+    reporte = get_object_or_404(Reportes_Vencimiento, pk=reporte_id)
+    estados = Estado_Vencimiento.objects.filter(
+        nombre_estado__in=["Completado", "Enviado", "Cancelado"]
+    ).order_by("nombre_estado")
+
+    actual = reporte.id_estado.nombre_estado
+    permitidos = TRANSICIONES.get(actual, set())
+
+    html = render_to_string(
+        "vencimientos/partials/cambiar_estado.html",
+        {"reporte": reporte, "estados": estados, "actual": actual, "permitidos": permitidos},
+        request=request,
+    )
+    return JsonResponse({"html": html})
+
+@login_required
+@require_POST
+@transaction.atomic
+def reporte_cambiar_estado(request, reporte_id):
+    reporte = get_object_or_404(Reportes_Vencimiento, pk=reporte_id)
+    nuevo_id = request.POST.get("estado_id")
+
+    try:
+        nuevo_estado = Estado_Vencimiento.objects.get(pk=nuevo_id)
+    except Estado_Vencimiento.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Estado inválido."}, status=400)
+
+    actual = reporte.id_estado.nombre_estado
+    if nuevo_estado.nombre_estado not in TRANSICIONES.get(actual, set()):
+        return JsonResponse({
+            "success": False,
+            "error": f"No se puede pasar de {actual} a {nuevo_estado.nombre_estado}."
+        }, status=400)
+
+    if nuevo_estado.nombre_estado == "Cancelado":
+        hoy = timezone.now().date()
+        id_devuelto = Estado_Lote.objects.only("id").get(nombre_estado="Devuelto").id
+
+        detalles = (
+            Detalle_Reporte_Vencimiento.objects
+            .select_related("id_lote")
+            .select_for_update()
+            .filter(id_reporte=reporte)
+        )
+
+        for d in detalles:
+            lote = d.id_lote
+            if lote.id_estado_lote_id != id_devuelto or (lote.cantidad_disponible or 0) != 0:
+                return JsonResponse({
+                    "success": False,
+                    "error": f"El lote {lote.numero_lote} fue modificado después del reporte; "
+                             "no se puede cancelar automáticamente."
+                }, status=409)
+
+        for d in detalles:
+            lote = d.id_lote
+            lote.cantidad_disponible = d.cantidad_reportada
+            lote.id_estado_lote_id = _estado_lote_por_regla(lote, hoy, PROXIMO_DIAS)
+            lote.save(update_fields=["cantidad_disponible", "id_estado_lote"])
+
+    reporte.id_estado = nuevo_estado
+    reporte.save(update_fields=["id_estado"])
+    return JsonResponse({"success": True})
 
 
 # -----------------------------------------------------------
@@ -61,7 +149,7 @@ def reporte_vencimiento_create(request):
         documento = form_data.get("documento", f"Reporte Vencimiento - {fecha_reporte}")
 
         # Estado del reporte: “Vencido”
-        estado_venc = Estado_Vencimiento.objects.get(nombre_estado="Vencido")
+        estado_inicial = Estado_Vencimiento.objects.get(nombre_estado="Completado")
 
         # Crear cabecera del reporte
         reporte = Reportes_Vencimiento.objects.create(
@@ -69,7 +157,7 @@ def reporte_vencimiento_create(request):
             observaciones=observaciones,
             documento=documento,
             id_usuario=usuario,
-            id_estado=estado_venc,
+            id_estado=estado_inicial,
         )
 
         hoy = timezone.now().date()
