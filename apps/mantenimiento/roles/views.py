@@ -6,7 +6,10 @@ from django.template.loader import render_to_string
 from django.views.generic import ListView
 from apps.mantenimiento.models import Roles
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
 
+@method_decorator(solo_admin, name='dispatch')
 class RolListView(ListView):
     model = Roles
     template_name = "mantenimiento_roles/lista.html"
@@ -29,6 +32,7 @@ def _is_ajax(request):
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
+@solo_admin
 # ====== CREAR ======
 def rol_crear(request):
     if not _is_ajax(request):
@@ -57,6 +61,7 @@ def rol_crear(request):
     return JsonResponse({"ok": False, "html": html}, status=400)
 
 
+@solo_admin
 # ====== CONSULTAR ======
 def rol_consultar(request, pk):
     if not _is_ajax(request):
@@ -71,6 +76,7 @@ def rol_consultar(request, pk):
     return HttpResponse(html)
 
 
+@solo_admin
 # ====== EDITAR ======
 def rol_editar(request, pk):
     if not _is_ajax(request):
@@ -101,6 +107,7 @@ def rol_editar(request, pk):
     return JsonResponse({"ok": False, "html": html}, status=400)
 
 
+@solo_admin
 # ====== ELIMINAR ======
 def rol_eliminar(request, pk):
     if not _is_ajax(request):

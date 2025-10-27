@@ -88,6 +88,22 @@
     </div>
   </header>
 
+    <!-- Mensajes del sistema (alertas globales) -->
+  {% if messages %}
+    <div class="container mx-auto px-4 mt-4">
+      {% for message in messages %}
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 px-4 py-3 rounded-md mb-3 shadow-md flex items-start gap-2">
+          <span class="text-xl">⚠️</span>
+          <div>
+            <p class="font-semibold">Atención:</p>
+            <p>{{ message }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  
   <!-- Contenido dinámico -->
   <main id="contenido" class="min-h-[60vh]">
     {% block content %}{% endblock %}

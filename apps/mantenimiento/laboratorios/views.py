@@ -4,12 +4,15 @@ from django.template.loader import render_to_string
 from apps.mantenimiento.models import Laboratorio
 from .forms import LaboratorioForm
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
 
 def _is_ajax(request):
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
 # LISTA
+@solo_admin
 def lista_laboratorios(request):
     laboratorios = Laboratorio.objects.order_by("nombre_laboratorio")
     return render(
@@ -20,6 +23,7 @@ def lista_laboratorios(request):
 
 
 # CREAR (contrato JSON => {"ok": true})
+@solo_admin
 def crear_laboratorio(request):
     if not _is_ajax(request):
         return HttpResponseBadRequest("Solo AJAX")
@@ -48,6 +52,7 @@ def crear_laboratorio(request):
 
 
 # CONSULTAR (solo HTML)
+@solo_admin
 def consultar_laboratorio(request, pk):
     if not _is_ajax(request):
         return HttpResponseBadRequest("Solo AJAX")
@@ -62,6 +67,7 @@ def consultar_laboratorio(request, pk):
 
 
 # EDITAR (contrato JSON => {"ok": true})
+@solo_admin
 def editar_laboratorio(request, pk):
     if not _is_ajax(request):
         return HttpResponseBadRequest("Solo AJAX")
@@ -89,6 +95,7 @@ def editar_laboratorio(request, pk):
 
 
 # ELIMINAR (contrato JSON => {"ok": true})
+@solo_admin
 def eliminar_laboratorio(request, pk):
     if not _is_ajax(request):
         return HttpResponseBadRequest("Solo AJAX")

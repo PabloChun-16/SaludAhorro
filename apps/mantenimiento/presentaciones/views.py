@@ -6,8 +6,12 @@ from .forms import PresentacionForm
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
+
 
 # Listado de presentaciones
+@solo_admin
 def lista_presentaciones(request):
     presentaciones = Presentaciones.objects.all().order_by("nombre_presentacion")
     return render(
@@ -18,6 +22,7 @@ def lista_presentaciones(request):
 
 
 # Crear presentación
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def crear_presentacion(request):
     form = PresentacionForm(request.POST or None)
@@ -37,6 +42,7 @@ def crear_presentacion(request):
 
 
 # Consultar presentación
+@solo_admin
 @require_http_methods(["GET"])
 def consultar_presentacion(request, pk):
     presentacion = get_object_or_404(Presentaciones, pk=pk)
@@ -51,6 +57,7 @@ def consultar_presentacion(request, pk):
 
 
 # Editar presentación
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def editar_presentacion(request, pk):
     presentacion = get_object_or_404(Presentaciones, pk=pk)
@@ -71,6 +78,7 @@ def editar_presentacion(request, pk):
 
 
 # La función para eliminar un registro
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def eliminar_presentacion(request, pk):
     presentacion = get_object_or_404(Presentaciones, pk=pk)

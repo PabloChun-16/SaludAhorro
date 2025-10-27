@@ -4,12 +4,15 @@ from django.template.loader import render_to_string
 from apps.mantenimiento.models import Unidades_Medida
 from .forms import UnidadesMedidaForm
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
 
+@solo_admin
 def unidades_list(request):
     qs = Unidades_Medida.objects.order_by("nombre_unidad")
     return render(request, "unidadesmedida/lista.html", {"unidades": qs})
 
-
+@solo_admin
 def unidades_create(request):
     form = UnidadesMedidaForm(request.POST or None)
     if request.method == "POST":
@@ -30,7 +33,7 @@ def unidades_create(request):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def unidades_edit(request, pk):
     unidad = get_object_or_404(Unidades_Medida, pk=pk)
     form = UnidadesMedidaForm(request.POST or None, instance=unidad)
@@ -53,7 +56,7 @@ def unidades_edit(request, pk):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def unidades_detail(request, pk):
     unidad = get_object_or_404(Unidades_Medida, pk=pk)
     html = render_to_string(
@@ -63,7 +66,7 @@ def unidades_detail(request, pk):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def unidades_delete(request, pk):
     unidad = get_object_or_404(Unidades_Medida, pk=pk)
 

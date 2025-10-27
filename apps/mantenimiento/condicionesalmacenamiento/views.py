@@ -4,7 +4,10 @@ from django.template.loader import render_to_string
 from apps.mantenimiento.models import Condiciones_Almacenamiento
 from .forms import CondicionesAlmacenamientoForm
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
 
+@solo_admin
 def condiciones_list(request):
     """
     Vista que muestra la lista de todas las condiciones de almacenamiento.
@@ -12,7 +15,7 @@ def condiciones_list(request):
     qs = Condiciones_Almacenamiento.objects.order_by("nombre_condicion")
     return render(request, "condicionesalmacenamiento/lista.html", {"condiciones": qs})
 
-
+@solo_admin
 def condiciones_create(request):
     """
     Vista para crear una nueva condición de almacenamiento.
@@ -36,7 +39,7 @@ def condiciones_create(request):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def condiciones_edit(request, pk):
     """
     Vista para editar una condición de almacenamiento existente.
@@ -62,7 +65,7 @@ def condiciones_edit(request, pk):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def condiciones_detail(request, pk):
     """
     Vista para ver el detalle de una condición de almacenamiento.
@@ -75,7 +78,7 @@ def condiciones_detail(request, pk):
     )
     return HttpResponse(html)
 
-
+@solo_admin
 def condiciones_delete(request, pk):
     """
     Vista para eliminar una condición de almacenamiento.

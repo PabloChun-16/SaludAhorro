@@ -6,7 +6,11 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 
+from django.utils.decorators import method_decorator
+from apps.mantenimiento.decorators import solo_admin
+
 @require_http_methods(["GET"])
+@solo_admin
 def usuario_consultar_modal(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
     html = render_to_string(
@@ -23,13 +27,13 @@ def usuario_consultar_modal(request, pk):
 from .models import Usuario
 from .forms import UsuarioForm
 
-
+@method_decorator(solo_admin, name='dispatch')
 class UsuarioListView(ListView):
     model = Usuario
     template_name = "mantenimiento_usuarios/lista.html"
     context_object_name = "usuarios"
 
-
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def usuario_create_modal(request):
     if request.method == "GET":
@@ -51,7 +55,7 @@ def usuario_create_modal(request):
     )
     return JsonResponse({"ok": False, "html": html}, status=400)
 
-
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def usuario_update_modal(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
@@ -75,7 +79,7 @@ def usuario_update_modal(request, pk):
     )
     return JsonResponse({"ok": False, "html": html}, status=400)
 
-
+@solo_admin
 @require_http_methods(["GET", "POST"])
 def usuario_delete_modal(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
