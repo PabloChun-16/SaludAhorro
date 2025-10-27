@@ -98,10 +98,35 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
             <th><input id="f-lab" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-pres" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-unidad" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><div class="filter-wrap"><select id="f-receta" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div></th>
-            <th><div class="filter-wrap"><select id="f-control" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-receta" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-control" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </th>
             <th></th>
-            <th><div class="filter-wrap"><select id="f-estado" class="form-select form-select-sm filter-control text-center"><option value="">Todos</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></div></th>
+            <th>
+              <div class="filter-wrap">
+                <!-- ✅ Deja las mismas opciones, pero “Activo” viene preseleccionado -->
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="activo" selected>Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -116,7 +141,15 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
             <td>{% if p.requiere_receta %}<span class="badge bg-primary">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
             <td>{% if p.es_controlado %}<span class="badge bg-danger">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
             <td>{{ p.stock_minimo }}</td>
-            <td>{% if p.id_estado_producto.nombre_estado == "Activo" %}<span class="badge bg-success">Activo</span>{% elif p.id_estado_producto.nombre_estado == "Inactivo" %}<span class="badge bg-danger">Inactivo</span>{% else %}<span class="badge bg-secondary">{{ p.id_estado_producto.nombre_estado }}</span>{% endif %}</td>
+            <td>
+              {% if p.id_estado_producto.nombre_estado == "Activo" %}
+                <span class="badge bg-success">Activo</span>
+              {% elif p.id_estado_producto.nombre_estado == "Inactivo" %}
+                <span class="badge bg-danger">Inactivo</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ p.id_estado_producto.nombre_estado }}</span>
+              {% endif %}
+            </td>
           </tr>
           {% empty %}
           <tr>
@@ -138,11 +171,9 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
       <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-pencil"></i> Editar</button>
       <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 me-2 shadow-sm" disabled><i class="bi bi-x-circle"></i> Inactivar</button>
       <button id="btnActivar" class="btn btn-secondary rounded-pill px-3 shadow-sm" disabled><i class="bi bi-check-circle"></i> Activar</button>
-    
       <button class="btn btn-info" id="btnKardex" disabled>
         <i class="bi bi-clipboard-data"></i> Kardex
       </button>
-
     </div>
   </div>
 </section>
@@ -200,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const estado = row.getAttribute("data-estado");
     document.getElementById("btnConsultar").disabled = false;
     document.getElementById("btnEditar").disabled = false;
-     document.getElementById("btnKardex").disabled = false; // ✅ Habilitar el botón
+    document.getElementById("btnKardex").disabled = false; // ✅ Habilitar el botón
 
     if(estado==="Activo"){
       document.getElementById("btnEliminar").disabled = false;
@@ -248,8 +279,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btnActivar").addEventListener("click",()=>{ if(selectedId) abrirModal(`/inventario/productos/${selectedId}/activar/`) });
   document.getElementById("btnKardex").addEventListener("click", () => { if (selectedId) abrirModal(`/inventario/productos/${selectedId}/kardex/`) });
 
-
-
   function getCookie(name){
     let cookieValue=null;
     if(document.cookie && document.cookie!==''){
@@ -264,202 +293,232 @@ document.addEventListener("DOMContentLoaded", function () {
     return cookieValue;
   }
 
-  /*
-  modalContent.addEventListener("submit",function(e){
-    const form=e.target.closest("form"); if(!form) return; e.preventDefault();
-    fetch(form.action||window.location.href,{ method:"POST", body:new FormData(form), headers:{ "X-Requested-With":"XMLHttpRequest","X-CSRFToken":getCookie("csrftoken") } })
-    .then(r=>r.json())
-    .then(data=>{ if(data.ok||data.success){ modalInstance.hide(); window.location.reload(); } else if(data.html){ modalContent.innerHTML=data.html; } })
-    .catch(err=>console.error(err));
-  });
-  */
-
-
+  // ------------------ envío formularios (incl. Kardex GET) ------------------
   modalContent.addEventListener("submit", async function(e) {
-  const form = e.target.closest("form");
-  if (!form) return;
-  e.preventDefault();
+    const form = e.target.closest("form");
+    if (!form) return;
+    e.preventDefault();
 
-  // ✅ Si es el formulario del Kardex, usar GET en lugar de POST
-  if (form.id === "formKardex") {
-    const inicio = form.querySelector("[name='fecha_inicio']").value;
-    const fin = form.querySelector("[name='fecha_fin']").value;
-    const url = `${form.action}?fecha_inicio=${inicio}&fecha_fin=${fin}`;
+    if (form.id === "formKardex") {
+      const inicio = form.querySelector("[name='fecha_inicio']").value;
+      const fin = form.querySelector("[name='fecha_fin']").value;
+      const url = `${form.action}?fecha_inicio=${inicio}&fecha_fin=${fin}`;
 
-    try {
-      const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-      if (!r.ok) throw new Error("Error al obtener el Kardex");
-      const html = await r.text();
-      document.getElementById("modal-producto-content").innerHTML = html;
-    } catch (err) {
-      console.error(err);
-      document.getElementById("modal-producto-content").innerHTML =
-        '<div class="p-4 text-danger">❌ Error al generar el Kardex.</div>';
-    }
-    return; // ⛔ Evita que el flujo POST se ejecute
-  }
-
-  // 🔹 Resto de formularios (crear, editar, etc.) siguen con POST
-  fetch(form.action || window.location.href, {
-    method: "POST",
-    body: new FormData(form),
-    headers: {
-      "X-Requested-With": "XMLHttpRequest",
-      "X-CSRFToken": getCookie("csrftoken")
-    }
-  })
-
-  .then(async (r) => {
-    const isJson = (r.headers.get("content-type") || "").includes("application/json");
-    const data = isJson ? await r.json() : { success: false, error: await r.text() };
-    return { ok: r.ok, data };
-  })
-  .then(({ ok, data }) => {
-    if (ok && (data.ok || data.success)) {
-      modalInstance.hide();
-      window.location.reload();
-      return;
-    }
-
-    // Caso: el servidor devolvió HTML de formulario con errores
-    if (data.html) {
-      modalContent.innerHTML = data.html;
-      return;
-    }
-
-    // Caso: error JSON (nuestro flujo)
-    const alertBox = modalContent.querySelector("#formAlert");
-    if (alertBox) {
-      // Si hay "lotes" estructurados, pintamos una lista
-      if (Array.isArray(data.lotes) && data.lotes.length) {
-        const items = data.lotes
-          .map(l => `<li><b>Lote ${l.numero_lote}</b>: ${l.cantidad}</li>`)
-          .join("");
-        alertBox.innerHTML = `
-          <div class="fw-semibold mb-1">${data.error || "No se pudo completar la acción."}</div>
-          <div>Total disponible: <b>${data.total ?? ""}</b></div>
-          <div class="mt-2">Detalle:</div>
-          <ul class="mb-0">${items}</ul>
-        `;
-      } else {
-        // Mensaje plano
-        alertBox.textContent = data.error || "No se pudo completar la acción.";
+      try {
+        const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+        if (!r.ok) throw new Error("Error al obtener el Kardex");
+        const html = await r.text();
+        document.getElementById("modal-producto-content").innerHTML = html;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("modal-producto-content").innerHTML =
+          '<div class="p-4 text-danger">❌ Error al generar el Kardex.</div>';
       }
-      alertBox.classList.remove("d-none");
-    } else {
-      alert(data.error || "No se pudo completar la acción."); // fallback
+      return;
     }
-  })
-  .catch((err) => {
-    const alertBox = modalContent.querySelector("#formAlert");
-    if (alertBox) {
-      alertBox.textContent = "Error de red o del servidor.";
-      alertBox.classList.remove("d-none");
-    } else {
-      console.error(err);
-      alert("Error de red o del servidor.");
-    }
+
+    fetch(form.action || window.location.href, {
+      method: "POST",
+      body: new FormData(form),
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": getCookie("csrftoken")
+      }
+    })
+    .then(async (r) => {
+      const isJson = (r.headers.get("content-type") || "").includes("application/json");
+      const data = isJson ? await r.json() : { success: false, error: await r.text() };
+      return { ok: r.ok, data };
+    })
+    .then(({ ok, data }) => {
+      if (ok && (data.ok || data.success)) {
+        modalInstance.hide();
+        window.location.reload();
+        return;
+      }
+      if (data.html) {
+        modalContent.innerHTML = data.html;
+        return;
+      }
+      const alertBox = modalContent.querySelector("#formAlert");
+      if (alertBox) {
+        if (Array.isArray(data.lotes) && data.lotes.length) {
+          const items = data.lotes
+            .map(l => `<li><b>Lote ${l.numero_lote}</b>: ${l.cantidad}</li>`)
+            .join("");
+          alertBox.innerHTML = `
+            <div class="fw-semibold mb-1">${data.error || "No se pudo completar la acción."}</div>
+            <div>Total disponible: <b>${data.total ?? ""}</b></div>
+            <div class="mt-2">Detalle:</div>
+            <ul class="mb-0">${items}</ul>
+          `;
+        } else {
+          alertBox.textContent = data.error || "No se pudo completar la acción.";
+        }
+        alertBox.classList.remove("d-none");
+      } else {
+        alert(data.error || "No se pudo completar la acción.");
+      }
+    })
+    .catch((err) => {
+      const alertBox = modalContent.querySelector("#formAlert");
+      if (alertBox) {
+        alertBox.textContent = "Error de red o del servidor.";
+        alertBox.classList.remove("d-none");
+      } else {
+        console.error(err);
+        alert("Error de red o del servidor.");
+      }
+    });
   });
 
-});
+  /* ====== Paginación ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
 
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect();
+    const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
 
-/* ====== Paginación ====== */
-let currentPage=1; let pageSize=15; const rowHeight=42;
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
 
-function recomputarPageSize(){
-  const rect=tbody.getBoundingClientRect();
-  const margenInf=160;
-  const espacio=window.innerHeight-rect.top-margenInf;
-  pageSize=Math.max(1,Math.floor(espacio/rowHeight));
-}
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML="";
+      pagerEl.style.display="none";
+      return;
+    }
 
-function getDataRows(){
-  return Array.from(tbody.querySelectorAll("tr"))
-    .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
-}
-
-function renderPager(totalPages){
-  if(totalPages<=1){
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
     pagerEl.innerHTML="";
-    pagerEl.style.display="none";
-    return;
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
   }
 
-  pagerEl.style.display="flex";
-  // Estilo elegante y centrado
-  pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
-  pagerEl.innerHTML="";
+  function applyPagination(){
+    const rows=getDataRows();
+    const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
 
-  const prev=document.createElement("button");
-  prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
-  prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
-  prev.disabled=currentPage===1;
-  prev.onclick=()=>{ currentPage--; applyPagination(); };
+    const start=(currentPage-1)*pageSize;
+    const end=start+pageSize;
 
-  const info=document.createElement("span");
-  info.className="fw-semibold text-success small";
-  info.textContent=`Página ${currentPage} de ${totalPages}`;
+    rows.forEach((tr,idx)=>{
+      tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
+    });
 
-  const next=document.createElement("button");
-  next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
-  next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
-  next.disabled=currentPage===totalPages;
-  next.onclick=()=>{ currentPage++; applyPagination(); };
+    renderPager(totalPages);
 
-  pagerEl.append(prev,info,next);
-}
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
 
-function applyPagination(){
-  const rows=getDataRows();
-  const total=rows.length;
-  const totalPages=Math.max(1,Math.ceil(total/pageSize));
-  if(currentPage>totalPages) currentPage=totalPages;
-
-  const start=(currentPage-1)*pageSize;
-  const end=start+pageSize;
-
-  rows.forEach((tr,idx)=>{
-    tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end));
-  });
-
-  renderPager(totalPages);
-
-  tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
-  const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
-  const last = visibles[visibles.length-1];
-  if(last) last.classList.add('last-visible');
-
-  if(selectedId){
-    const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
-    if(sel && sel.classList.contains("hidden-by-pagination")){
-      const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
-      if(firstVisible) selectRow(firstVisible);
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
     }
-  }
 
-  refreshAutoTitles();
-}
+    refreshAutoTitles();
+  }
 
   /* ====== Filtros ====== */
   function installFilters(){
-    const fCodigo=document.getElementById("f-codigo"); const fNombre=document.getElementById("f-nombre"); const fDesc=document.getElementById("f-desc"); const fLab=document.getElementById("f-lab"); const fPres=document.getElementById("f-pres"); const fUnidad=document.getElementById("f-unidad"); const fReceta=document.getElementById("f-receta"); const fControl=document.getElementById("f-control"); const fEstado=document.getElementById("f-estado");
+    const fCodigo=document.getElementById("f-codigo");
+    const fNombre=document.getElementById("f-nombre");
+    const fDesc=document.getElementById("f-desc");
+    const fLab=document.getElementById("f-lab");
+    const fPres=document.getElementById("f-pres");
+    const fUnidad=document.getElementById("f-unidad");
+    const fReceta=document.getElementById("f-receta");
+    const fControl=document.getElementById("f-control");
+    const fEstado=document.getElementById("f-estado");
+
     const inputs=[fCodigo,fNombre,fDesc,fLab,fPres,fUnidad,fReceta,fControl,fEstado].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
     const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
-    function applyFilters(){ const codeVal=norm(fCodigo?.value), nameVal=norm(fNombre?.value), descVal=norm(fDesc?.value), labVal=norm(fLab?.value), presVal=norm(fPres?.value), uniVal=norm(fUnidad?.value), recetaVal=yesNo(fReceta?.value), ctrlVal=yesNo(fControl?.value), estVal=norm(fEstado?.value); const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row")); rows.forEach(tr=>{ const tds=tr.querySelectorAll("td"); const txt=i=>norm(tds[i]?.textContent); const ok = (!codeVal || txt(0).includes(codeVal)) && (!nameVal || txt(1).includes(nameVal)) && (!descVal || txt(2).includes(descVal)) && (!labVal  || txt(3).includes(labVal))  && (!presVal || txt(4).includes(presVal)) && (!uniVal  || txt(5).includes(uniVal))  && (!recetaVal || yesNo(txt(6))===recetaVal) && (!ctrlVal   || yesNo(txt(7))===ctrlVal)   && (!estVal    || norm(tr.getAttribute("data-estado")||txt(9))===estVal); tr.style.display = ok ? "" : "none"; }); currentPage=1; applyPagination(); }
-    inputs.forEach(inp=>{ const ev=(inp.tagName==="SELECT")?"change":"input"; inp.addEventListener(ev,applyFilters); });
+
+    function applyFilters(){
+      const codeVal=norm(fCodigo?.value),
+            nameVal=norm(fNombre?.value),
+            descVal=norm(fDesc?.value),
+            labVal=norm(fLab?.value),
+            presVal=norm(fPres?.value),
+            uniVal=norm(fUnidad?.value),
+            recetaVal=yesNo(fReceta?.value),
+            ctrlVal=yesNo(fControl?.value),
+            estVal=norm(fEstado?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>norm(tds[i]?.textContent);
+        const ok =
+          (!codeVal || txt(0).includes(codeVal)) &&
+          (!nameVal || txt(1).includes(nameVal)) &&
+          (!descVal || txt(2).includes(descVal)) &&
+          (!labVal  || txt(3).includes(labVal))  &&
+          (!presVal || txt(4).includes(presVal)) &&
+          (!uniVal  || txt(5).includes(uniVal))  &&
+          (!recetaVal || yesNo(txt(6))===recetaVal) &&
+          (!ctrlVal   || yesNo(txt(7))===ctrlVal)   &&
+          (!estVal    || norm(tr.getAttribute("data-estado")||txt(9))===estVal);
+
+        tr.style.display = ok ? "" : "none";
+      });
+
+      currentPage=1;
+      applyPagination();
+    }
+
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+
+    // ✅ Asegurar que “Activo” esté aplicado al entrar (aunque el HTML ya lo trae seleccionado)
+    if (fEstado && !fEstado.value) {
+      fEstado.value = "activo";
+    }
+    // Forzamos el filtrado inicial con “activo”
+    applyFilters();
   }
 
   removeEmptyRows();
   recomputarPageSize();
-  installFilters();
-  applyPagination();
+  installFilters();   // <- aquí ya queda aplicado “Activo” por defecto
+  // applyPagination(); // ya se llama dentro de applyFilters() al final
   refreshAutoTitles();
   window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
 
   // ===============================
-  // ✅ Exportar Kardex a PDF (dentro del DOMContentLoaded)
+  // ✅ Exportar Kardex a PDF
   // ===============================
   modalContent.addEventListener("click", function (e) {
     const btn = e.target.closest("#btn-exportar-kardex");
@@ -470,7 +529,6 @@ function applyPagination(){
       return;
     }
 
-    // Extrae las fechas desde los dataset del rango o formatea desde el texto
     const rangeNote = modalContent.querySelector(".saif-range-note");
     let fechaInicio = rangeNote?.dataset.fechaInicio ?? "";
     let fechaFin = rangeNote?.dataset.fechaFin ?? "";
@@ -492,16 +550,10 @@ function applyPagination(){
       return;
     }
 
-    // Construir URL de exportación
     const exportUrl = `/inventario/productos/${selectedId}/kardex/exportar/?fecha_inicio=${encodeURIComponent(fechaInicio)}&fecha_fin=${encodeURIComponent(fechaFin)}`;
-    console.log("📄 Exportando Kardex:", exportUrl);
-
-    // Abrir en nueva pestaña
     window.open(exportUrl, "_blank");
   });
-
 
 });
 </script>
 {% endblock %}
-

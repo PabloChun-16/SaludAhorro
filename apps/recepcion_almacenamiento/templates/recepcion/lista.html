@@ -143,6 +143,172 @@ select.filter-control{
 .table-container{ max-height: calc(100vh - 250px); overflow-y: auto; }
 </style>
 
+<style>
+.saif-modal--estado{
+  border:0;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(15,122,58,.25);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.saif-modal--estado .modal-header{
+  background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
+  color:#fff;
+  border-bottom:0;
+  padding:1rem 1.2rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.saif-modal--estado .saif-modal-title{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.saif-modal--estado .saif-modal-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:rgba(255,255,255,.18);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+}
+.saif-modal--estado .saif-modal-body{
+  background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+  padding:1.4rem 1.5rem;
+}
+.saif-block{
+  background:#fff;
+  border-radius:1rem;
+  border:1px solid #cfe9d7;
+  box-shadow:0 12px 28px rgba(15,122,58,.12);
+  overflow:hidden;
+}
+.saif-block--warning{
+  border-color:#facc15;
+  box-shadow:0 16px 36px rgba(234,179,8,.18);
+}
+.saif-block--warning .saif-block__header{
+  background:linear-gradient(140deg,#fef9c3 0%,#fde68a 100%);
+  color:#854d0e;
+}
+.saif-block__header{
+  padding:.85rem 1.2rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+}
+.saif-block__body{
+  padding:1rem 1.25rem;
+  color:#0f172a;
+  font-size:.95rem;
+}
+.saif-note-list{
+  margin:0;
+  padding-left:1.1rem;
+  display:flex;
+  flex-direction:column;
+  gap:.45rem;
+}
+.saif-radio-group{
+  display:flex;
+  flex-direction:column;
+  gap:.6rem;
+}
+.saif-radio-option{
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  padding:.65rem .9rem;
+  border:1px solid #cfe9d7;
+  border-radius:.85rem;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(15,122,58,.08);
+  font-weight:600;
+  color:#0f5132;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.saif-radio-option:hover{
+  border-color:#86efac;
+  box-shadow:0 8px 18px rgba(22,101,52,.16);
+}
+.saif-radio-option input{
+  accent-color:#0f7a3a;
+  width:18px;
+  height:18px;
+}
+.saif-motivo{
+  background:#fff;
+  border:1px solid #cfe9d7;
+  border-radius:1rem;
+  padding:1rem 1.1rem;
+  margin-top:1rem;
+  box-shadow:0 10px 24px rgba(15,122,58,.12);
+}
+.saif-label{
+  font-weight:600;
+  color:#166534;
+}
+.saif-input{
+  border-radius:.75rem;
+  border:1px solid #cfe9d7;
+}
+.saif-input:focus{
+  border-color:#22c55e;
+  box-shadow:0 0 0 .15rem rgba(34,197,94,.18);
+}
+.saif-alert{
+  padding:.85rem 1.1rem;
+  border-radius:.75rem;
+  font-weight:600;
+}
+.saif-alert--error{
+  background:rgba(248,113,113,.16);
+  border:1px solid rgba(248,113,113,.45);
+  color:#991b1b;
+}
+.saif-footer{
+  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+  border-top:0;
+  padding:.9rem 1.3rem;
+  display:flex;
+  justify-content:flex-end;
+  gap:.75rem;
+}
+.saif-btn-light{
+  background:#f8fff9;
+  border:1px solid #cfe9d7;
+  color:#166534;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.2rem;
+}
+.saif-btn-light:hover{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#0f7a3a;
+}
+.saif-btn-success{
+  background:#0f7a3a;
+  border-color:#0f7a3a;
+  font-weight:600;
+  color:#fff;
+  border-radius:999px;
+  padding:.45rem 1.4rem;
+}
+.saif-btn-success:hover{
+  background:#0c5d2c;
+  border-color:#0c5d2c;
+  color:#fff;
+}
+</style>
+
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
     <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
@@ -253,43 +419,54 @@ select.filter-control{
 <!-- NUEVO: Modal Cambiar Estado -->
 <div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content saif-modal saif-modal--estado">
       <div class="modal-header">
         <div class="saif-modal-title">
           <span class="saif-modal-icon"><i class="bi bi-arrow-repeat"></i></span>
           <span>Cambiar estado</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="alert alert-warning small">
-          <strong>Notas:</strong>
-          <ul class="mb-0">
-            <li><em>Recibido Completo</em> y <em>Recibido Parcialmente</em> no afectan inventario.</li>
-            <li><em>Rechazado</em> revierte la recepción (marca REC como cancelado y resta stock). Solo si no hubo salidas posteriores.</li>
-          </ul>
+      <div class="modal-body saif-modal-body">
+        <div class="saif-block saif-block--warning mb-4">
+          <div class="saif-block__header">
+            <i class="bi bi-info-circle me-2"></i> Notas importantes
+          </div>
+          <div class="saif-block__body">
+            <ul class="saif-note-list">
+              <li><strong>Recibido Completo</strong> y <strong>Recibido Parcialmente</strong> no afectan inventario.</li>
+              <li><strong>Rechazado</strong> revierte la recepción (marca REC como cancelado y resta stock). Solo si no hubo salidas posteriores.</li>
+            </ul>
+          </div>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="estadoNuevo" id="estCompleto" value="Recibido Completo">
-          <label class="form-check-label" for="estCompleto">Recibido Completo</label>
+        <div class="saif-radio-group">
+          <label class="saif-radio-option" for="estCompleto">
+            <input class="form-check-input" type="radio" name="estadoNuevo" id="estCompleto" value="Recibido Completo">
+            <span>Recibido Completo</span>
+          </label>
+          <label class="saif-radio-option" for="estParcial">
+            <input class="form-check-input" type="radio" name="estadoNuevo" id="estParcial" value="Recibido Parcialmente">
+            <span>Recibido Parcialmente</span>
+          </label>
+          <label class="saif-radio-option" for="estRechazado">
+            <input class="form-check-input" type="radio" name="estadoNuevo" id="estRechazado" value="Rechazado">
+            <span>Rechazado</span>
+          </label>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="estadoNuevo" id="estParcial" value="Recibido Parcialmente">
-          <label class="form-check-label" for="estParcial">Recibido Parcialmente</label>
+        <div id="motivoWrap" class="saif-motivo d-none">
+          <label class="form-label saif-label">Motivo (obligatorio para Rechazado)</label>
+          <textarea id="motivoEstado" class="form-control saif-input" rows="2" placeholder="Explique el motivo..."></textarea>
         </div>
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="radio" name="estadoNuevo" id="estRechazado" value="Rechazado">
-          <label class="form-check-label" for="estRechazado">Rechazado</label>
-        </div>
-        <div id="motivoWrap" class="d-none">
-          <label class="form-label">Motivo (obligatorio para Rechazado)</label>
-          <textarea id="motivoEstado" class="form-control" rows="2" placeholder="Explique el motivo..."></textarea>
-        </div>
-        <div id="estadoAlert" class="alert alert-danger d-none mt-2"></div>
+        <div id="estadoAlert" class="saif-alert saif-alert--error d-none mt-3"></div>
       </div>
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success" id="btnConfirmEstado">Confirmar</button>
+      <div class="modal-footer saif-footer">
+        <button type="button" class="btn saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="button" class="btn saif-btn-success" id="btnConfirmEstado">
+          <i class="bi bi-check2-circle"></i> Confirmar
+        </button>
       </div>
     </div>
   </div>

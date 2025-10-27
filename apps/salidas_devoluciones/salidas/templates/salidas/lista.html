@@ -63,6 +63,104 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 #tablaVentas tr { cursor: pointer; }
 </style>
 
+<style>
+.saif-modal--danger{
+  border:0;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(190,18,60,.22);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.saif-modal--danger .modal-header{
+  background:linear-gradient(135deg,#dc2626 0%,#b91c1c 55%,#991b1b 100%);
+  color:#fff;
+  border-bottom:0;
+  padding:1rem 1.25rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.saif-modal--danger .saif-modal-title{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.saif-modal--danger .saif-modal-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:rgba(255,255,255,.2);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+}
+.saif-modal--danger .saif-modal-body{
+  background:linear-gradient(180deg,#fff5f5 0%,#fee2e2 100%);
+  padding:1.4rem 1.5rem;
+}
+.saif-modal--danger .saif-confirm-card{
+  background:#fff;
+  border:1px solid rgba(252,165,165,.6);
+  border-radius:1rem;
+  box-shadow:0 16px 32px rgba(220,38,38,.18);
+  padding:1.15rem 1.25rem;
+  color:#7f1d1d;
+}
+.saif-modal--danger .saif-confirm-text{
+  font-size:1rem;
+  line-height:1.55;
+  margin:0;
+}
+.saif-alert{
+  padding:.85rem 1.1rem;
+  border-radius:.85rem;
+  font-weight:600;
+}
+.saif-alert--error{
+  background:rgba(254,202,202,.35);
+  border:1px solid rgba(239,68,68,.65);
+  color:#7f1d1d;
+}
+.saif-footer{
+  background:linear-gradient(145deg,#fef2f2 0%,#fee2e2 100%);
+  border-top:0;
+  padding:.9rem 1.3rem;
+  display:flex;
+  justify-content:flex-end;
+  gap:.75rem;
+}
+.saif-btn-light{
+  background:#fff;
+  border:1px solid rgba(148,163,184,.45);
+  color:#334155;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.25rem;
+}
+.saif-btn-light:hover{
+  background:#f8fafc;
+  border-color:#94a3b8;
+  color:#1e293b;
+}
+.saif-btn-danger{
+  background:#dc2626;
+  border-color:#dc2626;
+  color:#fff;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.35rem;
+}
+.saif-btn-danger:hover{
+  background:#b91c1c;
+  border-color:#b91c1c;
+  color:#fff;
+}
+</style>
+
 <section class="p-6 md:p-8">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
     <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
@@ -151,27 +249,30 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-hidden="true"
      data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">
-          <i class="bi bi-x-octagon me-2"></i>
-          Cancelar venta
-        </h5>
+    <div class="modal-content saif-modal saif-modal--danger">
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-x-octagon"></i></span>
+          <span>Cancelar venta</span>
+        </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body">
-        <div id="cancelAlert" class="alert alert-danger d-none" role="alert"></div>
-        <p class="mb-0">
-          ¿Seguro que deseas <strong>cancelar</strong> la venta
-          <span class="text-danger fw-semibold" id="cancelRef"></span>?<br>
-          Esta acción revertirá el inventario de todos sus renglones.
-        </p>
+      <div class="modal-body saif-modal-body">
+        <div id="cancelAlert" class="saif-alert saif-alert--error d-none" role="alert"></div>
+        <div class="saif-confirm-card">
+          <p class="saif-confirm-text">
+            ¿Seguro que deseas <strong>cancelar</strong> la venta
+            <span class="text-danger fw-semibold" id="cancelRef"></span>?<br>
+            Esta acción revertirá el inventario de todos sus renglones.
+          </p>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+      <div class="modal-footer saif-footer">
+        <button type="button" class="btn saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-arrow-left"></i> Volver
         </button>
-        <button type="button" class="btn btn-danger" id="btnConfirmCancel">
+        <button type="button" class="btn saif-btn-danger" id="btnConfirmCancel">
           <i class="bi bi-x-octagon"></i> Cancelar venta
         </button>
       </div>

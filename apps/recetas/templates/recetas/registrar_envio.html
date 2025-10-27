@@ -125,7 +125,7 @@
 <!-- MODAL CAMBIAR ESTADO -->
 <div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
-    <div class="modal-content" id="modal-cambiar-estado-content"></div>
+    <div class="modal-content saif-modal saif-modal--envio" id="modal-cambiar-estado-content"></div>
   </div>
 </div>
 
@@ -421,11 +421,29 @@ thead.sticky-top tr.filter-row th{position:sticky;top:42px;z-index:10;background
 #tablaEnvios tr>*:last-child{border-right:0}
 #tablaEnvios tbody tr.last-visible td{border-bottom:0!important}
 #tablaEnvios tbody tr:hover{background:#fafafa}
-.saif-modal .modal-content{border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25)}
+.saif-modal .modal-content,.saif-modal.saif-modal--envio{border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25)}
 .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem 1rem}
 .kv{display:grid;grid-template-columns:160px 1fr;align-items:start;gap:.35rem .5rem;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.65rem .75rem;box-shadow:0 4px 12px rgba(15,23,42,.04)}
 .kv__key{font-weight:700;color:#0b1220}
 .kv__val{color:#0f172a}
+.saif-modal--envio .modal-header{background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);color:#fff;border-bottom:0;padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.saif-modal--envio .saif-modal-title{display:flex;align-items:center;gap:.75rem;font-weight:700;letter-spacing:.02em}
+.saif-modal--envio .saif-modal-icon{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:inline-flex;align-items:center;justify-content:center;font-size:1.25rem}
+.saif-modal--envio .saif-modal-body{background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:1.2rem}
+.saif-field{display:flex;flex-direction:column;gap:.45rem}
+.saif-label{font-weight:600;color:#14532d;font-size:.95rem}
+.saif-input-readonly{display:flex;align-items:center;gap:.55rem;background:#fff;border:1px solid #cfe9d7;border-radius:.85rem;padding:.65rem .85rem;min-height:48px;box-shadow:0 6px 16px rgba(15,122,58,.12);color:#0f172a;font-weight:600}
+.saif-input-readonly i{color:#0f7a3a}
+.saif-select-wrap{position:relative;display:flex;align-items:center}
+.saif-select-icon{position:absolute;left:1rem;color:#0f7a3a;font-size:1rem;pointer-events:none}
+.saif-select{border-radius:.85rem;border:1px solid #cfe9d7;padding:.65rem .9rem .65rem 2.6rem;font-weight:600;color:#0f172a;box-shadow:0 6px 16px rgba(15,122,58,.12)}
+.saif-select:focus{border-color:#22c55e;box-shadow:0 0 0 .15rem rgba(34,197,94,.18);outline:0}
+.saif-hint{display:flex;align-items:center;gap:.55rem;background:rgba(15,122,58,.08);border:1px solid rgba(34,197,94,.2);border-radius:.9rem;padding:.65rem .85rem;color:#0f5132;font-size:.9rem}
+.saif-footer{background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);border-top:0;padding:.9rem 1.3rem;display:flex;justify-content:flex-end;gap:.75rem}
+.saif-btn-light{background:#f8fff9;border:1px solid #cfe9d7;color:#166534;font-weight:600;border-radius:999px;padding:.45rem 1.25rem}
+.saif-btn-light:hover{background:#ecfdf5;border-color:#a7f3d0;color:#0f7a3a}
+.saif-btn-success{background:#0f7a3a;border-color:#0f7a3a;color:#fff;font-weight:600;border-radius:999px;padding:.45rem 1.4rem}
+.saif-btn-success:hover{background:#0c5d2c;border-color:#0c5d2c;color:#fff}
 </style>
 
 <!-- ============================= SCRIPT ============================= -->

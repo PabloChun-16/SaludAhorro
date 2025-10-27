@@ -7,53 +7,41 @@
 <link rel="stylesheet" href="{% static 'lista/lista.css' %}">
 
 <style>
-/* ====== Contenedor con scroll (igual al modelo) ====== */
-.table-container{
-  overflow-x:auto; width:100%; scroll-padding-top:90px;
-  max-width:100%;
-}
+.table-container{ overflow-x:auto; width:100%; scroll-padding-top:90px; max-width:100%; }
 
-/* ====== Tabla (mismo esqueleto del modelo) ====== */
+/* ====== Tabla ====== */
 #tablaStock{
   table-layout:fixed; width:100%; min-width:1200px;
-  border-collapse:separate;           /* como el modelo */
-  border-spacing:0;                   /* como el modelo */
-  outline:1px solid #e3e6ea;          /* borde exterior */
-  outline-offset:-1px;
-  border-radius:.5rem;
-  margin-bottom:0;
-  background:#fff;
+  border-collapse:separate; border-spacing:0;
+  outline:1px solid #e3e6ea; outline-offset:-1px; border-radius:.5rem;
+  margin-bottom:0; background:#fff;
 }
 
-/* ====== Celdas ====== */
 #tablaStock th, #tablaStock td{
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis; vertical-align:middle;
   padding:.5rem; font-size:.875rem; background-clip:padding-box;
-  border:1px solid #e3e6ea; /* rejilla interna */
+  border:1px solid #e3e6ea;
 }
-
-/* Mismo color en filas + hover del modelo */
 #tablaStock tbody tr{ background:#ffffff; }
 #tablaStock tbody tr:hover{ background:#fafafa; }
 
-/* ====== Encabezado sticky (idéntico al modelo) ====== */
+/* ====== Encabezado sticky ====== */
 #tablaStock thead.sticky-top{ position:sticky; top:0; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,.06); }
 #tablaStock thead.sticky-top tr:first-child th{
   position:sticky; top:0; z-index:11; background:#e8f5ec;
   border-bottom:1px solid #d7dbdf;
 }
 #tablaStock thead.sticky-top tr.filter-row th{
-  position:sticky; top:42px; z-index:10;       /* << fijo como en el modelo */
+  position:sticky; top:42px; z-index:10;
   background:#f4fbf6;
   border-top:1px solid #d9f3e0; border-bottom:1px solid #d7dbdf;
   box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
   padding:.35rem .5rem; overflow:visible; min-width:80px;
 }
 
-/* Controles compactos del thead */
+/* ===== Controles de filtros ===== */
 thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; }
 
-/* ===== Look de filtros ===== */
 .filter-control{
   width:100%; height:32px; padding:.25rem .5rem; box-sizing:border-box;
   border:1px solid #cfe9d7; background:#fff; border-radius:.5rem;
@@ -64,7 +52,6 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 .filter-control:focus{ border-color:#62c07b; outline:0; box-shadow:0 0 0 .15rem rgba(34,197,94,.15); }
 select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; }
 
-/* Wrapper para selects centrados (como en el modelo) */
 #tablaStock thead.sticky-top tr.filter-row th .filter-wrap{ display:flex; justify-content:center; }
 #tablaStock thead.sticky-top tr.filter-row th .filter-wrap>select{ width:100%; max-width:100%; }
 #tablaStock thead.sticky-top tr.filter-row th select.form-select.filter-control{
@@ -77,12 +64,20 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 /* Paginación: ocultar filas fuera de página */
 .hidden-by-pagination{ display:none !important; }
 
-/* ===== Anchos (%), igual que el modelo ===== */
+/* ===== Anchos (%) ===== */
 .wp-5{width:5%}.wp-6{width:6%}.wp-7{width:7%}.wp-8{width:8%}
 .wp-11{width:11%}.wp-12{width:12%}.wp-14{width:14%}.wp-16{width:16%}
 .wp-15{width:15%}.wp-22{width:22%}
 
-/* Responsivo (igual patrón) */
+/* ===== Colorear columna "Disponible" según estado (verde/rojo) ===== */
+tbody tr.estado-disponible td:nth-child(5){
+  color:#0f7a3a; font-weight:600;
+}
+tbody tr.estado-retirado td:nth-child(5){
+  color:#b91c1c; font-weight:600;
+}
+
+/* Responsive */
 @media (max-width:1400px){
   #tablaStock th,#tablaStock td{ padding:.4rem; font-size:.8rem; }
   .filter-control{ font-size:.8rem; padding:.2rem .4rem; }
@@ -111,13 +106,12 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 
     <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaStock" role="grid" aria-label="Tabla de stock">
-        <!-- ===== colgroup con los mismos % que Productos ===== -->
         <colgroup>
           <col class="wp-7">
           <col class="wp-15">
           <col class="wp-22">
           <col class="wp-12">
-          <col class="wp-12">
+          <col class="wp-12"><!-- Disponible -->
           <col class="wp-8">
           <col class="wp-6">
           <col class="wp-6">
@@ -148,11 +142,11 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
             <th></th>
             <th>
               <div class="filter-wrap">
+                <!-- Solo: Todos, Disponible (preseleccionado), Retirado -->
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
                   <option value="">Todos</option>
-                  <option value="vigente">Vigente</option>
-                  <option value="vencido">Vencido</option>
-                  <option value="otros">Otros</option>
+                  <option value="disponible" selected>Disponible</option>
+                  <option value="retirado">Retirado</option>
                 </select>
               </div>
             </th>
@@ -176,9 +170,20 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
             <td class="text-truncate">{{ lote.numero_lote }}</td>
             <td>{{ lote.fecha_caducidad }}</td>
             <td>
-              <span class="badge {% if lote.id_estado_lote.nombre_estado == 'Vigente' %}bg-success{% elif lote.id_estado_lote.nombre_estado == 'Vencido' %}bg-danger{% else %}bg-secondary{% endif %}">
-                {{ lote.id_estado_lote.nombre_estado }}
-              </span>
+              {# Badge verde para Disponible/Vigente; rojo para Retirado/Vencido/Devuelto #}
+              {% with est=lote.id_estado_lote.nombre_estado %}
+                <span class="badge
+                  {% if est == 'Disponible' or est == 'Vigente' %}
+                    bg-success
+                  {% elif est == 'Retirado' or est == 'Vencido' or est == 'Devuelto' %}
+                    bg-danger
+                  {% else %}
+                    bg-secondary
+                  {% endif %}
+                ">
+                  {{ est }}
+                </span>
+              {% endwith %}
             </td>
             <td>{{ lote.precio_compra }}</td>
             <td>{{ lote.precio_venta }}</td>
@@ -255,7 +260,6 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 {% block extra_js %}
 {{ block.super }}
 <script>
-/* === LÓGICA ORIGINAL (sin cambios) === */
 document.addEventListener("DOMContentLoaded", function () {
   const table        = document.getElementById("tablaStock");
   const tbody        = table.querySelector("tbody");
@@ -371,8 +375,18 @@ document.addEventListener("DOMContentLoaded", function () {
       tr.dataset.pres   = norm(tds[COL.pres]?.textContent);
       tr.dataset.lote   = norm(tds[COL.lote]?.textContent);
 
+      // Normalización de estado → disponible / retirado
       const estadoRaw = (tr.getAttribute("data-estado") || tds[COL.estado]?.textContent || "").trim().toLowerCase();
-      tr.dataset.estado = (estadoRaw === "vigente" || estadoRaw === "vencido") ? estadoRaw : "otros";
+      let estadoNorm;
+      if (["disponible","vigente"].includes(estadoRaw)) estadoNorm = "disponible";
+      else if (["retirado","vencido","devuelto"].includes(estadoRaw)) estadoNorm = "retirado";
+      else estadoNorm = "otros";
+      tr.dataset.estado = estadoNorm;
+
+      // Clase para colorear la columna "Disponible"
+      tr.classList.remove("estado-disponible","estado-retirado");
+      if (estadoNorm === "disponible") tr.classList.add("estado-disponible");
+      if (estadoNorm === "retirado")   tr.classList.add("estado-retirado");
     });
   }
 
@@ -509,6 +523,9 @@ function applyPagination(){
       });
       window.location.href = `${base}?${params.toString()}`;
     });
+
+    /* Asegurar que al entrar quede preseleccionado "disponible" */
+    if (fEstado && !fEstado.value) fEstado.value = "disponible";
 
     applyFilters();
   }

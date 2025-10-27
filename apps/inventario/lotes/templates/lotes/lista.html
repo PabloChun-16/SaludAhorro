@@ -55,6 +55,122 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 
 /* Hover */
 #tablaLotes tbody tr:hover{ background:#fafafa; }
+
+/* ====== Modal confirmar retiro (estilo SAIF) ====== */
+.saif-modal--confirm{
+  border:0;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(15,122,58,.25);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.saif-modal--confirm .modal-header{
+  background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
+  color:#fff;
+  border-bottom:0;
+  padding:1rem 1.2rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.saif-modal--confirm .saif-modal-title{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.saif-modal--confirm .saif-modal-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:rgba(255,255,255,.18);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+}
+.saif-modal--confirm .saif-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  background:#f8fff9;
+  color:#0f7a3a;
+  border:1px solid rgba(34,197,94,.25);
+  border-radius:999px;
+  padding:.35rem .75rem;
+  font-weight:700;
+  font-size:.75rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.saif-modal--confirm .modal-body{
+  background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+  padding:1.2rem 1.35rem;
+}
+.saif-confirm-body{
+  background:#fff;
+  border:1px solid #cfe9d7;
+  border-radius:1rem;
+  box-shadow:0 14px 30px rgba(15,122,58,.12);
+  padding:1.1rem 1.25rem;
+  color:#0f172a;
+}
+.saif-confirm-text{
+  font-size:1rem;
+  line-height:1.55;
+  margin-bottom:.85rem;
+}
+.saif-confirm-note{
+  display:flex;
+  align-items:flex-start;
+  gap:.6rem;
+  background:rgba(15,122,58,.08);
+  border:1px dashed rgba(34,197,94,.35);
+  border-radius:.9rem;
+  padding:.75rem 1rem;
+  color:#166534;
+  font-size:.9rem;
+}
+.saif-confirm-note i{
+  font-size:1.05rem;
+  margin-top:.1rem;
+}
+.saif-footer{
+  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+  border-top:0;
+  padding:.85rem 1.3rem;
+  display:flex;
+  justify-content:flex-end;
+  gap:.75rem;
+}
+.saif-btn-light{
+  background:#f8fff9;
+  border:1px solid #cfe9d7;
+  color:#166534;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.2rem;
+}
+.saif-btn-light:hover{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#0f7a3a;
+}
+.saif-btn-danger{
+  background:#dc2626;
+  border-color:#dc2626;
+  color:#fff;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.2rem;
+}
+.saif-btn-danger:hover{
+  background:#b91c1c;
+  border-color:#b91c1c;
+  color:#fff;
+}
 </style>
 
 <section class="p-3">
@@ -151,7 +267,7 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 <!-- Modal de confirmación -->
 <div class="modal fade" id="confirmRetirarModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content saif-modal saif-modal--confirm">
       <div class="modal-header">
         <div class="saif-modal-title">
           <span class="saif-modal-icon"><i class="bi bi-recycle"></i></span>
@@ -161,14 +277,26 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        ¿Pasar a <strong>Retirado</strong> el lote <strong id="confirmLoteText"></strong>?
-        <div class="small text-muted mt-2">
-          No se elimina: queda como baja lógica. Requiere stock disponible = 0.
+        <div class="saif-confirm-body">
+          <p class="saif-confirm-text">
+            ¿Pasar a <strong>Retirado</strong> el lote <strong id="confirmLoteText"></strong>?
+          </p>
+          <div class="saif-confirm-note">
+            <i class="bi bi-shield-exclamation"></i>
+            <div>
+              No se elimina: queda como baja lógica.
+              <span class="d-block">Requiere stock disponible = 0.</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="modal-footer py-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmRetirar">Retirar</button>
+      <div class="modal-footer saif-footer">
+        <button type="button" class="btn saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-arrow-left"></i> Cancelar
+        </button>
+        <button type="button" class="btn saif-btn-danger" id="btnConfirmRetirar">
+          <i class="bi bi-check2-circle"></i> Retirar
+        </button>
       </div>
     </div>
   </div>

@@ -301,7 +301,7 @@
 </div>
 
 <!-- ================== MODAL: BUSCAR PRODUCTO ================== -->
-<div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -309,40 +309,44 @@
           <span class="saif-modal-icon"><i class="bi bi-search"></i></span>
           <span>Buscar producto</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <input id="searchProducto" type="text" class="form-control" placeholder="Escribe código o nombre...">
+      <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <div class="saif-search-group input-group mb-3">
+          <span class="input-group-text saif-ig"><i class="bi bi-search"></i></span>
+          <input id="searchProducto" type="text" class="form-control saif-input" placeholder="Escribe codigo o nombre...">
         </div>
-        <div class="table-responsive" style="max-height:50vh;overflow:auto">
-          <table class="table table-hover table-sm">
-            <thead class="table-success">
-              <tr>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Presentación</th>
-                <th>Unidad</th>
-                <th>Condición</th>
-                <th>Receta</th>
-                <th>Ctrl.</th>
-                <th>Elegir</th>
-              </tr>
-            </thead>
-            <tbody id="tablaBuscarProductos"></tbody>
-          </table>
+        <div class="saif-table-wrapper">
+          <div class="saif-table-scroll table-responsive">
+            <table class="table table-hover table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Codigo</th>
+                  <th>Nombre</th>
+                  <th>Descripcion</th>
+                  <th>Presentacion</th>
+                  <th>Unidad</th>
+                  <th>Condicion</th>
+                  <th>Receta</th>
+                  <th>Ctrl.</th>
+                  <th>Elegir</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBuscarProductos"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      <div class="modal-footer justify-content-end saif-footer">
+        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ================== MODAL: BUSCAR FACTURA ================== -->
-<div class="modal fade" id="modalBuscarFactura" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarFactura" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -350,29 +354,33 @@
           <span class="saif-modal-icon"><i class="bi bi-receipt"></i></span>
           <span>Buscar factura</span>
         </div>
+        <span class="saif-badge">SAIF</span>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <input id="searchFactura" type="text" class="form-control" placeholder="Número de factura, producto, usuario...">
+      <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <div class="saif-search-group input-group mb-3">
+          <span class="input-group-text saif-ig"><i class="bi bi-search"></i></span>
+          <input id="searchFactura" type="text" class="form-control saif-input" placeholder="Numero de factura, producto, usuario...">
         </div>
-        <div class="table-responsive" style="max-height:50vh;overflow:auto">
-          <table class="table table-hover table-sm">
-            <thead class="table-success">
-              <tr>
-                <th>Factura</th>
-                <th>Usuario venta</th>
-                <th>Producto</th>
-                <th>Fecha</th>
-                <th>Elegir</th>
-              </tr>
-            </thead>
-            <tbody id="tablaBuscarFacturas"></tbody>
-          </table>
+        <div class="saif-table-wrapper">
+          <div class="saif-table-scroll table-responsive">
+            <table class="table table-hover table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Factura</th>
+                  <th>Usuario venta</th>
+                  <th>Producto</th>
+                  <th>Fecha</th>
+                  <th>Elegir</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBuscarFacturas"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      <div class="modal-footer justify-content-end saif-footer">
+        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
       </div>
     </div>
   </div>
@@ -412,6 +420,90 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 .hidden-by-pagination{ display:none !important; }
 .saif-modal .modal-content { border:0; border-radius:18px; overflow:hidden; box-shadow:0 18px 45px rgba(14,122,58,.25); }
 .saif-modal .modal-header { background:#0f7a3a; color:#fff; border-bottom:0; padding:.9rem 1.1rem }
+.saif-modal .btn-close.btn-close-white{ filter:invert(1); opacity:.9; }
+.saif-modal-body{ background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%); }
+.saif-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  background:#f8fff9;
+  color:#0f7a3a;
+  border:1px solid rgba(34,197,94,.25);
+  border-radius:999px;
+  padding:.35rem .75rem;
+  font-weight:700;
+  font-size:.75rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.saif-modal--search .saif-search-group{
+  display:flex;
+  align-items:center;
+  border:1px solid #cfe9d7;
+  border-radius:.95rem;
+  background:#ffffff;
+  box-shadow:0 10px 24px rgba(15,122,58,.14);
+}
+.saif-modal--search .saif-search-group .saif-ig{
+  border:0;
+  background:linear-gradient(145deg,#f4fbf6 0%,#e5f3eb 100%);
+  color:#0f7a3a;
+  font-weight:700;
+  padding:.65rem .9rem;
+}
+.saif-modal--search .saif-search-group .saif-input{
+  border:0;
+  background:transparent;
+  padding:.7rem .9rem;
+  box-shadow:none;
+}
+.saif-modal--search .saif-search-group .saif-input:focus{
+  box-shadow:none;
+}
+.saif-modal--search .saif-table-wrapper{
+  border:1px solid #d7ebe0;
+  border-radius:1rem;
+  background:#ffffff;
+  box-shadow:0 14px 30px rgba(15,122,58,.12);
+  overflow:hidden;
+}
+.saif-modal--search .saif-table-scroll{ max-height:50vh; overflow:auto; }
+.saif-modal--search table{ margin:0; font-size:.88rem; color:#0f172a; }
+.saif-modal--search thead th{
+  background:linear-gradient(145deg,#e1f5ea 0%,#d4ecdd 100%);
+  color:#14532d;
+  font-weight:800;
+  border-bottom:1px solid #cfe9d7;
+  padding:.65rem .75rem;
+}
+.saif-modal--search tbody td{
+  padding:.6rem .75rem;
+  border-color:#e5f2ea;
+  vertical-align:middle;
+}
+.saif-modal--search tbody tr:nth-child(even){ background:#f8fffb; }
+.saif-modal--search tbody tr:hover{ background:#effcf4; }
+.saif-footer{
+  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+  border-top:0;
+  padding:.9rem 1.3rem;
+  display:flex;
+  justify-content:flex-end;
+  gap:.75rem;
+}
+.saif-btn-light{
+  background:#f8fff9;
+  border:1px solid #cfe9d7;
+  color:#166534;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.25rem;
+}
+.saif-btn-light:hover{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#0f7a3a;
+}
 .kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem 1rem }
 .kv { display:grid; grid-template-columns:160px 1fr; align-items:start; gap:.35rem .5rem; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .75rem; box-shadow:0 4px 12px rgba(15,23,42,.04) }
 .kv__key { font-weight:700; color:#0b1220 }
