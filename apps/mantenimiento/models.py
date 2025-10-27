@@ -56,18 +56,6 @@ class Condiciones_Almacenamiento(models.Model):
         verbose_name_plural = 'Condiciones de Almacenamiento'
 
 
-class Estado_Alerta(models.Model):
-    nombre_estado_alerta = models.CharField(max_length=50, unique=True)
-    descripcion = models.CharField(max_length=255, null=True, blank=True)
-    
-    def __str__(self):
-        return self.nombre_estado_alerta
-        
-    class Meta:
-        verbose_name = 'Estado de Alerta'
-        verbose_name_plural = 'Estados de Alerta'
-
-
 class Estado_Lote(models.Model):
     nombre_estado = models.CharField(max_length=50, unique=True)
     descripcion = models.CharField(max_length=255, null=True, blank=True)
@@ -163,18 +151,6 @@ class Tipo_Movimiento_Inventario(models.Model):
     class Meta:
         verbose_name = 'Tipo de Movimiento de Inventario'
         verbose_name_plural = 'Tipos de Movimiento de Inventario'
-
-
-class Tipo_Alerta(models.Model):
-    nombre_tipo_alerta = models.CharField(max_length=50, unique=True)
-    descripcion = models.CharField(max_length=255, null=True, blank=True)
-    
-    def __str__(self):
-        return self.nombre_tipo_alerta
-        
-    class Meta:
-        verbose_name = 'Tipo de Alerta'
-        verbose_name_plural = 'Tipos de Alerta'
 
 
 class Auditoria(models.Model):
