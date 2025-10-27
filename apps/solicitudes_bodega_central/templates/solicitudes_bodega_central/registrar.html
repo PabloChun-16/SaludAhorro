@@ -296,6 +296,16 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-search"></i> CONSULTAR
       </button>
+      <button id="btnCambiarEstado"
+        class="btn btn-outline-success rounded-pill px-3 shadow-sm"
+        disabled>
+        <i class="bi bi-arrow-repeat"></i> Cambiar estado
+      </button>
+
+      <!-- patrones de URL para JS -->
+      <span id="urlPatterns"
+            data-cambiar-modal="{% url 'solicitudes_bodega_central:solicitud_cambiar_estado_modal' 0 %}"
+            hidden></span>
     </div>
   </div>
 </section>
@@ -505,6 +515,13 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
   </div>
 </div>
 
+<!-- MODAL CAMBIAR ESTADO -->
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content" id="modal-cambiar-estado-content"></div>
+  </div>
+</div>
+
 <!-- ====== MODAL: BUSCAR PRODUCTO ====== -->
 <div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -566,7 +583,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalBuscar = document.getElementById("modalBuscarProducto");
   const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"));
 
+  const btnCambiarEstado = document.getElementById("btnCambiarEstado");
+  
+  let selectedId = null;
   let selectedRow = null;
+
   const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   const escapeHtml = (str = "") => str.replace(/[&<>"']/g, ch => ESC_MAP[ch] || ch);
   const cleanValue = (value) => {
@@ -610,21 +631,48 @@ document.addEventListener("DOMContentLoaded", function () {
   table.addEventListener("click", (e) => {
     const tr = e.target.closest("tr[data-id]");
     if (!tr) return;
-    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+
+    table.querySelectorAll("tr.selected, tr.table-active")
+        .forEach(r => r.classList.remove("selected","table-active"));
+
     tr.classList.add("selected","table-active");
+
     selectedRow = tr;
-    btnConsultar.disabled = false;
+    selectedId  = tr.dataset.id || null;
+
+    // habilita/propaga id a los botones
+    btnConsultar.disabled = !selectedId;
+
+    if (btnCambiarEstado) {
+      btnCambiarEstado.disabled = !selectedId;
+      if (selectedId) btnCambiarEstado.dataset.id = selectedId;
+      else delete btnCambiarEstado.dataset.id;
+    }
   });
+
 
   tbody.addEventListener("dblclick",(ev)=>{
     const tr = ev.target.closest("tr[data-id]");
     if(!tr || tr.hasAttribute("data-empty-row")) return;
-    table.querySelectorAll("tr.selected, tr.table-active").forEach(r => r.classList.remove("selected","table-active"));
+
+    table.querySelectorAll("tr.selected, tr.table-active")
+        .forEach(r => r.classList.remove("selected","table-active"));
+
     tr.classList.add("selected","table-active");
+
     selectedRow = tr;
-    btnConsultar.disabled = false;
+    selectedId  = tr.dataset.id || null;             // <--- NUEVO
+    btnConsultar.disabled = !selectedId;
+
+    if (btnCambiarEstado) {                           // <--- NUEVO
+      btnCambiarEstado.disabled = !selectedId;
+      if (selectedId) btnCambiarEstado.dataset.id = selectedId;
+      else delete btnCambiarEstado.dataset.id;
+    }
+
     btnConsultar.click();
   });
+
 
   btnConsultar.addEventListener("click", function () {
     const row = selectedRow;
@@ -696,6 +744,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     modalConsultar.show();
   });
+
+
 
   // ========== Crear ==========
   const alertBox = document.getElementById("formAlertSolicitud");
@@ -930,6 +980,57 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     inputs.forEach(inp=>{ const ev=(inp.tagName==="SELECT")?"change":"input"; inp.addEventListener(ev,applyFilters); });
   }
+
+  /* ======== Cambiar estado + Editar (AJAX) ======== */
+const urlPatterns = document.getElementById("urlPatterns");
+
+const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"));
+const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
+
+
+// Engancha el submit del form de CAMBIAR ESTADO cada vez que cargue el modal
+function hookFormCambiarEstado() {
+  const form = document.getElementById("formCambiarEstadoSolicitud");
+  if (!form) return;
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    fetch(form.action, {
+      method: "POST",
+      body: fd,
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        modalCambiar.hide();
+        window.location.reload(); // refresca la tabla y queda en el sistema
+      } else {
+        alert(d.error || "No se pudo cambiar el estado.");
+      }
+    })
+    .catch(() => alert("Error al procesar el cambio de estado."));
+  }, { once: true });
+}
+
+
+// Abrir modal Cambiar estado
+btnCambiarEstado?.addEventListener("click", () => {
+  const id = btnCambiarEstado.dataset.id;
+  if (!id) return;
+  const url = urlPatterns.dataset.cambiarModal.replace("/0/", `/${id}/`);
+  modalCambiarContent.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+  modalCambiar.show();
+
+  fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }})
+    .then(r => r.json())
+    .then(d => {
+      modalCambiarContent.innerHTML = d.html;
+      hookFormCambiarEstado();
+    })
+    .catch(() => modalCambiarContent.innerHTML = '<div class="p-4 text-danger">Error cargando modal.</div>');
+});
+
 
   removeEmptyRows();
   recomputarPageSize();

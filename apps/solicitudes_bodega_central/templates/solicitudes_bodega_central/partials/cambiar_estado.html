@@ -1,0 +1,42 @@
+<div class="saif-modal">
+  <div class="modal-header">
+    <div class="saif-modal-title">
+      <span class="saif-modal-icon"><i class="bi bi-arrow-repeat"></i></span>
+      <span>Cambiar estado</span>
+    </div>
+    <span class="saif-badge">SAIF</span>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+  </div>
+
+  <form method="post" id="formCambiarEstadoSolicitud" action="{% url 'solicitudes_bodega_central:solicitud_cambiar_estado' solicitud.id %}">
+    {% csrf_token %}
+    <div class="modal-body">
+      <div class="alert alert-warning small">
+        <strong>Notas</strong><br>
+        – Puedes pasar la solicitud entre <em>Enviada</em>, <em>Completada</em> y <em>Cancelada</em> libremente.<br>
+        – El estado no afecta inventario.
+      </div>
+
+      {% for e in estados %}
+        {% with e.nombre_estado as n %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="estado_id" id="e{{e.id}}" value="{{e.id}}"
+                 {% if n == actual %}checked{% endif %}>
+          <label class="form-check-label" for="e{{e.id}}">
+            {{ n }}{% if n == actual %} <span class="badge bg-secondary ms-1">Actual</span>{% endif %}
+          </label>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check2-circle"></i> Confirmar
+      </button>
+    </div>
+  </form>
+</div>

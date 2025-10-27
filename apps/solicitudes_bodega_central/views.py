@@ -18,6 +18,44 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from .models import Solicitudes_Faltantes, Detalle_Solicitud_Faltantes
 from apps.mantenimiento.models import Usuario, Estado_Solicitud
 from apps.inventario.models import Productos
+from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
+
+
+@login_required
+def solicitud_cambiar_estado_modal(request, id):
+    solicitud = get_object_or_404(Solicitudes_Faltantes, pk=id)
+    # Sólo estos 3 estados
+    estados = Estado_Solicitud.objects.filter(
+        nombre_estado__in=["Enviada", "Completada", "Cancelada"]
+    ).order_by("nombre_estado")
+
+    html = render_to_string(
+        "solicitudes_bodega_central/partials/cambiar_estado.html",
+        {
+            "solicitud": solicitud,
+            "estados": estados,
+            "actual": solicitud.id_estado_solicitud.nombre_estado if solicitud.id_estado_solicitud else "",
+        },
+        request=request,
+    )
+    return JsonResponse({"html": html})
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def solicitud_cambiar_estado(request, id):
+    solicitud = get_object_or_404(Solicitudes_Faltantes, pk=id)
+    estado_id = request.POST.get("estado_id")
+    try:
+        estado = Estado_Solicitud.objects.get(pk=estado_id)
+    except Estado_Solicitud.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Estado inválido."}, status=400)
+
+    solicitud.id_estado_solicitud = estado
+    solicitud.save(update_fields=["id_estado_solicitud"])
+    return JsonResponse({"success": True})
 
 
 # ==============================

@@ -24,4 +24,7 @@ urlpatterns = [
     # Utilidades
     path("listar/", views.listar_solicitudes, name="listar_solicitudes"),
     path("exportar/pdf/", views.exportar_solicitudes_pdf, name="exportar_solicitudes_pdf"),
+
+    path("<int:id>/cambiar-estado/modal/", views.solicitud_cambiar_estado_modal, name="solicitud_cambiar_estado_modal"),
+path("<int:id>/cambiar-estado/", views.solicitud_cambiar_estado, name="solicitud_cambiar_estado"),
 ]
