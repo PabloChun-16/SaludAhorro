@@ -1,0 +1,46 @@
+<!-- templates/recetas/partials/envio_cambiar_estado_modal.html -->
+<div class="modal-header">
+  <h5 class="modal-title d-flex align-items-center gap-2">
+    <i class="bi bi-arrow-repeat"></i> Cambiar estado del envío
+  </h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+
+<form id="formCambiarEstadoEnvio" method="post" action="{% url 'recetas:envio_cambiar_estado' envio.id %}">
+  {% csrf_token %}
+  <div class="modal-body">
+    <div class="mb-2">
+      <label class="form-label fw-bold">Reporte</label>
+      <input class="form-control" value="{{ envio.nombre_reporte }}" disabled>
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label fw-bold">Estado actual</label>
+      <input class="form-control" value="{{ envio.id_estado_envio.nombre_estado|default:'—' }}" disabled>
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label fw-bold">Nuevo estado</label>
+      <select class="form-select" name="estado_id" required>
+        {% for e in estados %}
+          <option value="{{ e.id }}"
+            {% if envio.id_estado_envio_id == e.id %}selected{% endif %}>
+            {{ e.nombre_estado }}
+          </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">
+        Valores recomendados: Enviado (por defecto), Cancelado, Recibido.
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+      <i class="bi bi-x-lg"></i> Cancelar
+    </button>
+    <button type="submit" class="btn btn-success">
+      <i class="bi bi-check2-circle"></i> Guardar
+    </button>
+  </div>
+</form>

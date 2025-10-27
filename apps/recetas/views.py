@@ -23,7 +23,39 @@ from datetime import datetime
 import io
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_http_methods
 
+@login_required
+@require_http_methods(["GET", "POST"])
+def envio_cambiar_estado(request, pk):
+    """
+    GET  -> devuelve JSON {html: "<form ...>"} con el modal para cambiar estado
+    POST -> cambia el estado y devuelve JSON {success: True/False, error?}
+    """
+    envio = get_object_or_404(
+        EnvioReceta.objects.select_related("id_estado_envio"),
+        pk=pk
+    )
+
+    if request.method == "POST":
+        estado_id = request.POST.get("estado_id")
+        try:
+            estado = get_object_or_404(EstadoEnvioReceta, pk=estado_id)
+            envio.id_estado_envio = estado
+            envio.save(update_fields=["id_estado_envio"])
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e) or "No se pudo actualizar."})
+
+    # GET -> render del modal como html embebido en JSON
+    estados = EstadoEnvioReceta.objects.all().order_by("nombre_estado")
+    html = render_to_string(
+        "recetas/partials/envio_cambiar_estado_modal.html",
+        {"envio": envio, "estados": estados},
+        request=request,
+    )
+    return JsonResponse({"html": html})
 
 # ================================
 #           RECETAS

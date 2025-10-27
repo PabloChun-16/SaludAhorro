@@ -39,4 +39,8 @@ urlpatterns = [
     # Aliases de editar/eliminar con "envios" en plural
     path("envios/<int:pk>/editar/", views.editar_envio),
     path("envios/<int:pk>/eliminar/", views.eliminar_envio),
+
+    path("envio/<int:pk>/cambiar-estado/", views.envio_cambiar_estado, name="envio_cambiar_estado"),
+    # (opcional alias legado)
+    path("envios/<int:pk>/cambiar-estado/", views.envio_cambiar_estado),
 ]
