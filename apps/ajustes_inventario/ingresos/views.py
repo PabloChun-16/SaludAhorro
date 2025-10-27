@@ -126,8 +126,12 @@ def search_productos(request):
     term = request.GET.get("term", "").strip()
     productos = (
         Productos.objects
-        .select_related("id_presentacion", "id_unidad_medida", "id_condicion_almacenamiento")
-        .filter(Q(nombre__icontains=term) | Q(codigo_producto__icontains=term))[:20]
+        .select_related("id_presentacion", "id_unidad_medida", "id_condicion_almacenamiento", "id_estado_producto")
+        .filter(
+            Q(nombre__icontains=term) | Q(codigo_producto__icontains=term),
+            id_estado_producto__nombre_estado__iexact="Activo",   # <- SOLO activos
+        )
+        [:20]
     )
     results = [
         {
