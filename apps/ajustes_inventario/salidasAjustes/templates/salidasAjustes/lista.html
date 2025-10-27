@@ -138,14 +138,14 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 </section>
 
 <!-- MODAL CREAR -->
-<div class="modal fade" id="modalAjusteSalida" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalAjusteSalida" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-ajuste-content"></div>
   </div>
 </div>
 
 <!-- MODAL CONSULTAR -->
-<div class="modal fade" id="modalConsultarAjuste" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalConsultarAjuste" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
@@ -159,10 +159,11 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   const modalEl = document.getElementById("modalAjusteSalida");
   const modalContent = document.getElementById("modal-ajuste-content");
   const btnCrear = document.getElementById("btnCrearAjuste");
-  const modalInstance = new bootstrap.Modal(modalEl);
+  const modalInstance = new bootstrap.Modal(modalEl, modalConfig);
   let detalles = [];
 
   /** Utilidad: mover submodal al <body> temporalmente y reinsertarlo al cerrar */
@@ -177,8 +178,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // mover al body y enlazar eventos
     document.body.appendChild(modalHijoEl);
 
-    const padre = bootstrap.Modal.getOrCreateInstance(modalPadreEl);
-    const hijo  = bootstrap.Modal.getOrCreateInstance(modalHijoEl);
+    const padre = bootstrap.Modal.getOrCreateInstance(modalPadreEl, modalConfig);
+    const hijo  = bootstrap.Modal.getOrCreateInstance(modalHijoEl, modalConfig);
 
     modalPadreEl.addEventListener("hidden.bs.modal", function onHidden(){
       modalPadreEl.removeEventListener("hidden.bs.modal", onHidden);
@@ -308,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .then(r => r.json())
       .then(data => {
-        if (data.success) { alert("Salida registrada correctamente."); bootstrap.Modal.getInstance(modalEl).hide(); window.location.reload(); }
+        if (data.success) { alert("Salida registrada correctamente."); modalInstance.hide(); window.location.reload(); }
         else { alert("Error al guardar: " + (data.errors || "Desconocido.")); }
       })
       .catch(() => alert("Error de red o servidor al guardar la salida."));
@@ -421,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // === CONSULTAR Y ANULAR (sin cambios de lógica) ===
   const btnConsultar = document.getElementById("btnConsultarAjuste");
   const btnAnular = document.getElementById("btnAnularAjuste");
-  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"));
+  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"), modalConfig);
   const modalConsultarContent = document.getElementById("modal-consultar-content");
 
   function activarSeleccionFilas() {

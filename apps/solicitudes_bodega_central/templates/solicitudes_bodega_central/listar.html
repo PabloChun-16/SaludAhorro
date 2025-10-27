@@ -116,7 +116,7 @@
 </section>
 
 <!-- ================== MODAL CONSULTAR ================== -->
-<div class="modal fade" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
       <div class="modal-header">
@@ -125,7 +125,6 @@
           <span>Detalle de Solicitud</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body p-3 p-md-4 saif-modal-body">
@@ -204,7 +203,7 @@
 </div>
 
 <!-- ================== MODAL DASHBOARD ================== -->
-<div class="modal fade" id="dashboardModal" tabindex="-1">
+<div class="modal fade" id="dashboardModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -212,7 +211,6 @@
           <span class="saif-modal-icon"><i class="bi bi-bar-chart"></i></span>
           <span>Dashboard de Solicitudes</span>
         </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body bg-slate-50">
@@ -262,6 +260,11 @@
           <h6 class="fw-bold mb-2">Solicitudes por Fecha</h6>
           <canvas id="chartFechas"></canvas>
         </div>
+      </div>
+      <div class="modal-footer justify-content-end">
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
       </div>
     </div>
   </div>
@@ -350,12 +353,17 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 <!-- ================== LÓGICA TABLA (clon Productos) ================== -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   const table = document.getElementById("tablaSolicitudes");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerSolicitudes");
   const btnConsultar = document.getElementById("btnConsultar");
   const modalEl = document.getElementById("consultarSolicitudModal");
-  const modalConsultar = modalEl ? new bootstrap.Modal(modalEl) : null;
+  const modalConsultar = modalEl ? new bootstrap.Modal(modalEl, modalConfig) : null;
+  const dashboardModalEl = document.getElementById("dashboardModal");
+  if (dashboardModalEl) {
+    new bootstrap.Modal(dashboardModalEl, modalConfig);
+  }
 
   let selectedId = null;
   const cleanValue = (value) => {

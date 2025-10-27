@@ -144,14 +144,14 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 </section>
 
 <!-- Modal CREAR: se carga dinámicamente -->
-<div class="modal fade" id="modalAjusteIngreso" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalAjusteIngreso" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content" id="modal-ajuste-content"></div>
   </div>
 </div>
 
 <!-- Modal CONSULTAR -->
-<div class="modal fade" id="modalConsultarAjuste" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalConsultarAjuste" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" id="modal-consultar-content"></div>
   </div>
@@ -166,11 +166,44 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   const modalEl = document.getElementById("modalAjusteIngreso");
   const modalContent = document.getElementById("modal-ajuste-content");
   const btnCrear = document.getElementById("btnCrearAjuste");
-  const modalInstance = new bootstrap.Modal(modalEl);
+  const modalInstance = new bootstrap.Modal(modalEl, modalConfig);
+  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"), modalConfig);
+  const modalConsultarContent = document.getElementById("modal-consultar-content");
   let detalles = [];
+
+  function attachChildModal(childEl) {
+    if (!childEl || childEl.dataset.parentSync === "1") return;
+    const placeholder = document.createElement("div");
+    placeholder.className = "modal-placeholder";
+
+    childEl.addEventListener("show.bs.modal", () => {
+      if (!childEl.dataset.hasPlaceholder) {
+        childEl.parentNode.insertBefore(placeholder, childEl);
+        childEl.dataset.hasPlaceholder = "1";
+      }
+      document.body.appendChild(childEl);
+      if (modalEl.classList.contains("show")) {
+        modalInstance.hide();
+        childEl.dataset.parentHidden = "1";
+      } else {
+        childEl.dataset.parentHidden = "0";
+      }
+    });
+    childEl.addEventListener("hidden.bs.modal", () => {
+      if (childEl.dataset.hasPlaceholder === "1" && placeholder.parentNode) {
+        placeholder.parentNode.insertBefore(childEl, placeholder);
+      }
+      if (childEl.dataset.parentHidden === "1" && !modalEl.classList.contains("show")) {
+        modalInstance.show();
+      }
+      childEl.dataset.parentHidden = "0";
+    });
+    childEl.dataset.parentSync = "1";
+  }
 
   // === ABRIR FORMULARIO PRINCIPAL ===
   btnCrear?.addEventListener("click", (ev) => {
@@ -195,6 +228,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableBody = document.getElementById("detalleTable");
     const modalProducto = document.getElementById("modalBuscarProducto");
     const modalLote = document.getElementById("modalBuscarLote");
+    attachChildModal(modalProducto);
+    attachChildModal(modalLote);
 
     const productoInput = document.getElementById("productoInput");
     const productoIdInput = document.getElementById("productoIdInput");
@@ -304,17 +339,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // === ABRIR MODALES DE PRODUCTO / LOTE ===
     document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(modalProducto).show();
+      bootstrap.Modal.getOrCreateInstance(modalProducto, modalConfig).show();
     });
     document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(modalLote).show();
+      bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
       cargarLotes();
     });
 
     // === BUSCAR PRODUCTOS ===
     modalProducto?.addEventListener("shown.bs.modal", () => {
-      const searchInput = document.getElementById("searchProducto");
-      const tbodyResultados = document.getElementById("tablaBuscarProductos");
+      const searchInput = modalProducto.querySelector("#searchProducto");
+      const tbodyResultados = modalProducto.querySelector("#tablaBuscarProductos");
       if (!searchInput || !tbodyResultados) return;
 
       searchInput.value = "";
@@ -322,7 +357,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       searchInput.oninput = function () {
         const term = this.value.trim();
-        fetch("{% url 'ajustes_inventario:ingresos:search_productos' %}?term=" + encodeURIComponent(term))
+        fetch("{% url 'ajustes_inventario:ingresos:search_productos' %}?term=" + encodeURIComponent(term), {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
           .then(r => r.json())
           .then(data => {
             tbodyResultados.innerHTML = "";
@@ -346,7 +383,7 @@ document.addEventListener("DOMContentLoaded", function () {
               tr.querySelector("button").addEventListener("click", () => {
                 productoInput.value = `${p.codigo} - ${p.nombre}`;
                 productoIdInput.value = p.id;
-                bootstrap.Modal.getInstance(modalProducto).hide();
+                bootstrap.Modal.getInstance(modalProducto)?.hide();
               });
               tbodyResultados.appendChild(tr);
             });
@@ -357,8 +394,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // === BUSCAR LOTES ===
     function cargarLotes() {
       const productoId = productoIdInput.value;
-      const searchLoteInput = document.getElementById("searchLote");
-      const tablaLotes = document.getElementById("tablaBuscarLotes");
+      const searchLoteInput = modalLote?.querySelector("#searchLote");
+      const tablaLotes = modalLote?.querySelector("#tablaBuscarLotes");
+
+      if (!tablaLotes) return;
 
       if (!productoId) {
         tablaLotes.innerHTML = '<tr><td colspan="4" class="text-danger">Seleccione un producto primero.</td></tr>';
@@ -369,7 +408,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const term = searchLoteInput?.value || "";
       const url = base + (term ? "?term=" + encodeURIComponent(term) : "");
 
-      fetch(url)
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
         .then(r => r.json())
         .then(data => {
           tablaLotes.innerHTML = "";
@@ -388,22 +427,19 @@ document.addEventListener("DOMContentLoaded", function () {
             tr.querySelector("button").addEventListener("click", () => {
               loteInput.value = l.numero_lote;
               loteIdInput.value = l.id;
-              bootstrap.Modal.getInstance(modalLote).hide();
+              bootstrap.Modal.getInstance(modalLote)?.hide();
             });
             tablaLotes.appendChild(tr);
           });
         });
     }
 
-    document.getElementById("searchLote")?.addEventListener("input", cargarLotes);
+    modalLote?.querySelector("#searchLote")?.addEventListener("input", cargarLotes);
   } // <-- FIN de inicializarFormulario
 
 
   /* === CONSULTAR AJUSTE (se ejecuta SIEMPRE al cargar la página) === */
   const btnConsultar = document.getElementById("btnConsultarAjuste");
-  const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultarAjuste"));
-  const modalConsultarContent = document.getElementById("modal-consultar-content");
-
   function activarSeleccionFilas() {
     const filas = document.querySelectorAll("#tablaAjustes tbody tr[data-id]");
     filas.forEach(row => {

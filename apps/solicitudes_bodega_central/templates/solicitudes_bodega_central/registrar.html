@@ -323,7 +323,6 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
           <span>Crear Solicitud</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body saif-modal-body">
@@ -417,7 +416,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 </div>
 
 <!-- ====== MODAL: CONSULTAR ====== -->
-<div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1">
+<div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -426,7 +425,6 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
           <span>Detalle de Solicitud</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body p-3 p-md-4 saif-modal-body">
@@ -516,14 +514,14 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 </div>
 
 <!-- MODAL CAMBIAR ESTADO -->
-<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content" id="modal-cambiar-estado-content"></div>
   </div>
 </div>
 
 <!-- ====== MODAL: BUSCAR PRODUCTO ====== -->
-<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -532,7 +530,6 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
           <span>Buscar producto</span>
         </div>
         <span class="saif-badge">SAIF</span>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-3 p-md-4 saif-modal-body">
         <div class="saif-search-group input-group mb-3">
@@ -571,6 +568,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
   const table = document.getElementById("tablaSolicitudes");
   const tbody = table.querySelector("tbody");
   const pagerEl = document.getElementById("pagerSolicitudes");
@@ -579,12 +577,34 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnConsultar = document.getElementById("btnConsultar");
 
   const modalEl = document.getElementById("modalSolicitud");
-  const modalCrear = new bootstrap.Modal(modalEl);
+  const modalCrear = new bootstrap.Modal(modalEl, modalConfig);
   const modalBuscar = document.getElementById("modalBuscarProducto");
-  const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"));
+  const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"), modalConfig);
+  const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"), modalConfig);
+  const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
 
   const btnCambiarEstado = document.getElementById("btnCambiarEstado");
-  
+
+  function attachChildModal(childEl) {
+    if (!childEl || childEl.dataset.parentSync === "1") return;
+    childEl.addEventListener("show.bs.modal", () => {
+      if (modalEl.classList.contains("show")) {
+        modalCrear.hide();
+        childEl.dataset.parentHidden = "1";
+      } else {
+        childEl.dataset.parentHidden = "0";
+      }
+    });
+    childEl.addEventListener("hidden.bs.modal", () => {
+      if (childEl.dataset.parentHidden === "1" && !modalEl.classList.contains("show")) {
+        modalCrear.show();
+      }
+      childEl.dataset.parentHidden = "0";
+    });
+    childEl.dataset.parentSync = "1";
+  }
+  attachChildModal(modalBuscar);
+
   let selectedId = null;
   let selectedRow = null;
 
@@ -852,9 +872,6 @@ document.addEventListener("DOMContentLoaded", function () {
     modalBuscar.addEventListener("shown.bs.modal", () => {
       searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
     });
-    modalBuscar.addEventListener("hidden.bs.modal", () => {
-      bootstrap.Modal.getOrCreateInstance(modalEl).show();
-    });
   }
 
   if(searchInput){
@@ -983,9 +1000,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ======== Cambiar estado + Editar (AJAX) ======== */
 const urlPatterns = document.getElementById("urlPatterns");
-
-const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"));
-const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
 
 
 // Engancha el submit del form de CAMBIAR ESTADO cada vez que cargue el modal
