@@ -260,16 +260,28 @@ def eliminar_solicitud(request, id):
 # ==============================
 @login_required
 def obtener_solicitud(request, id):
-    solicitud = get_object_or_404(Solicitudes_Faltantes, id=id)
-    detalle = solicitud.detalles.first()
+    s = get_object_or_404(
+        Solicitudes_Faltantes.objects.select_related("id_estado_solicitud")
+                                     .prefetch_related("detalles__id_producto"),
+        id=id
+    )
+
+    detalles = []
+    for d in s.detalles.all():
+        detalles.append({
+            "producto_id": d.id_producto_id,
+            "producto": d.id_producto.nombre if d.id_producto else "",
+            "cantidad": d.cantidad_solicitada or 0,
+            "urgente": bool(d.es_urgente),
+            "observaciones": d.observaciones or "",
+        })
 
     data = {
-        "documento": solicitud.nombre_documento,
-        "producto": detalle.id_producto.nombre if detalle else "",
-        "cantidad": detalle.cantidad_solicitada if detalle else "",
-        "urgente": "Sí" if (detalle and detalle.es_urgente) else "No",
-        "observaciones": (detalle.observaciones if (detalle and detalle.observaciones) else "—"),
-        "estado": solicitud.id_estado_solicitud.nombre_estado if solicitud.id_estado_solicitud else "",
+        "documento": s.nombre_documento or "",
+        "estado": s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
+        "fecha": s.fecha_solicitud.strftime("%Y-%m-%d %H:%M") if s.fecha_solicitud else "",
+        "usuario": getattr(s.id_usuario, "nombre", str(s.id_usuario)) if s.id_usuario else "",
+        "detalles": detalles,
     }
     return JsonResponse(data)
 
@@ -336,8 +348,15 @@ def exportar_solicitudes_pdf(request):
     )
 
     for s in solicitudes:
-        d = s.detalles.first()
-        if d:
+        if not s.detalles.exists():
+            data.append([
+                s.nombre_documento or "", "", "", "", "—",
+                s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
+                s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
+            ])
+            continue
+
+        for d in s.detalles.all():   # 👈 ya no .first()
             data.append([
                 s.nombre_documento or "",
                 d.id_producto.nombre if d.id_producto else "",

@@ -46,10 +46,9 @@
               <div class="filter-wrap">
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
                   <option value="">Todos</option>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                  <option value="pendiente">Pendiente</option>
                   <option value="enviada">Enviada</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
                 </select>
               </div>
             </th>
@@ -60,27 +59,26 @@
         <tbody>
           {% for solicitud in solicitudes %}
           <tr class="fila-solicitud"
-              data-id="{{ solicitud.id }}"
-              data-documento="{{ solicitud.nombre_documento }}"
-              data-producto="{{ solicitud.detalles.first.id_producto.nombre }}"
-              data-cantidad="{{ solicitud.detalles.first.cantidad_solicitada }}"
-              data-urgente="{{ solicitud.detalles.first.es_urgente }}"
-              data-observaciones="{{ solicitud.detalles.first.observaciones }}"
-              data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
-              data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d' }}">
+              data-id="{{ solicitud.id }}">
             <td class="text-truncate">{{ solicitud.nombre_documento }}</td>
-            <td class="text-truncate">{{ solicitud.detalles.first.id_producto.nombre }}</td>
-            <td class="text-truncate">{{ solicitud.detalles.first.cantidad_solicitada }}</td>
-            <td>
-              {% if solicitud.detalles.first.es_urgente %}
-                <span class="badge bg-primary">Sí</span>
-              {% else %}
-                <span class="badge bg-secondary">No</span>
-              {% endif %}
+            <td class="text-truncate">
+              {% with d=solicitud.detalles.first %}
+                {% if d and d.id_producto %}{{ d.id_producto.nombre }}{% else %}—{% endif %}
+              {% endwith %}
             </td>
-            <td class="text-truncate">{{ solicitud.detalles.first.observaciones|default:"—" }}</td>
+            <td class="text-truncate">
+              {% with d=solicitud.detalles.first %}{{ d.cantidad_solicitada|default:"—" }}{% endwith %}
+            </td>
+            <td>
+              {% with d=solicitud.detalles.first %}
+                {% if d and d.es_urgente %}<span class="badge bg-primary">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+              {% endwith %}
+            </td>
+            <td class="text-truncate">
+              {% with d=solicitud.detalles.first %}{{ d.observaciones|default:"—" }}{% endwith %}
+            </td>
             <td class="text-truncate">{{ solicitud.id_estado_solicitud.nombre_estado }}</td>
-            <td class="text-truncate">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+            <td class="text-truncate">{{ solicitud.fecha_solicitud|date:"Y-m-d H:i" }}</td>
           </tr>
           {% empty %}
           <tr><td colspan="7" class="py-5 text-muted" data-empty-row>
@@ -111,14 +109,17 @@
               style="background-color:#8b5cf6; border:none;">
         <i class="bi bi-bar-chart"></i> Dashboard
       </button>
+      <span id="urlPatterns"
+            data-obtener="{% url 'solicitudes_bodega_central:obtener_solicitud' 0 %}"
+            hidden></span>
     </div>
   </div>
 </section>
 
-<!-- ================== MODAL CONSULTAR ================== -->
-<div class="modal fade" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+<!-- ====== MODAL: CONSULTAR ====== -->
+<div class="modal fade saif-modal" id="consultarSolicitudModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content saif-modal">
+    <div class="modal-content">
       <div class="modal-header">
         <div class="saif-modal-title">
           <span class="saif-modal-icon"><i class="bi bi-inboxes"></i></span>
@@ -128,76 +129,79 @@
       </div>
 
       <div class="modal-body p-3 p-md-4 saif-modal-body">
+        <!-- Resumen compacto -->
         <div class="saif-summary row g-3 mb-4">
-          <div class="col-12 col-sm-6 col-lg-4">
+          <div class="col-12 col-sm-6 col-lg-3">
             <div class="saif-info-card">
               <div class="saif-info-card__icon"><i class="bi bi-file-earmark-text"></i></div>
-              <div>
+              <div class="w-100">
                 <span class="saif-info-card__label">Documento</span>
                 <span class="saif-info-card__value" id="detalleDocumento">-</span>
               </div>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon"><i class="bi bi-capsule-pill"></i></div>
-              <div>
-                <span class="saif-info-card__label">Producto</span>
-                <span class="saif-info-card__value" id="detalleProducto">-</span>
-              </div>
-            </div>
+        </div>
+
+        <!-- Productos de la solicitud -->
+        <div class="saif-block saif-block--compact">
+          <div class="saif-block__header">
+            <i class="bi bi-box-seam me-2"></i> Productos de la solicitud
           </div>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon"><i class="bi bi-hash"></i></div>
-              <div>
-                <span class="saif-info-card__label">Cantidad</span>
-                <span class="saif-info-card__value" id="detalleCantidad">-</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon saif-info-card__icon--alert"><i class="bi bi-lightning-charge"></i></div>
-              <div>
-                <span class="saif-info-card__label">Urgente</span>
-                <span class="saif-info-card__value"><span id="detalleUrgente" class="saif-pill">-</span></span>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon saif-info-card__icon--state"><i class="bi bi-flag"></i></div>
-              <div>
-                <span class="saif-info-card__label">Estado</span>
-                <span class="saif-info-card__value"><span id="detalleEstado" class="saif-pill saif-pill--neutral">-</span></span>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon"><i class="bi bi-calendar-event"></i></div>
-              <div>
-                <span class="saif-info-card__label">Fecha</span>
-                <span class="saif-info-card__value" id="detalleFecha">-</span>
-              </div>
+          <div class="saif-block__body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle m-0 saif-table--compact">
+                <thead>
+                  <tr>
+                    <th class="text-start">Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Urgente</th>
+                    <th class="text-start">Observaciones</th>
+                  </tr>
+                </thead>
+                <tbody id="detalleProductosModal"></tbody>
+              </table>
             </div>
           </div>
         </div>
 
-        <div class="saif-block saif-block--highlight">
-          <div class="saif-block__header"><i class="bi bi-chat-dots me-2"></i> Observaciones</div>
-          <div class="saif-block__body" id="detalleObservaciones">-</div>
+
+        <!-- Seguimiento (grid ordenado) -->
+        <div class="saif-block saif-block--compact">
+          <div class="saif-block__header">
+            <i class="bi bi-info-circle me-2"></i> Seguimiento
+          </div>
+          <div class="saif-block__body">
+            <div class="dv-grid --compact">
+              <div class="dv --compact">
+                <span class="dv__label">Estado</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-flag"></i></span>
+                  <span class="dv__value" id="detalleEstado">-</span>
+                </div>
+              </div>
+              <div class="dv --compact">
+                <span class="dv__label">Fecha</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-calendar-event"></i></span>
+                  <span class="dv__value" id="detalleFecha">-</span>
+                </div>
+              </div>
+              <div class="dv --compact">
+                <span class="dv__label">Usuario</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-person"></i></span>
+                  <span class="dv__value" id="detalleUsuario">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </div><!-- /modal-body -->
 
       <div class="modal-footer justify-content-between saif-footer">
         <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
-        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
-          <i class="bi bi-x-lg"></i> Cerrar
-        </button>
+        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
       </div>
-
     </div>
   </div>
 </div>
@@ -215,7 +219,7 @@
 
       <div class="modal-body bg-slate-50">
         <!-- Filtros -->
-        <div class="grid md:grid-cols-4 gap-4 mb-4">  
+        <div class="grid md:grid-cols-4 gap-4 mb-4 dash-filters">  
           <div>
             <label for="filtroProducto" class="form-label fw-bold">Producto</label>
             <select id="filtroProducto" class="form-select">
@@ -337,7 +341,65 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 #consultarSolicitudModal .modal-header{background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 60%,#074d24 100%);}
 #consultarSolicitudModal .saif-modal-title span:last-child{font-weight:700;letter-spacing:.02em;}
 #consultarSolicitudModal .saif-info-card__value .saif-pill{display:inline-flex;}
+/* ===== Dashboard SAIF look & feel ===== */
+#dashboardModal .modal-content{
+  border:0; border-radius:18px; overflow:hidden;
+  box-shadow:0 22px 55px rgba(14,122,58,.25);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+#dashboardModal .modal-header{
+  background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 60%,#074d24 100%);
+  color:#fff; border-bottom:0; padding:.9rem 1.1rem;
+}
+#dashboardModal .saif-modal-title span:last-child{
+  font-weight:700; letter-spacing:.02em;
+}
 
+/* Área del body */
+#dashboardModal .modal-body{
+  background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+}
+
+/* Filtros como “chips/cards” */
+#dashboardModal .dash-filters > div{
+  background:#fff; border:1px solid #d7ebe0; border-radius:.9rem;
+  padding:.75rem .9rem; box-shadow:0 12px 24px rgba(15,122,58,.08);
+}
+#dashboardModal .dash-filters .form-label{
+  font-size:.78rem; text-transform:uppercase; letter-spacing:.045em;
+  color:#166534; margin-bottom:.35rem;
+}
+#dashboardModal .dash-filters .form-select,
+#dashboardModal .dash-filters .form-control{
+  border:1px solid #cfe9d7; border-radius:.6rem;
+  box-shadow:none; height:38px; padding:.35rem .6rem;
+}
+#dashboardModal .dash-filters .form-select:focus,
+#dashboardModal .dash-filters .form-control:focus{
+  border-color:#62c07b; box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
+}
+
+/* Tarjetas de gráficos */
+#dashboardModal .bg-white.p-3.rounded.shadow{
+  border-radius:1rem !important;
+  border:1px solid #d7ebe0;
+  box-shadow:0 16px 32px rgba(15,122,58,.1) !important;
+  background:linear-gradient(145deg,#f5fbf7 0%,#e8f5ed 100%) !important;
+}
+#dashboardModal h6{
+  font-weight:800; color:#14532d;
+  margin-bottom:.75rem !important;
+}
+
+/* Altura de los charts para evitar “saltos” */
+#dashboardModal canvas{ max-height: 300px; }
+@media (min-width: 1200px){ #dashboardModal canvas{ max-height: 320px; } }
+
+/* Footer del modal */
+#dashboardModal .modal-footer{
+  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+  border-top:0; padding:.9rem 1.3rem;
+}
 </style>
 
 <!-- ================== LIBRERÍAS ================== -->
@@ -456,79 +518,66 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  if(btnConsultar && modalConsultar){
-    btnConsultar.addEventListener("click", ()=>{
+  if (btnConsultar && modalConsultar) {
+    btnConsultar.addEventListener("click", async () => {
       const row = tbody.querySelector("tr.table-active");
-      if(!row){
-        alert("Selecciona una solicitud primero.");
-        return;
+      if (!row) { alert("Selecciona una solicitud primero."); return; }
+
+      const id = row.getAttribute("data-id");
+      try {
+        const base = document.getElementById("urlPatterns")?.dataset?.obtener || "";
+        // Reemplaza el 0 final (con o sin /) por el id seleccionado, sin suponer el patrón exacto
+        const url  = base.replace(/\/0\/?$/, `/${id}/`);
+
+        const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+
+        // Cabecera
+        setValue("detalleDocumento", data.documento || "-", "-");
+
+        // Seguimiento
+        (function(){
+          const k = (data.estado || "").toLowerCase();
+          const estadoEl = document.getElementById("detalleEstado");
+          if (estadoEl) {
+            let cls = "saif-pill saif-pill--neutral";
+            if (["enviada","completada"].includes(k)) cls = "saif-pill saif-pill--success";
+            if (["cancelada"].includes(k))           cls = "saif-pill saif-pill--alert";
+            estadoEl.textContent = data.estado || "Sin estado";
+            estadoEl.className   = cls;
+          }
+          setValue("detalleFecha", data.fecha || "-", "-");
+          setValue("detalleUsuario", data.usuario || "-", "-");
+        })();
+
+        // Tabla de productos
+        (function(){
+          const tbodyDet = document.getElementById("detalleProductosModal");
+          if (!tbodyDet) return;
+          tbodyDet.innerHTML = "";
+          (data.detalles || []).forEach(d=>{
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="text-start">${(d.producto||"")}</td>
+              <td class="text-center">${d.cantidad||0}</td>
+              <td class="text-center">${d.urgente ? "Sí" : "No"}</td>
+              <td class="text-start">${(d.observaciones||"—")}</td>`;
+            tbodyDet.appendChild(tr);
+          });
+          if (!tbodyDet.children.length) {
+            tbodyDet.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Sin productos</td></tr>`;
+          }
+        })();
+
+        modalConsultar.show();
+      } catch (e) {
+        console.error(e);
+        alert("No se pudo consultar la solicitud.");
       }
-
-      const documento = cleanValue(row.dataset.documento);
-      setValue("detalleDocumento", documento, "-");
-      const docEl = document.getElementById("detalleDocumento");
-      if(docEl){
-        if(documento) docEl.setAttribute("title", documento);
-        else docEl.removeAttribute("title");
-      }
-
-      const producto = cleanValue(row.dataset.producto);
-      const prodEl = document.getElementById("detalleProducto");
-      if(prodEl){
-        if(producto){
-          prodEl.textContent = producto;
-          prodEl.classList.remove("--empty");
-          prodEl.setAttribute("title", producto);
-        } else {
-          prodEl.textContent = "Sin producto";
-          prodEl.classList.add("--empty");
-          prodEl.removeAttribute("title");
-        }
-      }
-
-      const cantidad = cleanValue(row.dataset.cantidad);
-      setValue("detalleCantidad", cantidad, "-");
-
-      const urgEl = document.getElementById("detalleUrgente");
-      if(urgEl){
-        const rawUrg = normalizeText((row.dataset.urgente || "").toString().trim().toLowerCase());
-        const esUrgente = ["true","1","si","s"].includes(rawUrg);
-        urgEl.textContent = esUrgente ? "Urgente" : "No urgente";
-        urgEl.className = "saif-pill " + (esUrgente ? "saif-pill--alert" : "saif-pill--neutral");
-      }
-
-      const observaciones = cleanValue(row.dataset.observaciones);
-      setValue("detalleObservaciones", observaciones, "Sin observaciones");
-
-      const estadoEl = document.getElementById("detalleEstado");
-      if(estadoEl){
-        const estado = cleanValue(row.dataset.estado);
-        const estadoKey = normalizeText((estado || "").toLowerCase());
-        let cls = "saif-pill saif-pill--neutral";
-        if(["enviada","activo","completado","aprobada","aprobado"].includes(estadoKey)){
-          cls = "saif-pill saif-pill--success";
-        } else if(["rechazada","anulada","cancelada","inactivo"].includes(estadoKey)){
-          cls = "saif-pill saif-pill--alert";
-        }
-        estadoEl.textContent = estado || "Sin estado";
-        estadoEl.className = cls;
-      }
-
-      const fechaEl = document.getElementById("detalleFecha");
-      if(fechaEl){
-        const fechaFormateada = formatDateTime(row.dataset.fecha || "");
-        if(fechaFormateada){
-          fechaEl.textContent = fechaFormateada;
-          fechaEl.classList.remove("--empty");
-        } else {
-          fechaEl.textContent = "-";
-          fechaEl.classList.add("--empty");
-        }
-      }
-
-      modalConsultar.show();
     });
   }
+
 
   function refreshAutoTitles(){
     table.querySelectorAll("td, th").forEach(el=>{
