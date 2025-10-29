@@ -30,8 +30,6 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 from django.db.models import Sum  
-
-
 # Listado
 def productos_list(request):
     productos = Productos.objects.all().order_by("nombre")
@@ -85,9 +83,25 @@ def productos_create(request):
 @require_http_methods(["GET"])
 def productos_detail(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
+    lotes_qs = producto.lotes_set.order_by("-fecha_caducidad", "-id")
+    precio_compra = (
+        lotes_qs.filter(precio_compra__isnull=False)
+        .values_list("precio_compra", flat=True)
+        .first()
+    )
+    precio_venta = (
+        lotes_qs.filter(precio_venta__isnull=False)
+        .values_list("precio_venta", flat=True)
+        .first()
+    )
     html = render_to_string(
         "productos/partials/_consultar.html",
-        {"producto": producto, "titulo": "Detalle del Producto"},
+        {
+            "producto": producto,
+            "titulo": "Detalle del Producto",
+            "precio_compra": precio_compra,
+            "precio_venta": precio_venta,
+        },
         request=request,
     )
     return HttpResponse(html)
