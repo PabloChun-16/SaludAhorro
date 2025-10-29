@@ -40,6 +40,8 @@
   .chip--danger{background:#fef2f2;color:#991b1b;border-color:#fecaca;}
   .chip--primary{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
   .chip--dark{background:#111827;color:#fff;border-color:#111827;}
+  .chip--money{background:#fef9c3;color:#854d0e;border-color:#facc15;}
+  .chip--money-alt{background:#ecfccb;color:#3f6212;border-color:#a3e635;}
 
   /* ====== COLUMNA DERECHA: campos en pares ====== */
   .dv2{ row-gap:1rem; }
@@ -121,6 +123,13 @@
             {% else %}
               <span class="chip"><i class="bi bi-shield"></i> Controlado: No</span>
             {% endif %}
+
+            {% if precio_compra is not None %}
+              <span class="chip chip--money"><i class="bi bi-cash-stack"></i> Compra: Q {{ precio_compra|floatformat:2 }}</span>
+            {% endif %}
+            {% if precio_venta is not None %}
+              <span class="chip chip--money-alt"><i class="bi bi-currency-dollar"></i> Venta: Q {{ precio_venta|floatformat:2 }}</span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -195,7 +204,31 @@
 
 
           <div class="pair col-gap">
-            <!-- libre por si luego agregas otro dato (SKU, Marca, etc.) -->
+            <div class="dv2-field">
+              <i class="bi bi-cash-stack dv2-ico"></i>
+              <div class="dv2-body">
+                <div class="dv2-label">Precio de Compra</div>
+                {% if precio_compra is not None %}
+                  <div class="dv2-value">Q {{ precio_compra|floatformat:2 }}</div>
+                {% else %}
+                  <div class="dv2-value --empty">Sin registro</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="pair col-gap">
+            <div class="dv2-field">
+              <i class="bi bi-currency-dollar dv2-ico"></i>
+              <div class="dv2-body">
+                <div class="dv2-label">Precio de Venta</div>
+                {% if precio_venta is not None %}
+                  <div class="dv2-value">Q {{ precio_venta|floatformat:2 }}</div>
+                {% else %}
+                  <div class="dv2-value --empty">Sin registro</div>
+                {% endif %}
+              </div>
+            </div>
           </div>
 
           <!-- Bloque: Descripción -->
@@ -237,3 +270,5 @@
     </button>
   </div>
 </div>
+
+
