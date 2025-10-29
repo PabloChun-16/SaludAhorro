@@ -160,6 +160,11 @@
 
   <!-- Footer -->
   <div class="modal-footer py-2">
+      <a href="{% url 'ajustes_inventario:ingresos:ajuste_ingreso_export_pdf' ajuste.id %}"
+        class="btn btn-success rounded-pill px-3"
+        target="_blank">
+        <i class="bi bi-filetype-pdf"></i> Exportar
+      </a>
     <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>

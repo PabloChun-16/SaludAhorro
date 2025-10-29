@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import ProtectedError
 from apps.inventario.models import Lotes
 from apps.mantenimiento.models import Estado_Lote
+from datetime import datetime
 
 # ---------------------------
 # Utilidades de estados
@@ -38,7 +39,8 @@ def _razon_no_puede_retirar(lote: Lotes) -> str | None:
 
 def lista_lotes(request):
     lotes = Lotes.objects.select_related("id_producto", "id_estado_lote").all()
-    return render(request, "lotes/lista.html", {"lotes": lotes})
+    estados_unicos = Estado_Lote.objects.values_list("nombre_estado", flat=True).order_by("nombre_estado").distinct()
+    return render(request, "lotes/lista.html", {"lotes": lotes, "estados_unicos": estados_unicos})
 
 def consultar_lote(request, id):
     lote = get_object_or_404(Lotes, id=id)
@@ -46,15 +48,25 @@ def consultar_lote(request, id):
 
 def editar_lote(request, id):
     lote = get_object_or_404(Lotes, id=id)
-
-    # Solo estados permitidos en UI
     estados = _permitidos_para_usuario_qs()
 
     if request.method == "POST":
-        lote.fecha_caducidad = request.POST.get("fecha_caducidad")
+        # --- convertir fecha a objeto date ---
+        fecha_caducidad_str = request.POST.get("fecha_caducidad")
+        if fecha_caducidad_str:
+            try:
+                lote.fecha_caducidad = datetime.strptime(fecha_caducidad_str, "%Y-%m-%d").date()
+            except ValueError:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Formato de fecha inválido. Use AAAA-MM-DD."
+                }, status=400)
+        else:
+            lote.fecha_caducidad = None
+
         lote.ubicacion_almacen = request.POST.get("ubicacion_almacen")
 
-        # Validación de estado entrante
+        # Validación de estado
         estado_post = request.POST.get("estado")
         try:
             estado_post = int(estado_post) if estado_post is not None else None
@@ -73,7 +85,6 @@ def editar_lote(request, id):
         return JsonResponse({"success": True})
 
     return render(request, "lotes/partials/_form.html", {"lote": lote, "estados": estados})
-
 # ---------------------------
 # Pre-chequeo y acción: RETIRAR
 # ---------------------------

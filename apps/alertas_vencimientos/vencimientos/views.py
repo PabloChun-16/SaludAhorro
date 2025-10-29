@@ -18,6 +18,15 @@ from apps.alertas_vencimientos.models import Reportes_Vencimiento, Detalle_Repor
 from apps.inventario.models import Lotes, Productos
 from apps.mantenimiento.models import Estado_Vencimiento, Estado_Lote
 
+from io import BytesIO
+from django.http import FileResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import landscape, A4
+from django.http import HttpResponse
+
 logger = logging.getLogger(__name__)
 
 PROXIMO_DIAS = getattr(settings, "PROXIMO_VENCER_DIAS", 30)
@@ -311,3 +320,91 @@ def search_lotes(request, producto_id: int):
         for l in qs
     ]
     return JsonResponse(results, safe=False)
+
+@login_required
+def reporte_vencimiento_export_pdf(request, reporte_id):
+    """
+    Genera un PDF horizontal (landscape) con el detalle del reporte de vencimiento.
+    Se muestra en el navegador en lugar de descargarse automáticamente.
+    """
+    reporte = get_object_or_404(Reportes_Vencimiento, pk=reporte_id)
+    detalles = (
+        Detalle_Reporte_Vencimiento.objects
+        .select_related("id_lote__id_producto")
+        .filter(id_reporte=reporte)
+    )
+
+    # --- Configuración del PDF ---
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),  # ✅ orientación horizontal
+        leftMargin=40,
+        rightMargin=40,
+        topMargin=50,
+        bottomMargin=40,
+    )
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # --- Encabezado ---
+    title = Paragraph("<b>REPORTE DE VENCIMIENTO</b>", styles["Title"])
+    subtitle = Paragraph("SAIF · Sistema de Administración e Inventario Farmacéutico", styles["Normal"])
+    elements.extend([title, subtitle, Spacer(1, 12)])
+
+    # --- Datos generales ---
+    info_data = [
+        ["ID:", str(reporte.id)],
+        ["Usuario:", str(reporte.id_usuario)],
+        ["Fecha del Reporte:", reporte.fecha_reporte.strftime("%d/%m/%Y")],
+        ["Estado:", reporte.id_estado.nombre_estado],
+    ]
+    info_table = Table(info_data, colWidths=[150, 500])
+    info_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.extend([info_table, Spacer(1, 12)])
+
+    # --- Observaciones ---
+    obs_title = Paragraph("<b>Observaciones</b>", styles["Heading4"])
+    obs_text = Paragraph(reporte.observaciones or "Sin observaciones", styles["Normal"])
+    elements.extend([obs_title, obs_text, Spacer(1, 12)])
+
+    # --- Tabla de detalles ---
+    data = [["Código", "Producto", "Lote", "Caducidad", "Cantidad Reportada"]]
+    for d in detalles:
+        data.append([
+            d.id_lote.id_producto.codigo_producto,
+            d.id_lote.id_producto.nombre,
+            d.id_lote.numero_lote,
+            d.id_lote.fecha_caducidad.strftime("%d/%m/%Y") if d.id_lote.fecha_caducidad else "",
+            str(d.cantidad_reportada),
+        ])
+
+    table = Table(data, colWidths=[100, 300, 100, 100, 100])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgreen),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    buffer.seek(0)
+    filename = f"Reporte_Vencimiento_{reporte.id}.pdf"
+
+    # ✅ Mostrar en navegador (inline)
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response

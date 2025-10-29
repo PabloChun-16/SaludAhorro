@@ -19,6 +19,8 @@ from apps.inventario.models import Productos
 from django.http import JsonResponse
 from django.db.models import Sum
 
+from apps.mantenimiento.models import Estado_Lote
+
 # ---------- helpers PDF ----------
 def _register_fonts():
     # intenta cargar DejaVuSans si existe en static/fonts, si no usa Helvetica
@@ -56,7 +58,18 @@ def stock_list(request):
         .select_related("id_producto", "id_producto__id_presentacion", "id_estado_lote")
         .all()
     )
-    return render(request, "stock/lista.html", {"lotes": lotes})
+
+    estados_unicos = (
+        Estado_Lote.objects
+        .values_list("nombre_estado", flat=True)
+        .order_by("nombre_estado")
+        .distinct()
+    )
+
+    return render(request, "stock/lista.html", {
+        "lotes": lotes,
+        "estados_unicos": estados_unicos
+    })
 
 
 # =============== DETALLE ===============

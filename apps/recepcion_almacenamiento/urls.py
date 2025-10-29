@@ -15,4 +15,5 @@ urlpatterns = [
 
     # cambio de estado
     path("<int:pk>/cambiar-estado/", views.recepcion_cambiar_estado, name="cambiar_estado"),
+    path("<int:pk>/exportar/", views.recepcion_export_pdf, name="recepcion_export_pdf"),
 ]

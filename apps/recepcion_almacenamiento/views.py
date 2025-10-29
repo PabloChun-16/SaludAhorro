@@ -24,6 +24,12 @@ from apps.mantenimiento.models import (
     Tipo_Movimiento_Inventario,
 )
 
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
 logger = logging.getLogger(__name__)
 
 from django.views.decorators.http import require_POST
@@ -494,3 +500,86 @@ def recepcion_create(request):
     except Exception as e:
         logger.exception("Ocurrió un error inesperado al procesar la recepción.")
         return JsonResponse({"success": False, "errors": str(e)}, status=500)
+
+
+@login_required
+def recepcion_export_pdf(request, pk):
+    recepcion = get_object_or_404(
+        Recepciones_Envio.objects.select_related("id_usuario", "estado_recepcion"),
+        pk=pk
+    )
+    detalles = (
+        Detalle_Recepcion.objects
+        .filter(id_recepcion=recepcion)
+        .select_related("id_lote", "id_lote__id_producto")
+    )
+
+    comentario = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(referencia_transaccion=recepcion.numero_envio_bodega)
+        .exclude(comentario__isnull=True).exclude(comentario="")
+        .values_list("comentario", flat=True)
+        .first()
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Recepcion_{recepcion.numero_envio_bodega}.pdf"'
+
+    buffer = []
+    doc = SimpleDocTemplate(response, pagesize=landscape(A4))
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="Titulo", fontSize=16, leading=20, spaceAfter=10, textColor=colors.HexColor("#0f7a3a"), alignment=1))
+    styles.add(ParagraphStyle(name="Seccion", fontSize=12, leading=14, spaceAfter=6, textColor=colors.HexColor("#074d24"), fontName='Helvetica-Bold'))
+
+    contenido = []
+
+    # Título
+    contenido.append(Paragraph("Reporte de Recepción", styles["Titulo"]))
+    contenido.append(Spacer(1, 8))
+
+    # Datos generales
+    contenido.append(Paragraph(f"<b>N.º de Envío:</b> {recepcion.numero_envio_bodega}", styles["Normal"]))
+    contenido.append(Paragraph(f"<b>Usuario:</b> {recepcion.id_usuario}", styles["Normal"]))
+    contenido.append(Paragraph(f"<b>Fecha:</b> {recepcion.fecha_recepcion.strftime('%d/%m/%Y %H:%M')}", styles["Normal"]))
+    contenido.append(Paragraph(f"<b>Estado:</b> {recepcion.estado_recepcion}", styles["Normal"]))
+    contenido.append(Spacer(1, 10))
+
+    # Tabla de productos
+    contenido.append(Paragraph("Productos Recibidos", styles["Seccion"]))
+    data = [["Código", "Producto", "Lote", "Caducidad", "Cantidad", "Costo Unit."]]
+    total = 0
+
+    for d in detalles:
+        codigo = d.id_lote.id_producto.codigo_producto
+        nombre = d.id_lote.id_producto.nombre
+        lote = d.id_lote.numero_lote
+        cad = d.id_lote.fecha_caducidad.strftime("%d/%m/%Y") if d.id_lote.fecha_caducidad else ""
+        cant = d.cantidad_recibida
+        costo = d.costo_unitario
+        total += (costo or 0) * (cant or 0)
+        data.append([codigo, nombre, lote, cad, cant, f"Q{costo:.2f}"])
+
+    table = Table(data, colWidths=[90, 280, 80, 80, 60, 60])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#e8f5ec")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor("#0b3f2e")),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    contenido.append(table)
+    contenido.append(Spacer(1, 10))
+
+    # Total
+    contenido.append(Paragraph(f"<b>Total estimado:</b> Q{total:.2f}", styles["Normal"]))
+
+    # Comentario
+    if comentario:
+        contenido.append(Spacer(1, 10))
+        contenido.append(Paragraph("Comentario:", styles["Seccion"]))
+        contenido.append(Paragraph(comentario, styles["Normal"]))
+
+    doc.build(contenido)
+    return response

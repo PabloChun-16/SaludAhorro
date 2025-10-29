@@ -18,6 +18,12 @@ from apps.salidas_devoluciones.models import Movimientos_Inventario_Sucursal
 from django.views.decorators.http import require_POST
 from django.db.models import Sum
 
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
 @login_required
 @require_POST
 @transaction.atomic
@@ -283,3 +289,92 @@ def venta_create(request):
     except Exception:
         transaction.set_rollback(True)
         return JsonResponse({"success": False, "errors": ["Error interno al procesar la venta."]}, status=500)
+
+
+@login_required
+def venta_export_pdf(request, ref: str):
+    """
+    Exporta un PDF de la venta (salida) identificada por su referencia (No. de factura).
+    """
+    movimientos = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(id_tipo_movimiento__codigo="VEN", referencia_transaccion=ref)
+        .select_related("id_lote", "id_lote__id_producto", "id_usuario", "estado_movimiento_inventario")
+        .order_by("id")
+    )
+    if not movimientos.exists():
+        return HttpResponse("No se encontró la venta especificada.", status=404)
+
+    first = movimientos.first()
+    usuario = first.id_usuario
+    fecha = first.fecha_hora
+    estado = first.estado_movimiento_inventario
+    comentario = first.comentario or ""
+
+    # Respuesta PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="Venta_{ref}.pdf"'
+
+    # Documento horizontal
+    doc = SimpleDocTemplate(
+        response, pagesize=landscape(A4),
+        leftMargin=40, rightMargin=40, topMargin=40, bottomMargin=40
+    )
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name="Titulo", fontSize=16, leading=20, spaceAfter=10,
+        textColor=colors.HexColor("#0f7a3a"), alignment=1
+    ))
+    styles.add(ParagraphStyle(
+        name="Seccion", fontSize=12, leading=14, spaceAfter=6,
+        textColor=colors.HexColor("#074d24"), fontName="Helvetica-Bold"
+    ))
+    styles.add(ParagraphStyle(name="Normal8", fontSize=8, leading=10))
+
+    story = []
+    story.append(Paragraph("Reporte de Venta", styles["Titulo"]))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(f"<b>No. Factura:</b> {ref}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Usuario:</b> {usuario}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Fecha:</b> {fecha.strftime('%d/%m/%Y %H:%M')}", styles["Normal"]))
+    story.append(Paragraph(f"<b>Estado:</b> {estado}", styles["Normal"]))
+    story.append(Spacer(1, 10))
+
+    # Tabla
+    story.append(Paragraph("Productos Vendidos", styles["Seccion"]))
+    data = [["Código", "Producto", "Lote", "Cantidad"]]
+    for m in movimientos:
+        codigo = m.id_lote.id_producto.codigo_producto
+        # Cantidad en VEN es negativa (salida); mostramos valor absoluto
+        cant = abs(int(m.cantidad or 0))
+        data.append([
+            codigo,
+            Paragraph(m.id_lote.id_producto.nombre, styles["Normal8"]),
+            m.id_lote.numero_lote,
+            cant,
+        ])
+
+    table = Table(data, colWidths=[100, 300, 80, 60])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8f5ec")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#0b3f2e")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, 0), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    story.append(table)
+
+    if comentario:
+        story.append(Spacer(1, 12))
+        story.append(Paragraph("Comentario:", styles["Seccion"]))
+        story.append(Paragraph(comentario, styles["Normal"]))
+
+    story.append(Spacer(1, 18))
+    gen = timezone.localtime().strftime("%d/%m/%Y %H:%M")
+    story.append(Paragraph(f"<font size=8 color='#666'>Generado por SAIF · {gen}</font>", styles["Normal"]))
+
+    doc.build(story)
+    return response

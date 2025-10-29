@@ -10,6 +10,7 @@ urlpatterns = [
     path("lotes/<int:producto_id>/search/", views.search_lotes, name="search_lotes"),
     path("lotes/create/", views.create_lote, name="create_lote"),
     path("consultar/<int:ajuste_id>/", views.ajuste_ingreso_detail, name="ajuste_ingreso_detail"),
+    path("exportar/<int:ajuste_id>/", views.ajuste_ingreso_export_pdf, name="ajuste_ingreso_export_pdf"),
     path("anular/<int:ajuste_id>/", views.anular_ajuste_ingreso, name="ajuste_ingreso_anular"),
 
 ]

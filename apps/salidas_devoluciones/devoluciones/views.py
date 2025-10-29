@@ -16,6 +16,13 @@ from apps.salidas_devoluciones.models import Movimientos_Inventario_Sucursal
 from django.views.decorators.http import require_POST
 from django.db.models import Max, Sum, F, Subquery, OuterRef
 
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
+
 @login_required
 @require_POST
 @transaction.atomic
@@ -365,3 +372,161 @@ def lotes_vendidos_por_factura(request, ref: str, producto_id: int):
         })
 
     return JsonResponse(results, safe=False)
+
+@login_required
+def devolucion_export_pdf(request, ref: str):
+    """
+    Exporta el detalle de una devolución en formato PDF.
+    """
+    movimientos = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(id_tipo_movimiento__codigo="DEV", referencia_transaccion=ref)
+        .select_related("id_lote", "id_lote__id_producto", "id_usuario", "estado_movimiento_inventario")
+        .order_by("id")
+    )
+
+    if not movimientos.exists():
+        return HttpResponse("No hay movimientos para esta devolución.", status=404)
+
+    header = movimientos.first()
+
+    # ---- Configuración del PDF ----
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="devolucion_{ref}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=landscape(A4))
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ---- Encabezado ----
+    title_style = ParagraphStyle(
+        "Titulo",
+        parent=styles["Title"],
+        fontSize=18,
+        textColor=colors.HexColor("#0F7A3A"),
+        alignment=1,  # centrado
+    )
+    elements.append(Paragraph(f"<b>Detalle de Devolución</b>", title_style))
+    elements.append(Spacer(1, 12))
+
+    info_style = ParagraphStyle("info", fontSize=11, leading=14, spaceAfter=4)
+    info_data = [
+        f"<b>No. Factura:</b> {ref}",
+        f"<b>Fecha:</b> {header.fecha_hora.strftime('%d/%m/%Y %H:%M') if header.fecha_hora else '—'}",
+        f"<b>Usuario:</b> {header.id_usuario}",
+        f"<b>Estado:</b> {header.estado_movimiento_inventario}",
+    ]
+    for line in info_data:
+        elements.append(Paragraph(line, info_style))
+
+    if header.comentario:
+        elements.append(Spacer(1, 8))
+        elements.append(Paragraph(f"<b>Motivo / Comentario:</b> {header.comentario}", info_style))
+
+    elements.append(Spacer(1, 16))
+
+    # ---- Tabla de productos devueltos ----
+    data = [["Código", "Producto", "Lote", "Cantidad"]]
+    for m in movimientos:
+        data.append([
+            m.id_lote.id_producto.codigo_producto,
+            m.id_lote.id_producto.nombre,
+            m.id_lote.numero_lote,
+            str(m.cantidad),
+        ])
+
+    table = Table(data, hAlign="LEFT", repeatRows=1, colWidths=[90, 350, 100, 80])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E8F5EC")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#0B3F2E")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.gray),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    return response
+
+
+@login_required
+def buscar_facturas_completadas(request):
+    """
+    Devuelve una lista de facturas (referencia_transaccion y fecha)
+    que tengan movimientos de tipo 'VEN' con estado 'Completado'.
+    Se usa para el modal de búsqueda de facturas.
+    """
+    term = (request.GET.get("term") or "").strip().lower()
+
+    facturas = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(
+            id_tipo_movimiento__codigo="VEN",
+            estado_movimiento_inventario__nombre_estado="Completado"
+        )
+        .values("referencia_transaccion")
+        .annotate(
+            total=Sum("cantidad"),
+            fecha=Max("fecha_hora")  # ✅ tomamos la última fecha de movimiento
+        )
+        .order_by("-fecha")
+    )
+
+    if term:
+        facturas = facturas.filter(referencia_transaccion__icontains=term)
+
+    data = [
+        {
+            "referencia": f["referencia_transaccion"],
+            "fecha": f["fecha"].strftime("%Y-%m-%d %H:%M") if f["fecha"] else "",
+            "total": abs(f["total"] or 0)
+        }
+        for f in facturas if f["referencia_transaccion"]
+    ]
+    return JsonResponse(data, safe=False)
+
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def productos_por_factura(request, ref):
+    """
+    Devuelve los productos asociados a una factura (referencia_transaccion)
+    que correspondan a movimientos de tipo 'VEN' completados.
+    """
+    term = (request.GET.get("term") or "").strip().lower()
+
+    movimientos = (
+        Movimientos_Inventario_Sucursal.objects
+        .filter(
+            id_tipo_movimiento__codigo="VEN",
+            estado_movimiento_inventario__nombre_estado="Completado",
+            referencia_transaccion=ref
+        )
+        .select_related("id_lote__id_producto")
+        .order_by("id_lote__id_producto__nombre")
+    )
+
+    # ✅ Filtro de búsqueda correcto
+    if term:
+        movimientos = movimientos.filter(id_lote__id_producto__nombre__icontains=term)
+
+    productos = {}
+    for mov in movimientos:
+        prod = mov.id_lote.id_producto
+        productos[prod.id] = {
+            "id": prod.id,
+            "codigo": prod.codigo_producto,
+            "nombre": prod.nombre,
+            "descripcion": prod.descripcion or "",
+            "presentacion": getattr(prod.id_presentacion, "nombre_presentacion", ""),
+            "unidad": getattr(prod.id_unidad_medida, "nombre_unidad_medida", ""),
+            "condicion": getattr(prod.id_condicion_almacenamiento, "nombre_condicion", ""),
+            "receta": prod.requiere_receta,
+            "controlado": prod.es_controlado,
+        }
+
+    return JsonResponse(list(productos.values()), safe=False)

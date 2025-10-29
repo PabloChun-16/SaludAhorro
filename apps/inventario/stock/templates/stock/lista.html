@@ -144,9 +144,10 @@ tbody tr.estado-retirado td:nth-child(5){
               <div class="filter-wrap">
                 <!-- Solo: Todos, Disponible (preseleccionado), Retirado -->
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  <option value="disponible" selected>Disponible</option>
-                  <option value="retirado">Retirado</option>
+                  <option value="" selected>Todos</option>
+                  {% for estado in estados_unicos %}
+                    <option value="{{ estado|lower }}">{{ estado }}</option>
+                  {% endfor %}
                 </select>
               </div>
             </th>
@@ -365,30 +366,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const COL = { codigo:0, nombre:1, desc:2, pres:3, dispo:4, lote:5, cadu:6, estado:7 };
 
-  function preprocessRows(){
-    const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
-    rows.forEach(tr=>{
-      const tds = tr.querySelectorAll("td");
-      tr.dataset.codigo = norm(tds[COL.codigo]?.textContent);
-      tr.dataset.nombre = norm(tds[COL.nombre]?.textContent);
-      tr.dataset.desc   = norm(tds[COL.desc]?.textContent);
-      tr.dataset.pres   = norm(tds[COL.pres]?.textContent);
-      tr.dataset.lote   = norm(tds[COL.lote]?.textContent);
+ function preprocessRows(){
+  const rows = Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+  rows.forEach(tr=>{
+    const tds = tr.querySelectorAll("td");
+    tr.dataset.codigo = norm(tds[COL.codigo]?.textContent);
+    tr.dataset.nombre = norm(tds[COL.nombre]?.textContent);
+    tr.dataset.desc   = norm(tds[COL.desc]?.textContent);
+    tr.dataset.pres   = norm(tds[COL.pres]?.textContent);
+    tr.dataset.lote   = norm(tds[COL.lote]?.textContent);
 
-      // Normalización de estado → disponible / retirado
-      const estadoRaw = (tr.getAttribute("data-estado") || tds[COL.estado]?.textContent || "").trim().toLowerCase();
-      let estadoNorm;
-      if (["disponible","vigente"].includes(estadoRaw)) estadoNorm = "disponible";
-      else if (["retirado","vencido","devuelto"].includes(estadoRaw)) estadoNorm = "retirado";
-      else estadoNorm = "otros";
-      tr.dataset.estado = estadoNorm;
+    // ✅ Guardar el estado real (sin reducirlo)
+    const estadoRaw = (tr.getAttribute("data-estado") || tds[COL.estado]?.textContent || "").trim().toLowerCase();
+    tr.dataset.estado = estadoRaw;
 
-      // Clase para colorear la columna "Disponible"
-      tr.classList.remove("estado-disponible","estado-retirado");
-      if (estadoNorm === "disponible") tr.classList.add("estado-disponible");
-      if (estadoNorm === "retirado")   tr.classList.add("estado-retirado");
-    });
-  }
+    // 🔹 Colorear la columna "Disponible" según estado principal
+    tr.classList.remove("estado-disponible","estado-retirado");
+    if (["disponible","vigente"].includes(estadoRaw)) {
+      tr.classList.add("estado-disponible");
+    } else if (["retirado","vencido","devuelto"].includes(estadoRaw)) {
+      tr.classList.add("estado-retirado");
+    }
+  });
+}
 
 /* ====== Paginación ====== */
 let currentPage=1; let pageSize=15; const rowHeight=42;
@@ -523,9 +523,6 @@ function applyPagination(){
       });
       window.location.href = `${base}?${params.toString()}`;
     });
-
-    /* Asegurar que al entrar quede preseleccionado "disponible" */
-    if (fEstado && !fEstado.value) fEstado.value = "disponible";
 
     applyFilters();
   }

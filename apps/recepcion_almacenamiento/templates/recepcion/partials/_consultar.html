@@ -177,6 +177,11 @@
 
   <!-- Footer -->
   <div class="modal-footer py-2">
+    <a href="{% url 'recepcion:recepcion_export_pdf' recepcion.id %}"
+     class="btn btn-success saif-btn-success"
+     target="_blank">
+    <i class="bi bi-filetype-pdf"></i> Exportar
+    </a>
     <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>

@@ -75,7 +75,15 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
           </tr>
           <tr class="filter-row">
             <th><input id="f-id" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-estado" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="completado">Completado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </th>
             <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
             <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
           </tr>
@@ -129,7 +137,7 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
       </button>
 
       <button id="btnAnularAjuste"
-              class="btn btn-success rounded-pill px-3 shadow-sm"
+              class="btn btn-danger rounded-pill px-3 shadow-sm"
               disabled>
         <i class="bi bi-x-circle"></i> Anular
       </button>
@@ -490,5 +498,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   })();
 });
+
+  /* === FILTRO DE ESTADO (frontend dinámico, igual que en Ingresos) === */
+  const tablaAjustes = document.querySelector("#tablaAjustes");
+  const tbodyAjustes = tablaAjustes?.querySelector("tbody");
+  const fEstado = document.getElementById("f-estado");
+
+  function normalizarTexto(s) {
+    return (s || "").toString().trim().toLowerCase();
+  }
+
+  function aplicarFiltroEstado() {
+    const estadoFiltro = normalizarTexto(fEstado.value);
+    const filas = Array.from(tbodyAjustes.querySelectorAll("tr[data-id]"));
+
+    filas.forEach(tr => {
+      const estadoCelda = normalizarTexto(tr.querySelectorAll("td")[1]?.textContent);
+      const visible = !estadoFiltro || estadoCelda.includes(estadoFiltro);
+      tr.style.display = visible ? "" : "none";
+    });
+  }
+
+  fEstado?.addEventListener("change", aplicarFiltroEstado);
+
 </script>
 {% endblock %}

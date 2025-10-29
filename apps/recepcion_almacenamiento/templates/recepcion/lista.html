@@ -795,15 +795,37 @@ document.addEventListener("DOMContentLoaded", function () {
       if(!hasContent){ tr.remove(); }
     });
   }
-  function selectRow(row){
-    if(!row) return;
-    tbody.querySelectorAll("tr").forEach(r=>r.classList.remove("table-active"));
-    row.classList.add("table-active");
-    selectedId = row.getAttribute("data-id");
-    const enabled = !!selectedId;
-    btnConsultar.disabled = !enabled;
-    if (btnCambiarEstado) btnCambiarEstado.disabled = !enabled;
+function selectRow(row){
+  if(!row) return;
+
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+  row.classList.add("table-active");
+  selectedId = row.getAttribute("data-id");
+  const enabled = !!selectedId;
+  btnConsultar.disabled = !enabled;
+
+  // === Detectar estado actual ===
+  let estadoActual = "";
+  const estadoCell = row.querySelector("td:nth-child(4)");
+  if (estadoCell) {
+    estadoActual = (estadoCell.textContent || "").trim().toLowerCase();
   }
+
+  // Deshabilitar "Cambiar estado" si está RECHAZADO
+  if (btnCambiarEstado) {
+    if (estadoActual.includes("rechazado")) {
+      btnCambiarEstado.disabled = true;
+      btnCambiarEstado.classList.add("disabled", "opacity-75");
+      btnCambiarEstado.title = "No se puede modificar un registro rechazado.";
+    } else {
+      btnCambiarEstado.disabled = !enabled;
+      btnCambiarEstado.classList.remove("disabled", "opacity-75");
+      btnCambiarEstado.removeAttribute("title");
+    }
+  }
+}
+
+
   tbody.addEventListener("click",(ev)=>{
     const row = ev.target.closest("tr");
     if(!row || row.hasAttribute("data-empty-row")) return;

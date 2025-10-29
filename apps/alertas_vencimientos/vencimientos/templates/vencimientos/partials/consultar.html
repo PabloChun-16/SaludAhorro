@@ -117,6 +117,11 @@
 
 <div class="modal-footer justify-content-between saif-footer">
   <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
+  <a href="{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_export_pdf' reporte.id %}"
+       class="btn btn-success saif-btn-success"
+       target="_blank">
+      <i class="bi bi-filetype-pdf"></i> Exportar
+    </a>
   <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
     <i class="bi bi-x-lg"></i> Cerrar
   </button>

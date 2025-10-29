@@ -205,7 +205,16 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
             <th><input id="f-cad"        class="form-control form-control-sm filter-control text-center" placeholder="AAAA-MM-DD"></th>
             <th><input id="f-disp"       class="form-control form-control-sm filter-control text-center" placeholder="≥ / = / ≤"></th>
             <th><input id="f-ubic"       class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-estado"     class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  {% for est in estados_unicos %}
+                    <option value="{{ est|lower }}">{{ est }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -411,15 +420,17 @@ document.addEventListener("DOMContentLoaded", function () {
         if(ok && vCad    && !t(3).includes(vCad))  ok = false;
         if(ok && dispF)  ok = cmpNum(dispF.op, tr.cells[4]?.textContent, dispF.num);
         if(ok && vUbic   && !t(5).includes(vUbic)) ok = false;
-        if(ok && vEstado && !t(6).includes(vEstado)) ok = false;
+        // ✅ Filtro de estado adaptado al combo:
+         if(ok && vEstado && vEstado !== "" && t(6) !== vEstado) ok = false;
         tr.style.display = ok ? "" : "none";
       });
       currentPage = 1;
       applyPagination();
     }
-    [fCodigo,fProd,fLote,fCad,fDisp,fUbic,fEstado].forEach(inp=>{
+    [fCodigo,fProd,fLote,fCad,fDisp,fUbic].forEach(inp=>{
       inp.addEventListener("input", applyFilters);
     });
+    fEstado.addEventListener("change", applyFilters);
   })();
 
   /* ====== Selección de fila + Doble clic para consultar ====== */

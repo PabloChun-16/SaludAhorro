@@ -15,6 +15,13 @@ from apps.ajustes_inventario.models import Inventario_Fisico, Detalle_Conteo
 from apps.inventario.models import Lotes, Productos
 from apps.mantenimiento.models import Estado_Lote
 
+from io import BytesIO
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,8 +31,12 @@ logger = logging.getLogger(__name__)
 @login_required
 def ajuste_ingreso_list(request):
     ajustes = Inventario_Fisico.objects.select_related("id_usuario")\
-    .filter(tipo_ajuste="Ingreso").order_by("-fecha_conteo")
+        .filter(tipo_ajuste="Ingreso")\
+        .order_by("-fecha_conteo")
+
     return render(request, "ingresos/lista.html", {"ajustes": ajustes})
+
+
 
 
 # -----------------------------------------
@@ -276,3 +287,88 @@ def anular_ajuste_ingreso(request, ajuste_id: int):
     ajuste.save(update_fields=["estado"])
 
     return JsonResponse({"success": True})
+
+
+@login_required
+def ajuste_ingreso_export_pdf(request, ajuste_id):
+    """
+    Genera un PDF horizontal (landscape) con el detalle del ajuste de inventario (ingreso).
+    Se abre directamente en el navegador.
+    """
+    ajuste = get_object_or_404(Inventario_Fisico, pk=ajuste_id)
+    detalles = (
+        Detalle_Conteo.objects
+        .select_related("id_lote__id_producto")
+        .filter(id_conteo=ajuste)
+    )
+
+    # --- Configuración del PDF ---
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        leftMargin=40,
+        rightMargin=40,
+        topMargin=50,
+        bottomMargin=40,
+    )
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # --- Encabezado ---
+    title = Paragraph("<b>AJUSTE DE INVENTARIO - INGRESO</b>", styles["Title"])
+    subtitle = Paragraph("SAIF · Sistema de Administración e Inventario Farmacéutico", styles["Normal"])
+    elements.extend([title, subtitle, Spacer(1, 12)])
+
+    # --- Información general ---
+    info_data = [
+        ["ID Ajuste:", f"{ajuste.id}"],
+        ["Usuario:", f"{ajuste.id_usuario.nombre} {ajuste.id_usuario.apellido}"],
+        ["Fecha del Ajuste:", ajuste.fecha_conteo.strftime("%d/%m/%Y")],
+        ["Estado:", ajuste.estado],
+    ]
+    info_table = Table(info_data, colWidths=[150, 500])
+    info_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.extend([info_table, Spacer(1, 12)])
+
+    # --- Tabla de detalles ---
+    data = [["Código", "Producto", "Lote", "Cantidad Anterior", "Cantidad Nueva", "Diferencia (+)"]]
+    for d in detalles:
+        data.append([
+            d.id_lote.id_producto.codigo_producto,
+            d.id_lote.id_producto.nombre,
+            d.id_lote.numero_lote or "-",
+            str(d.cantidad_sistema),
+            str(d.cantidad_contada),
+            str(d.diferencia),
+        ])
+
+    table = Table(data, colWidths=[80, 250, 100, 100, 100, 100])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgreen),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(table)
+
+    # --- Construcción ---
+    doc.build(elements)
+    buffer.seek(0)
+
+    # --- Mostrar en navegador ---
+    filename = f"Ajuste_Ingreso_{ajuste.id}.pdf"
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response

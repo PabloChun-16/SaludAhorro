@@ -1,0 +1,43 @@
+<!-- devoluciones/partials/factura_modal.html -->
+<div class="modal fade" id="modalBuscarFactura" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content saif-modal">
+      <!-- HEADER -->
+      <div class="modal-header bg-success text-white align-items-center">
+        <h5 class="modal-title d-flex align-items-center gap-2 mb-0">
+          <i class="bi bi-receipt"></i>
+          <span>Seleccionar Factura</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body saif-modal-body">
+        <!-- Campo de búsqueda -->
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-success"></i></span>
+            <input type="text" id="searchFactura" class="form-control border-start-0"
+                   placeholder="Buscar factura (No. o parte del código)...">
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle text-center">
+            <thead style="background:#ecfdf5;">
+              <tr class="text-success fw-semibold">
+                <th>No. Factura</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaFacturas">
+              <tr><td colspan="3" class="text-muted py-3">Escribe para buscar…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

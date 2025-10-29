@@ -283,6 +283,10 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 {% include "recepcion/partials/producto_modal.html" %}
 <!-- Solo el modal de lotes de DEVOLUCIONES -->
 {% include "devoluciones/partials/lote_modal.html" %}
+<!-- Modal de búsqueda de facturas -->
+{% include "devoluciones/partials/factura_modal.html" %}
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -423,6 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inicializarFormularioDevolucion();
         cablearBuscadorProductos();
         cablearBuscadorLotes();
+        cablearBuscadorFacturas(); // ✅ nuevo
       })
       .catch(() => {
         modalContent.innerHTML = "<div class='p-4 text-danger'>Error cargando formulario.</div>";
@@ -467,9 +472,10 @@ document.addEventListener("DOMContentLoaded", function () {
   /* ====== Re-mostrar principal al cerrar auxiliares (igual) ====== */
   const mbp = document.getElementById("modalBuscarProducto");
   const mbl = document.getElementById("modalBuscarLote");
+  const mbf = document.getElementById("modalBuscarFactura");
   if(mbp){ mbp.addEventListener("hidden.bs.modal", () => { bootstrap.Modal.getOrCreateInstance(modalEl).show(); }); }
   if(mbl){ mbl.addEventListener("hidden.bs.modal", () => { bootstrap.Modal.getOrCreateInstance(modalEl).show(); }); }
-
+  if(mbf){ mbf.addEventListener("hidden.bs.modal", () => { bootstrap.Modal.getOrCreateInstance(modalEl).show(); }); }
   /* ==========================================================
      LÓGICA DEL FORM DE DEVOLUCIÓN (idéntica a tu versión)
      ========================================================== */
@@ -601,7 +607,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         t = setTimeout(() => {
           tbody.innerHTML = `<tr><td colspan="9" class="text-muted">Buscando…</td></tr>`;
-          fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+          const ref = document.querySelector("#modalDevolucion #facturaInput")?.value.trim();
+if (!ref) {
+  tbody.innerHTML = `<tr><td colspan="9" class="text-danger">Seleccione una factura primero.</td></tr>`;
+  return;
+}
+
+fetch("{% url 'sd:devoluciones:productos_por_factura' 'REF' %}"
+  .replace("REF", encodeURIComponent(ref)) + "?term=" + encodeURIComponent(term))
+
             .then(r => r.ok ? r.json() : Promise.reject())
             .then(rows => {
               if (!rows?.length){
@@ -805,6 +819,69 @@ document.addEventListener("DOMContentLoaded", function () {
 
     refreshAutoTitles();
   }
+
+  /* ====== Buscador de FACTURAS (versión final SAIF) ====== */
+function cablearBuscadorFacturas() {
+  const modalFact = document.getElementById("modalBuscarFactura");
+  const tablaFact = document.getElementById("tablaFacturas");
+  const searchFact = document.getElementById("searchFactura");
+  const facturaInput = document.getElementById("facturaInput");
+
+  if (!modalFact || !tablaFact) return;
+
+  modalFact.addEventListener("shown.bs.modal", function onShown() {
+    modalFact.removeEventListener("shown.bs.modal", onShown);
+    searchFact.value = "";
+    tablaFact.innerHTML = `<tr><td colspan="3" class="text-muted py-3">Escribe para buscar…</td></tr>`;
+    searchFact.focus();
+
+    let timeout = null;
+    searchFact.oninput = function () {
+      clearTimeout(timeout);
+      const term = this.value.trim();
+      if (!term) {
+        tablaFact.innerHTML = `<tr><td colspan="3" class="text-muted py-3">Escribe para buscar…</td></tr>`;
+        return;
+      }
+      timeout = setTimeout(() => {
+        tablaFact.innerHTML = `<tr><td colspan="3" class="text-muted py-3">Buscando…</td></tr>`;
+        fetch("{% url 'sd:devoluciones:buscar_facturas' %}?term=" + encodeURIComponent(term))
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(rows => {
+            if (!rows?.length) {
+              tablaFact.innerHTML = `<tr><td colspan="3" class="text-muted py-3">Sin resultados.</td></tr>`;
+              return;
+            }
+            tablaFact.innerHTML = "";
+            rows.forEach(f => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${f.referencia || ""}</td>
+                <td>${f.fecha || ""}</td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-success">
+                    <i class="bi bi-check"></i>
+                  </button>
+                </td>
+              `;
+              tr.querySelector("button").addEventListener("click", () => {
+                facturaInput.value = f.referencia;
+                bootstrap.Modal.getInstance(modalFact).hide();
+                // Reabrimos el modal principal
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("modalDevolucion")).show();
+              });
+              tablaFact.appendChild(tr);
+            });
+          })
+          .catch(() => {
+            tablaFact.innerHTML = `<tr><td colspan="3" class="text-danger py-3">Error al cargar facturas.</td></tr>`;
+          });
+      }, 200);
+    };
+  }, { once: true });
+}
+
+
 
   /* ====== Filtros (adaptados a columnas de Devoluciones) ====== */
   function installFilters(){

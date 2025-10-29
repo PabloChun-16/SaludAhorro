@@ -18,8 +18,15 @@ urlpatterns = [
         name="lotes_por_factura",
     ),
 
+    path("buscar-facturas/", views.buscar_facturas_completadas, name="buscar_facturas"),
+    path("productos/<str:ref>/", views.productos_por_factura, name="productos_por_factura"),
+
+
+
     # CANCELAR (colocar antes del detail para que no lo capture)
     path("<str:ref>/cancelar/", views.devolucion_cancel, name="cancel"),
+    # ✅ Exportar PDF
+    path("<str:ref>/exportar/", views.devolucion_export_pdf, name="devolucion_export_pdf"),
 
     # 5) Detalle de una devolución por No. de factura (dejar SIEMPRE al final)
     path("<str:ref>/", views.devolucion_detail, name="detail"),
