@@ -400,6 +400,71 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
   background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
   border-top:0; padding:.9rem 1.3rem;
 }
+/* ====== Seguimiento (cards en grid) ====== */
+#consultarSolicitudModal .dv-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:.9rem;
+}
+
+#consultarSolicitudModal .dv{
+  background:#fff;
+  border:1px solid #d7ebe0;
+  border-radius:.9rem;
+  padding:.8rem 1rem;
+  box-shadow:0 12px 24px rgba(15,122,58,.08);
+}
+#consultarSolicitudModal .dv.--compact{
+  padding:.7rem .9rem;
+  border-radius:.8rem;
+}
+
+#consultarSolicitudModal .dv__label{
+  display:block;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.045em;
+  color:#166534;
+  margin-bottom:.25rem;
+}
+
+#consultarSolicitudModal .dv__field{
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+}
+#consultarSolicitudModal .dv__icon{
+  width:30px; height:30px; flex:0 0 30px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#e1f8eb 0%,#c8efd8 100%);
+  color:#0f7a3a; font-size:.95rem;
+  box-shadow:inset 0 0 0 2px rgba(15,122,58,.08);
+}
+#consultarSolicitudModal .dv__value{
+  font-weight:700; color:#0b3f2e; font-size:1rem;
+}
+
+/* Píldoras de estado reutilizadas en “detalleEstado” */
+#consultarSolicitudModal .saif-pill{
+  display:inline-flex; align-items:center; gap:.35rem;
+  padding:.28rem .65rem; border-radius:999px;
+  font-weight:600; font-size:.78rem;
+}
+#consultarSolicitudModal .saif-pill--neutral{ background:#eef2f7; color:#334155; }
+#consultarSolicitudModal .saif-pill--success{ background:#dcfce7; color:#166534; }
+#consultarSolicitudModal .saif-pill--alert{   background:#fef3c7; color:#b45309; }
+
+/* Tabla de productos compacta para que coincida con el diseño anterior */
+#consultarSolicitudModal .saif-table--compact thead th{
+  background:linear-gradient(145deg,#e8f5ec 0%,#dff0e4 100%);
+  color:#14532d; border-bottom:1px solid #cfe9d7;
+}
+#consultarSolicitudModal .saif-table--compact th,
+#consultarSolicitudModal .saif-table--compact td{
+  padding:.6rem .75rem; font-size:.92rem;
+}
+
 </style>
 
 <!-- ================== LIBRERÍAS ================== -->
@@ -518,57 +583,61 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  
   if (btnConsultar && modalConsultar) {
     btnConsultar.addEventListener("click", async () => {
       const row = tbody.querySelector("tr.table-active");
       if (!row) { alert("Selecciona una solicitud primero."); return; }
 
-      const id = row.getAttribute("data-id");
+      const id   = row.getAttribute("data-id");
+      const base = document.getElementById("urlPatterns")?.dataset?.obtener || "";
+
+      // Ruta real: /ID/obtener/  →  reemplazamos /0/obtener/ por /{id}/obtener/
+      const url = base.replace(/\/0\/obtener\/?$/, `/${id}/obtener/`);
+
       try {
-        const base = document.getElementById("urlPatterns")?.dataset?.obtener || "";
-        // Reemplaza el 0 final (con o sin /) por el id seleccionado, sin suponer el patrón exacto
-        const url  = base.replace(/\/0\/?$/, `/${id}/`);
+        const resp = await fetch(url, {
+          headers: {
+            "Accept": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
 
-        const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-
-        // Cabecera
+        // === Cabecera ===
         setValue("detalleDocumento", data.documento || "-", "-");
 
-        // Seguimiento
-        (function(){
-          const k = (data.estado || "").toLowerCase();
-          const estadoEl = document.getElementById("detalleEstado");
-          if (estadoEl) {
-            let cls = "saif-pill saif-pill--neutral";
-            if (["enviada","completada"].includes(k)) cls = "saif-pill saif-pill--success";
-            if (["cancelada"].includes(k))           cls = "saif-pill saif-pill--alert";
-            estadoEl.textContent = data.estado || "Sin estado";
-            estadoEl.className   = cls;
-          }
-          setValue("detalleFecha", data.fecha || "-", "-");
-          setValue("detalleUsuario", data.usuario || "-", "-");
-        })();
+        // === Seguimiento ===
+        const estadoKey = (data.estado || "").toLowerCase();
+        const estadoEl  = document.getElementById("detalleEstado");
+        if (estadoEl) {
+          let cls = "saif-pill saif-pill--neutral";
+          if (["enviada","completada"].includes(estadoKey)) cls = "saif-pill saif-pill--success";
+          if (["cancelada"].includes(estadoKey))           cls = "saif-pill saif-pill--alert";
+          estadoEl.textContent = data.estado || "Sin estado";
+          estadoEl.className   = cls;
+        }
+        setValue("detalleFecha",   data.fecha   || "-", "-");
+        setValue("detalleUsuario", data.usuario || "-", "-");
 
-        // Tabla de productos
-        (function(){
-          const tbodyDet = document.getElementById("detalleProductosModal");
-          if (!tbodyDet) return;
+        // === Tabla de productos ===
+        const tbodyDet = document.getElementById("detalleProductosModal");
+        if (tbodyDet) {
           tbodyDet.innerHTML = "";
-          (data.detalles || []).forEach(d=>{
+          (data.detalles || []).forEach(d => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td class="text-start">${(d.producto||"")}</td>
-              <td class="text-center">${d.cantidad||0}</td>
+              <td class="text-start">${d.producto || ""}</td>
+              <td class="text-center">${d.cantidad || 0}</td>
               <td class="text-center">${d.urgente ? "Sí" : "No"}</td>
-              <td class="text-start">${(d.observaciones||"—")}</td>`;
+              <td class="text-start">${d.observaciones || "—"}</td>`;
             tbodyDet.appendChild(tr);
           });
           if (!tbodyDet.children.length) {
             tbodyDet.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Sin productos</td></tr>`;
           }
-        })();
+        }
 
         modalConsultar.show();
       } catch (e) {
