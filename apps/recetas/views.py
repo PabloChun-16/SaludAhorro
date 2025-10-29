@@ -257,11 +257,15 @@ def search_facturas(request):
         SELECT DISTINCT ON (m.referencia_transaccion)
                m.referencia_transaccion                                 AS factura,
                to_char(m.fecha_hora, 'DD/MM/YYYY HH24:MI')              AS fecha,
+               m.id_usuario_id                                          AS usuario_id,
+               COALESCE(u.nombre, '')                                   AS usuario_nombre,
                p.id                                                     AS producto_id,
                COALESCE(p.nombre, '')                                   AS producto_nombre
         FROM salidas_devoluciones_movimientos_inventario_sucursal m
         JOIN mantenimiento_tipo_movimiento_inventario t
              ON t.id = m.id_tipo_movimiento_id
+        LEFT JOIN mantenimiento_usuarios u
+             ON u.id = m.id_usuario_id
         LEFT JOIN inventario_lotes l
              ON l.id = m.id_lote_id
         LEFT JOIN inventario_productos p
@@ -285,14 +289,14 @@ def search_facturas(request):
         cur.execute(sql, params)
         rows = cur.fetchall()
 
-    # 3) Formato esperado por tu front (usuario lo dejamos vacío si no está en la consulta).
+    # 3) Formato esperado por el front.
     results = [
         {
             "factura": r[0],
-            "usuario_id": None,
-            "usuario_nombre": "",
-            "producto_id": r[2],
-            "producto_nombre": r[3],
+            "usuario_id": r[2],
+            "usuario_nombre": r[3] or "",
+            "producto_id": r[4],
+            "producto_nombre": r[5] or "",
             "fecha": r[1],
         }
         for r in rows
