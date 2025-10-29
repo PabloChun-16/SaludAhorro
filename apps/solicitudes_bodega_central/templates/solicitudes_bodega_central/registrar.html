@@ -190,6 +190,16 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 
 /* Aux */
 .text-truncate{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ======= COMPACT ======= */
+.saif-block--compact .saif-block__header{ padding:.55rem .8rem; }
+.saif-block--compact .saif-block__body{ padding:.55rem .8rem; }
+
+.saif-table--compact thead th,
+.saif-table--compact tbody td{ padding:.45rem .6rem !important; }
+
+.dv-grid.--compact{ gap:.5rem; }
+.dv.--compact .dv__field{ padding:.45rem .6rem; }
 </style>
 
 <section class="p-6 md:p-8">
@@ -230,10 +240,9 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
               <div class="filter-wrap">
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
                   <option value="">Todos</option>
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
                   <option value="enviada">Enviada</option>
-                  <option value="pendiente">Pendiente</option>
+                  <option value="completada">Completada</option>
+                  <option value="cancelada">Cancelada</option>
                 </select>
               </div>
             </th>
@@ -305,6 +314,7 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
       <!-- patrones de URL para JS -->
       <span id="urlPatterns"
             data-cambiar-modal="{% url 'solicitudes_bodega_central:solicitud_cambiar_estado_modal' 0 %}"
+            data-obtener="{% url 'solicitudes_bodega_central:obtener_solicitud' 0 %}"
             hidden></span>
     </div>
   </div>
@@ -439,65 +449,57 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
               </div>
             </div>
           </div>
-
-          <div class="col-12 col-sm-6 col-lg-3">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon"><i class="bi bi-box-seam"></i></div>
-              <div class="w-100">
-                <span class="saif-info-card__label">Producto</span>
-                <span class="saif-info-card__value text-truncate" id="detalleProducto" title="">-</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 col-sm-6 col-lg-3">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon"><i class="bi bi-capsule"></i></div>
-              <div>
-                <span class="saif-info-card__label">Cantidad</span>
-                <span class="saif-info-card__value" id="detalleCantidad">-</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 col-sm-6 col-lg-3">
-            <div class="saif-info-card">
-              <div class="saif-info-card__icon saif-info-card__icon--state"><i class="bi bi-lightning-charge"></i></div>
-              <div>
-                <span class="saif-info-card__label">Urgente</span>
-                <span class="saif-info-card__value" id="detalleUrgente">-</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Observaciones -->
-        <div class="saif-block saif-block--highlight mb-3">
+        <!-- Productos de la solicitud -->
+        <div class="saif-block saif-block--compact">
           <div class="saif-block__header">
-            <i class="bi bi-chat-dots me-2"></i> Observaciones
+            <i class="bi bi-box-seam me-2"></i> Productos de la solicitud
           </div>
-          <div class="saif-block__body" id="detalleObservaciones">-</div>
+          <div class="saif-block__body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle m-0 saif-table--compact">
+                <thead>
+                  <tr>
+                    <th class="text-start">Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-center">Urgente</th>
+                    <th class="text-start">Observaciones</th>
+                  </tr>
+                </thead>
+                <tbody id="detalleProductosModal"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
 
         <!-- Seguimiento (grid ordenado) -->
-        <div class="saif-block">
+        <div class="saif-block saif-block--compact">
           <div class="saif-block__header">
             <i class="bi bi-info-circle me-2"></i> Seguimiento
           </div>
           <div class="saif-block__body">
-            <div class="dv-grid">
-              <div class="dv">
+            <div class="dv-grid --compact">
+              <div class="dv --compact">
                 <span class="dv__label">Estado</span>
                 <div class="dv__field">
                   <span class="dv__icon"><i class="bi bi-flag"></i></span>
                   <span class="dv__value" id="detalleEstado">-</span>
                 </div>
               </div>
-              <div class="dv">
+              <div class="dv --compact">
                 <span class="dv__label">Fecha</span>
                 <div class="dv__field">
                   <span class="dv__icon"><i class="bi bi-calendar-event"></i></span>
                   <span class="dv__value" id="detalleFecha">-</span>
+                </div>
+              </div>
+              <div class="dv --compact">
+                <span class="dv__label">Usuario</span>
+                <div class="dv__field">
+                  <span class="dv__icon"><i class="bi bi-person"></i></span>
+                  <span class="dv__value" id="detalleUsuario">-</span>
                 </div>
               </div>
             </div>
@@ -520,49 +522,8 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
   </div>
 </div>
 
-<!-- ====== MODAL: BUSCAR PRODUCTO ====== -->
-<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="saif-modal-title">
-          <span class="saif-modal-icon"><i class="bi bi-search"></i></span>
-          <span>Buscar producto</span>
-        </div>
-        <span class="saif-badge">SAIF</span>
-      </div>
-      <div class="modal-body p-3 p-md-4 saif-modal-body">
-        <div class="saif-search-group input-group mb-3">
-          <span class="input-group-text saif-ig"><i class="bi bi-search"></i></span>
-          <input id="searchProducto" type="text" class="form-control saif-input" placeholder="Escribe codigo o nombre...">
-        </div>
-        <div class="saif-table-wrapper">
-          <div class="saif-table-scroll table-responsive">
-            <table class="table table-hover table-sm mb-0">
-              <thead>
-                <tr>
-                  <th>Codigo</th>
-                  <th>Nombre</th>
-                  <th>Descripcion</th>
-                  <th>Presentacion</th>
-                  <th>Unidad</th>
-                  <th>Condicion</th>
-                  <th>Receta</th>
-                  <th>Ctrl.</th>
-                  <th>Elegir</th>
-                </tr>
-              </thead>
-              <tbody id="tablaBuscarProductos"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer justify-content-end saif-footer">
-        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
+{% include "recepcion/partials/producto_modal.html" %}
+
 {% endblock %}
 
 {% block extra_js %}
@@ -579,11 +540,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalEl = document.getElementById("modalSolicitud");
   const modalCrear = new bootstrap.Modal(modalEl, modalConfig);
   const modalBuscar = document.getElementById("modalBuscarProducto");
-  const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"), modalConfig);
-  const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"), modalConfig);
-  const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
-
-  const btnCambiarEstado = document.getElementById("btnCambiarEstado");
 
   function attachChildModal(childEl) {
     if (!childEl || childEl.dataset.parentSync === "1") return;
@@ -603,7 +559,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     childEl.dataset.parentSync = "1";
   }
-  attachChildModal(modalBuscar);
+  attachChildModal(modalBuscar); // <= asegúrate de llamar esto
+
+
+
+  const modalConsultar = new bootstrap.Modal(document.getElementById("consultarSolicitudModal"), modalConfig);
+  const modalCambiar = new bootstrap.Modal(document.getElementById("modalCambiarEstado"), modalConfig);
+  const modalCambiarContent = document.getElementById("modal-cambiar-estado-content");
+
+  const btnCambiarEstado = document.getElementById("btnCambiarEstado");
+
 
   let selectedId = null;
   let selectedRow = null;
@@ -694,77 +659,93 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 
-  btnConsultar.addEventListener("click", function () {
+  btnConsultar.addEventListener("click", async function () {
     const row = selectedRow;
     if (!row) return;
 
-    const doc = cleanValue(row.dataset.documento);
+    // 1) Llamar al backend para traer todos los detalles
+    const base = document.getElementById("urlPatterns").dataset.obtener; // /.../0/obtener/
+    const url  = base.replace("/0/", `/${selectedId}/`);
+    let data;
+    try {
+      const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      data = await r.json();
+    } catch {
+      return;
+    }
+
+    // 2) Documento / Estado / Fecha
+    const doc = cleanValue(data.documento);
     setValue("detalleDocumento", doc, "-");
-    const docEl = document.getElementById("detalleDocumento");
-    if (docEl) {
-      if (doc) docEl.setAttribute("title", doc);
-      else docEl.removeAttribute("title");
-    }
-
-    const producto = cleanValue(row.dataset.producto);
-    const productoEl = document.getElementById("detalleProducto");
-    if (productoEl) {
-      if (producto) {
-        productoEl.textContent = producto;
-        productoEl.classList.remove("--empty");
-        productoEl.setAttribute("title", producto);
-      } else {
-        productoEl.textContent = "Sin producto";
-        productoEl.classList.add("--empty");
-        productoEl.removeAttribute("title");
-      }
-    }
-
-    const cantidad = cleanValue(row.dataset.cantidad);
-    setValue("detalleCantidad", cantidad, "-");
-
-    const urgenteEl = document.getElementById("detalleUrgente");
-    if (urgenteEl) {
-      const esUrgente = row.dataset.urgente === "True";
-      urgenteEl.innerHTML = buildPill(esUrgente ? "Urgente" : "No urgente", esUrgente ? "saif-pill--warning" : "saif-pill--neutral");
-      urgenteEl.classList.remove("--empty");
-    }
-
-    const observaciones = cleanValue(row.dataset.observaciones);
-    setValue("detalleObservaciones", observaciones, "Sin observaciones");
-
     const estadoEl = document.getElementById("detalleEstado");
     if (estadoEl) {
-      const estado = cleanValue(row.dataset.estado);
+      const estado = cleanValue(data.estado);
       const estadoLower = (estado || "").toLowerCase();
       let tone = "saif-pill--neutral";
-      if (["activo", "aprobado", "enviada", "enviado", "completado", "completada"].includes(estadoLower)) {
-        tone = "saif-pill--success";
-      } else if (["inactivo", "rechazado", "rechazada", "anulado", "anulada"].includes(estadoLower)) {
-        tone = "saif-pill--danger";
-      } else if (estadoLower === "pendiente") {
-        tone = "saif-pill--warning";
-      }
-      const label = estado || "Sin estado";
-      estadoEl.innerHTML = buildPill(label, tone);
+      if (["enviada","completada"].includes(estadoLower)) tone = "saif-pill--success";
+      if (["cancelada"].includes(estadoLower)) tone = "saif-pill--danger";
+      estadoEl.innerHTML = buildPill(estado || "Sin estado", tone);
       estadoEl.classList.remove("--empty");
     }
-
     const fechaEl = document.getElementById("detalleFecha");
     if (fechaEl) {
-      const fechaFormateada = formatDateTime(row.dataset.fecha || "");
-      if (fechaFormateada) {
-        fechaEl.textContent = fechaFormateada;
-        fechaEl.classList.remove("--empty");
-      } else {
-        fechaEl.textContent = "-";
-        fechaEl.classList.add("--empty");
+      const f = formatDateTime(data.fecha || "");
+      if (f) { fechaEl.textContent = f; fechaEl.classList.remove("--empty"); }
+      else { fechaEl.textContent = "-"; fechaEl.classList.add("--empty"); }
+    }
+
+    // 3) Resumen (toma el primer detalle solo para las “tarjetas” superiores)
+    const first = (data.detalles && data.detalles.length) ? data.detalles[0] : null;
+    if (first) {
+      const productoEl = document.getElementById("detalleProducto");
+      if (productoEl) {
+        const p = cleanValue(first.producto);
+        if (p) { productoEl.textContent = p; productoEl.classList.remove("--empty"); productoEl.setAttribute("title", p); }
+        else   { productoEl.textContent = "Sin producto"; productoEl.classList.add("--empty"); productoEl.removeAttribute("title"); }
+      }
+      setValue("detalleCantidad", String(first.cantidad || ""), "-");
+
+      const urgenteEl = document.getElementById("detalleUrgente");
+      if (urgenteEl) {
+        urgenteEl.innerHTML = buildPill(first.urgente ? "Urgente" : "No urgente",
+                                        first.urgente ? "saif-pill--warning" : "saif-pill--neutral");
+        urgenteEl.classList.remove("--empty");
+      }
+    } else {
+      setValue("detalleProducto", "", "Sin producto");
+      setValue("detalleCantidad", "", "-");
+      const urgenteEl = document.getElementById("detalleUrgente");
+      if (urgenteEl) { urgenteEl.textContent = "-"; urgenteEl.classList.add("--empty"); }
+    }
+
+    // 4) Observaciones (si hay varias, junta; si no hay ninguna, “Sin observaciones”)
+    const obsTodas = (data.detalles || [])
+      .map(d => (d.observaciones || "").trim())
+      .filter(Boolean);
+    setValue("detalleObservaciones", obsTodas.length ? obsTodas.join(" · ") : "", "Sin observaciones");
+
+    // 5) Tabla de productos
+    const tbodyDet = document.getElementById("detalleProductosModal");
+    if (tbodyDet) {
+      tbodyDet.innerHTML = "";
+      (data.detalles || []).forEach(d => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="text-start">${escapeHtml(d.producto || "")}</td>
+          <td class="text-center">${d.cantidad || 0}</td>
+          <td class="text-center">${d.urgente ? "Sí" : "No"}</td>
+          <td class="text-start">${escapeHtml((d.observaciones || "—") || "—")}</td>`;
+        tbodyDet.appendChild(tr);
+      });
+      if (!tbodyDet.children.length) {
+        tbodyDet.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Sin productos</td></tr>`;
       }
     }
 
+    // Usuario
+    setValue("detalleUsuario", data.usuario || "", "-");
     modalConsultar.show();
   });
-
 
 
   // ========== Crear ==========
@@ -864,9 +845,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // ========== Buscador de productos ==========
-  const searchInput = document.getElementById("searchProducto");
-  const tbodyResultados = document.getElementById("tablaBuscarProductos");
 
   if(modalBuscar){
     modalBuscar.addEventListener("shown.bs.modal", () => {
@@ -874,7 +852,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  if(searchInput){
+  // ====== Buscador de productos (reuso) (TAL CUAL SALIDAS) ======
+  const searchInput   = document.getElementById("searchProducto");
+  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+
+  function cablearBuscadorProductos(){
+    if(!modalBuscar) return;
+    modalBuscar.addEventListener("shown.bs.modal", onShownBuscador, { once:true });
+  }
+
+  function onShownBuscador(){
+    if (searchInput) searchInput.value = "";
+    if (tbodyResultados) tbodyResultados.innerHTML = "";
+    searchInput?.focus();
+
+    if(!searchInput || !tbodyResultados) return;
+
     searchInput.oninput = function () {
       const term = this.value;
       fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
@@ -896,9 +889,15 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             tr.querySelector("button").addEventListener("click", () => {
               if (window.setProductoSeleccionado) {
-                window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` });
+                window.setProductoSeleccionado({
+                  id: p.id,
+                  texto: `${p.codigo} - ${p.nombre}`
+                });
               }
               bootstrap.Modal.getInstance(modalBuscar).hide();
+              // si estabas creando, reabre el modal padre (por si se cerró)
+              const parent = document.getElementById("modalSolicitud");
+              if (parent) bootstrap.Modal.getOrCreateInstance(parent).show();
             });
             tbodyResultados.appendChild(tr);
           });
@@ -908,6 +907,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     };
   }
+
+  // Llamar una vez cuando cargue el CREAR
+  cablearBuscadorProductos();
+
+  // Si quieres reabrir el modal padre siempre que cierres el buscador (defensivo)
+  if(modalBuscar){
+    modalBuscar.addEventListener("hidden.bs.modal", () => {
+      const parent = document.getElementById("modalSolicitud");
+      if (parent && !parent.classList.contains("show")) {
+        bootstrap.Modal.getOrCreateInstance(parent).show();
+      }
+    });
+  }
+
 
   // ========== Paginación y filtros ==========
   function refreshAutoTitles(){
