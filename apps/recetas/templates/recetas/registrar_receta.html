@@ -86,7 +86,7 @@
 <form style="display:none">{% csrf_token %}</form>
 
 <!-- ================== MODAL CREAR ================== -->
-<div class="modal fade saif-modal" id="crearRecetaModal" tabindex="-1">
+<div class="modal fade saif-modal" id="crearRecetaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_receta' %}">
@@ -167,7 +167,7 @@
 </div>
 
 <!-- ================== MODAL CONSULTAR ================== -->
-<div class="modal fade saif-modal" id="consultarRecetaModal" tabindex="-1">
+<div class="modal fade saif-modal" id="consultarRecetaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -199,7 +199,7 @@
 </div>
 
 <!-- ================== MODAL EDITAR ================== -->
-<div class="modal fade saif-modal" id="editarRecetaModal" tabindex="-1">
+<div class="modal fade saif-modal" id="editarRecetaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="editarRecetaForm">
@@ -266,7 +266,7 @@
 </div>
 
 <!-- ================== MODAL ELIMINAR ================== -->
-<div class="modal fade saif-modal" id="eliminarRecetaModal" tabindex="-1">
+<div class="modal fade saif-modal" id="eliminarRecetaModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="eliminarRecetaForm">
@@ -288,7 +288,7 @@
         </div>
 
         <div class="modal-footer justify-center bg-white">
-          <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
           </button>
           <button class="btn btn-danger rounded-pill px-4">
@@ -301,7 +301,7 @@
 </div>
 
 <!-- ================== MODAL: BUSCAR PRODUCTO ================== -->
-<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarProducto" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -346,7 +346,7 @@
 </div>
 
 <!-- ================== MODAL: BUSCAR FACTURA ================== -->
-<div class="modal fade saif-modal saif-modal--search" id="modalBuscarFactura" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal saif-modal--search" id="modalBuscarFactura" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">

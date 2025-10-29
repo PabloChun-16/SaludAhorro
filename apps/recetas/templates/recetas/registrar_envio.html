@@ -123,14 +123,14 @@
 
 
 <!-- MODAL CAMBIAR ESTADO -->
-<div class="modal fade" id="modalCambiarEstado" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content saif-modal saif-modal--envio" id="modal-cambiar-estado-content"></div>
   </div>
 </div>
 
 <!-- ============================= MODAL CREAR ENVÍO ============================= -->
-<div class="modal fade saif-modal" id="crearEnvioModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal" id="crearEnvioModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" action="{% url 'recetas:crear_envio' %}">
@@ -211,7 +211,7 @@
 </div>
 
 <!-- ============================= MODAL CONSULTAR ============================= -->
-<div class="modal fade saif-modal" id="consultarEnvioModal" tabindex="-1">
+<div class="modal fade saif-modal" id="consultarEnvioModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -266,7 +266,7 @@
 </div>
 
 <!-- ============================= MODAL EDITAR ============================= -->
-<div class="modal fade saif-modal" id="editarEnvioModal" tabindex="-1">
+<div class="modal fade saif-modal" id="editarEnvioModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="editarEnvioForm">
@@ -309,7 +309,7 @@
 </div>
 
 <!-- ============================= MODAL ELIMINAR ============================= -->
-<div class="modal fade saif-modal" id="eliminarEnvioModal" tabindex="-1">
+<div class="modal fade saif-modal" id="eliminarEnvioModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <form method="post" id="eliminarEnvioForm">
@@ -330,7 +330,7 @@
         </div>
 
         <div class="modal-footer justify-center bg-white">
-          <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
             <i class="bi bi-x-lg"></i> Cancelar
           </button>
           <button type="submit" class="btn btn-danger">
@@ -343,7 +343,7 @@
 </div>
 
 <!-- ============================= MODAL BUSCAR RECETA ============================= -->
-<div class="modal fade saif-modal" id="modalBuscarReceta" tabindex="-1" aria-hidden="true">
+<div class="modal fade saif-modal" id="modalBuscarReceta" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
