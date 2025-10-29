@@ -25,6 +25,8 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
+from django.db import connection
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -221,41 +223,81 @@ def exportar_recetas_pdf(request):
 # ================================
 #     BUSCADOR DE FACTURAS (AJAX)
 # ================================
-
 @login_required
 def search_facturas(request):
     """
-    JSON para el modal de búsqueda de facturas.
-    Deduplica por referencia_factura y devuelve algunos metadatos útiles.
+    Facturas (referencia_transaccion) provenientes de
+    salidas_devoluciones_movimientos_inventario_sucursal con tipo VEN (id=4/codigo='VEN')
+    y estado 'Completado'. Devuelve 1 fila por factura (la más reciente).
     """
     term = (request.GET.get("term") or "").strip()
 
-    qs = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta")
-    if term:
-        qs = qs.filter(
-            Q(referencia_factura__icontains=term) |
-            Q(id_producto__nombre__icontains=term) |
-            Q(id_usuario_venta__nombre__icontains=term)
-        )
-    qs = qs.order_by("-fecha_venta")
+    # 1) Intentar resolver el ID de 'Completado' de manera segura.
+    def get_estado_completado_id(default=2):
+        try:
+            with connection.cursor() as cur:
+                cur.execute("""
+                    SELECT id
+                    FROM mantenimiento_estado_movimiento_inventario
+                    WHERE LOWER(nombre_estado) = 'completado'
+                    LIMIT 1
+                """)
+                row = cur.fetchone()
+                if row:
+                    return row[0]
+        except Exception:
+            # La tabla puede no existir o tener otro nombre. Usamos default.
+            pass
+        return default
 
-    seen = set()
-    results = []
-    for r in qs[:200]:
-        fac = (r.referencia_factura or "").strip()
-        if not fac or fac in seen:
-            continue
-        seen.add(fac)
-        results.append({
-            "factura": fac,
-            "usuario_id": r.id_usuario_venta_id if r.id_usuario_venta_id else None,
-            "usuario_nombre": r.id_usuario_venta.nombre if r.id_usuario_venta else "",
-            "producto_id": r.id_producto_id if r.id_producto_id else None,
-            "producto_nombre": r.id_producto.nombre if r.id_producto else "",
-            "fecha": r.fecha_venta.strftime("%d/%m/%Y %H:%M") if r.fecha_venta else "",
-        })
-        if len(results) >= 30:
-            break
+    estado_completado_id = get_estado_completado_id()
+
+    # 2) Consulta. Nota: evitamos JOIN a la tabla de estado para no depender del nombre.
+    sql = """
+        SELECT DISTINCT ON (m.referencia_transaccion)
+               m.referencia_transaccion                                 AS factura,
+               to_char(m.fecha_hora, 'DD/MM/YYYY HH24:MI')              AS fecha,
+               p.id                                                     AS producto_id,
+               COALESCE(p.nombre, '')                                   AS producto_nombre
+        FROM salidas_devoluciones_movimientos_inventario_sucursal m
+        JOIN mantenimiento_tipo_movimiento_inventario t
+             ON t.id = m.id_tipo_movimiento_id
+        LEFT JOIN inventario_lotes l
+             ON l.id = m.id_lote_id
+        LEFT JOIN inventario_productos p
+             ON p.id = l.id_producto_id
+        WHERE (t.id = 4 OR UPPER(t.codigo) = 'VEN')
+          AND m.estado_movimiento_inventario_id = %s
+          AND m.referencia_transaccion IS NOT NULL
+          AND (
+                %s = '' OR
+                m.referencia_transaccion ILIKE %s OR
+                COALESCE(p.nombre, '') ILIKE %s
+              )
+        ORDER BY m.referencia_transaccion, m.fecha_hora DESC
+        LIMIT 50
+    """
+    like = f"%{term}%"
+    params = [estado_completado_id, term, like, like]
+
+    rows = []
+    with connection.cursor() as cur:
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+
+    # 3) Formato esperado por tu front (usuario lo dejamos vacío si no está en la consulta).
+    results = [
+        {
+            "factura": r[0],
+            "usuario_id": None,
+            "usuario_nombre": "",
+            "producto_id": r[2],
+            "producto_nombre": r[3],
+            "fecha": r[1],
+        }
+        for r in rows
+        if (r[0] or "").strip()  # sanity check
+    ]
 
     return JsonResponse(results, safe=False)
 
