@@ -35,7 +35,27 @@ from django.db.models import Sum
 # Listado
 def productos_list(request):
     productos = Productos.objects.all().order_by("nombre")
-    return render(request, "productos/lista.html", {"productos": productos})
+    laboratorios = (
+        Productos.objects.filter(id_laboratorio__isnull=False)
+        .order_by("id_laboratorio__nombre_laboratorio")
+        .values_list("id_laboratorio__nombre_laboratorio", flat=True)
+        .distinct()
+    )
+    presentaciones = (
+        Productos.objects.filter(id_presentacion__isnull=False)
+        .order_by("id_presentacion__nombre_presentacion")
+        .values_list("id_presentacion__nombre_presentacion", flat=True)
+        .distinct()
+    )
+    return render(
+        request,
+        "productos/lista.html",
+        {
+            "productos": productos,
+            "laboratorios": laboratorios,
+            "presentaciones": presentaciones,
+        },
+    )
 
 
 # Crear

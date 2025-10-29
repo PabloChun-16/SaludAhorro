@@ -1,10 +1,27 @@
 from django import forms
+from django.forms import DecimalField, NumberInput
 from apps.inventario.models import Productos
 from apps.mantenimiento.models import Estado_Producto
 
+
 class ProductoForm(forms.ModelForm):
-    # Sí/No sin placeholder
-    BOOL_CHOICES_NON_NULL = [("1", "Sí"), ("0", "No")]
+    BOOL_CHOICES_NON_NULL = [("1", "Si"), ("0", "No")]
+    precio_compra = DecimalField(
+        required=False,
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        widget=NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+        label="Precio de Compra",
+    )
+    precio_venta = DecimalField(
+        required=False,
+        max_digits=10,
+        decimal_places=2,
+        min_value=0,
+        widget=NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+        label="Precio de Venta",
+    )
 
     class Meta:
         model = Productos
@@ -36,37 +53,61 @@ class ProductoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # FKs: sin empty_label => no aparece "— Selecciona —"
         for name in ("id_laboratorio", "id_unidad_medida", "id_presentacion", "id_condicion_almacenamiento"):
-            f = self.fields.get(name)
-            if f:
-                f.empty_label = None  # quita placeholder
-                f.required = True
+            field = self.fields.get(name)
+            if field:
+                field.empty_label = None
+                field.required = True
 
-        # Booleanos como select Sí/No sin opción vacía
         for name in ("requiere_receta", "es_controlado"):
+            original = self.fields[name]
             self.fields[name] = forms.TypedChoiceField(
                 required=True,
                 choices=self.BOOL_CHOICES_NON_NULL,
                 coerce=lambda v: v in ("1", True),
                 widget=forms.Select(attrs={"class": "form-select", "required": True}),
-                label=self.fields[name].label,
+                label=original.label,
             )
-            # valor inicial si hay instancia
             if self.instance and getattr(self.instance, name, None) is not None:
                 self.initial[name] = "1" if getattr(self.instance, name) else "0"
 
+        if self.instance and getattr(self.instance, "pk", None):
+            lotes_qs = getattr(self.instance, "lotes_set", None)
+            if lotes_qs:
+                lote = lotes_qs.order_by("-id").first()
+                if lote:
+                    if lote.precio_compra is not None:
+                        self.fields["precio_compra"].initial = lote.precio_compra
+                    if lote.precio_venta is not None:
+                        self.fields["precio_venta"].initial = lote.precio_venta
+
     def save(self, commit=True):
         obj = super().save(commit=False)
-        # mapea strings a booleanos reales por si acaso
-        obj.requiere_receta = (self.cleaned_data.get("requiere_receta") in (True, "1", 1))
-        obj.es_controlado   = (self.cleaned_data.get("es_controlado")   in (True, "1", 1))
+        obj.requiere_receta = self.cleaned_data.get("requiere_receta") in (True, "1", 1)
+        obj.es_controlado = self.cleaned_data.get("es_controlado") in (True, "1", 1)
 
-        # Default "Activo" si no viene seteado
         if not getattr(obj, "id_estado_producto_id", None):
             estado, _ = Estado_Producto.objects.get_or_create(nombre_estado="Activo")
             obj.id_estado_producto = estado
+
         if commit:
             obj.save()
             self.save_m2m()
+
+            precio_compra = self.cleaned_data.get("precio_compra")
+            precio_venta = self.cleaned_data.get("precio_venta")
+            update_data = {}
+            if precio_compra is not None:
+                update_data["precio_compra"] = precio_compra
+            if precio_venta is not None:
+                update_data["precio_venta"] = precio_venta
+
+            if update_data:
+                lotes_qs = getattr(obj, "lotes_set", None)
+                if lotes_qs:
+                    lotes_qs.update(**update_data)
+
+            obj.precio_compra_form = precio_compra
+            obj.precio_venta_form = precio_venta
+
         return obj

@@ -56,6 +56,17 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
 
 .hidden-by-pagination{ display:none !important; }
 
+#modalProducto .modal-content.modal-content--kardex{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  padding:0;
+  border-radius:18px;
+}
+#modalProducto .modal-content.modal-content--kardex .kardex-modal{
+  border-radius:inherit;
+}
+
 #tablaProductos thead tr:first-child th{ border-top:0; }
 #tablaProductos tbody tr:last-child td{ border-bottom:0; }
 #tablaProductos tr>*:first-child{ border-left:0; }
@@ -88,15 +99,37 @@ select.filter-control{ padding-right:1.75rem; appearance:none; min-width:100px; 
             <th scope="col">Unidad</th>
             <th scope="col">Receta</th>
             <th scope="col">Control</th>
-            <th scope="col">Stock</th>
+            <th scope="col">Stock Mínimo</th>
             <th scope="col">Estado</th>
           </tr>
           <tr class="filter-row">
             <th><input id="f-codigo" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-nombre" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th><input id="f-desc" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-lab" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-pres" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <input id="f-lab" list="lista-laboratorios" class="form-control form-control-sm filter-control text-center" placeholder="Laboratorio">
+              {% if laboratorios %}
+              <datalist id="lista-laboratorios">
+                {% for nombre in laboratorios %}
+                  {% if nombre %}
+                  <option value="{{ nombre }}"></option>
+                  {% endif %}
+                {% endfor %}
+              </datalist>
+              {% endif %}
+            </th>
+            <th>
+              <input id="f-pres" list="lista-presentaciones" class="form-control form-control-sm filter-control text-center" placeholder="Presentación">
+              {% if presentaciones %}
+              <datalist id="lista-presentaciones">
+                {% for nombre in presentaciones %}
+                  {% if nombre %}
+                  <option value="{{ nombre }}"></option>
+                  {% endif %}
+                {% endfor %}
+              </datalist>
+              {% endif %}
+            </th>
             <th><input id="f-unidad" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th>
               <div class="filter-wrap">
@@ -196,6 +229,26 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalContent = document.getElementById("modal-producto-content");
   const modalInstance = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
 
+  function updateModalContent(html){
+    modalContent.innerHTML = html;
+    const hasKardex = modalContent.querySelector(".kardex-modal") !== null;
+    modalContent.classList.toggle("modal-content--kardex", hasKardex);
+
+    const scripts = Array.from(modalContent.querySelectorAll("script"));
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) => {
+        newScript.setAttribute(attr.name, attr.value);
+      });
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      oldScript.replaceWith(newScript);
+    });
+  }
+
   let selectedId = null;
 
   function refreshAutoTitles(){
@@ -215,11 +268,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function abrirModal(url){
-    modalContent.innerHTML = '<div class="p-4">Cargando…</div>';
+    updateModalContent('<div class="p-4">Cargando…</div>');
     modalInstance.show();
     fetch(url,{headers:{ "X-Requested-With":"XMLHttpRequest"}})
-      .then(r=>r.text()).then(html=>{modalContent.innerHTML=html})
-      .catch(()=>{modalContent.innerHTML='<div class="p-4 text-danger">Error cargando el formulario.</div>'});
+      .then(r=>r.text())
+      .then(html=>{ updateModalContent(html); })
+      .catch(()=>{
+        updateModalContent('<div class="p-4 text-danger">Error cargando el formulario.</div>');
+      });
   }
 
   function selectRow(row){
@@ -308,11 +364,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const r = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
         if (!r.ok) throw new Error("Error al obtener el Kardex");
         const html = await r.text();
-        document.getElementById("modal-producto-content").innerHTML = html;
+        updateModalContent(html);
       } catch (err) {
         console.error(err);
-        document.getElementById("modal-producto-content").innerHTML =
-          '<div class="p-4 text-danger">❌ Error al generar el Kardex.</div>';
+        updateModalContent('<div class="p-4 text-danger">Error al generar el Kardex.</div>');
       }
       return;
     }
@@ -337,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
       if (data.html) {
-        modalContent.innerHTML = data.html;
+        updateModalContent(data.html);
         return;
       }
       const alertBox = modalContent.querySelector("#formAlert");

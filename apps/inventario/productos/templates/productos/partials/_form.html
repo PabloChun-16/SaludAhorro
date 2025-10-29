@@ -49,12 +49,28 @@
               <span class="input-group-text"><i class="bi bi-buildings"></i></span>
               {{ form.id_laboratorio }}
             </div>
+            <div class="mt-2 select-search-helper" data-select="#{{ form.id_laboratorio.id_for_label }}">
+              <input type="text"
+                     class="form-control form-control-sm select-search-input"
+                     placeholder="Buscar laboratorio...">
+              <div class="select-search-feedback invalid-feedback mt-1 mb-0 small d-none">
+                Sin coincidencias.
+              </div>
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Presentación</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-box"></i></span>
               {{ form.id_presentacion }}
+            </div>
+            <div class="mt-2 select-search-helper" data-select="#{{ form.id_presentacion.id_for_label }}">
+              <input type="text"
+                     class="form-control form-control-sm select-search-input"
+                     placeholder="Buscar presentación...">
+              <div class="select-search-feedback invalid-feedback mt-1 mb-0 small d-none">
+                Sin coincidencias.
+              </div>
             </div>
           </div>
 
@@ -103,6 +119,22 @@
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-boxes"></i></span>
               {{ form.stock_minimo }}
+            </div>
+          </div>
+
+          <!-- Precios -->
+          <div class="col-md-6">
+            <label class="form-label">Precio de Compra</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-cash-coin"></i></span>
+              {{ form.precio_compra }}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Precio de Venta</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+              {{ form.precio_venta }}
             </div>
           </div>
 
@@ -213,4 +245,140 @@
       </button>
     </div>
   </form>
+
+  <script>
+    (function(){
+      const normalizeValue = (value) => {
+        if (value === null || value === undefined) return "";
+        let text = value.toString();
+        if (typeof text.normalize === "function") {
+          text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+        return text.toLowerCase();
+      };
+
+      const scriptEl = document.currentScript;
+      const root = scriptEl ? (scriptEl.closest(".saif-modal") || document) : document;
+      root.querySelectorAll(".select-search-helper").forEach((helper) => {
+        if (helper.dataset.processed === "1") return;
+        helper.dataset.processed = "1";
+
+        const selector = helper.dataset.select;
+        if (!selector) return;
+        const select = root.querySelector(selector);
+        const input = helper.querySelector(".select-search-input");
+        const feedback = helper.querySelector(".select-search-feedback");
+        if (!select || !input) return;
+
+        const options = Array.from(select.options || []).map((opt) => {
+          const label = (opt.textContent || "").trim();
+          return {
+            el: opt,
+            value: opt.value,
+            label,
+            lower: normalizeValue(label),
+          };
+        }).filter((opt) => opt.label.length);
+
+        if (!options.length) {
+          input.disabled = true;
+          return;
+        }
+
+        const datalistId = helper.dataset.datalistId || `${select.id || `select_${Math.random().toString(36).slice(2)}`}_list`;
+        helper.dataset.datalistId = datalistId;
+        let datalist = helper.querySelector(`#${datalistId}`) || helper.querySelector("datalist");
+        if (!datalist) {
+          datalist = document.createElement("datalist");
+          helper.appendChild(datalist);
+        }
+        datalist.id = datalistId;
+        datalist.innerHTML = "";
+        options.forEach((opt) => {
+          const optionEl = document.createElement("option");
+          optionEl.value = opt.label;
+          datalist.appendChild(optionEl);
+        });
+        input.setAttribute("list", datalistId);
+
+        const showFeedback = (hasError) => {
+          input.classList.toggle("is-invalid", hasError);
+          if (feedback) feedback.classList.toggle("d-none", !hasError);
+        };
+
+        const applyMatch = (match, { updateInputValue = false } = {}) => {
+          if (!match) return false;
+          if (updateInputValue) input.value = match.label;
+          if (select.value !== match.value) {
+            select.value = match.value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          showFeedback(false);
+          return true;
+        };
+
+        const syncFromSelect = () => {
+          const current = options.find((opt) => opt.value === select.value);
+          input.value = current ? current.label : "";
+          showFeedback(false);
+        };
+
+        input.addEventListener("input", () => {
+          const raw = input.value;
+          const norm = normalizeValue(raw);
+          if (!norm) {
+            select.value = "";
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            showFeedback(false);
+            return;
+          }
+          const exact = options.find((opt) => opt.lower === norm);
+          const partial = exact || options.find((opt) => opt.lower.includes(norm));
+          if (partial) {
+            applyMatch(partial, { updateInputValue: false });
+          } else {
+            showFeedback(true);
+          }
+        });
+
+        input.addEventListener("change", () => {
+          const raw = input.value;
+          const norm = normalizeValue(raw);
+          if (!norm) {
+            select.value = "";
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            showFeedback(false);
+            return;
+          }
+          const match = options.find((opt) => opt.lower === norm) || options.find((opt) => opt.lower.includes(norm));
+          if (!applyMatch(match, { updateInputValue: true })) {
+            showFeedback(true);
+          }
+        });
+
+        input.addEventListener("blur", () => {
+          const raw = input.value.trim();
+          if (!raw) {
+            select.value = "";
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            showFeedback(false);
+            input.value = "";
+            return;
+          }
+          const norm = normalizeValue(raw);
+          const match = options.find((opt) => opt.lower === norm) || options.find((opt) => opt.lower.includes(norm));
+          if (!applyMatch(match, { updateInputValue: true })) {
+            input.value = "";
+            select.value = "";
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            showFeedback(true);
+          }
+        });
+
+        select.addEventListener("change", syncFromSelect);
+
+        syncFromSelect();
+      });
+    })();
+  </script>
 </div>
