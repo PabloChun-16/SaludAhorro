@@ -85,10 +85,8 @@
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-eye"></i> Consultar
       </button>
-      <a href="{% url 'recetas:exportar_envios_pdf' %}"
-         class="btn btn-success rounded-pill px-3 me-2 shadow-sm">
-        <i class="bi bi-filetype-pdf"></i> Exportar PDF
-      </a>
+      <!-- Export moved into Consultar modal so it exports only the selected envío -->
+      <div id="urlPatternsEnvios" data-export="{% url 'recetas:exportar_envios_pdf' %}" style="display:none"></div>
       <button class="btn rounded-pill px-3 text-white shadow-sm"
               data-bs-toggle="modal" data-bs-target="#dashboardModal"
               style="background-color:#8b5cf6; border:none;">
@@ -142,6 +140,9 @@
 
       <!-- FOOTER -->
       <div class="modal-footer py-2 bg-white">
+        <a id="btnExportEnvio" class="btn btn-success rounded-pill px-3 me-2 shadow-sm d-none" target="_blank" rel="noopener">
+          <i class="bi bi-filetype-pdf"></i> Exportar PDF
+        </a>
         <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
@@ -320,6 +321,17 @@ document.addEventListener("DOMContentLoaded", function () {
       cont.innerHTML = `<tr><td colspan="5" class="text-center text-slate-500">No hay recetas asociadas</td></tr>`;
     }
 
+    // Wire the Export button so it exports only the selected envío
+    try{
+      const exportBase = document.getElementById('urlPatternsEnvios')?.dataset?.export;
+      const btnExport = document.getElementById('btnExportEnvio');
+      if(exportBase && btnExport && envioId){
+        btnExport.href = exportBase + '?id=' + encodeURIComponent(envioId);
+        btnExport.classList.remove('d-none');
+      }
+      const modalEl = document.getElementById('consultarEnvioModal');
+      modalEl.addEventListener('hidden.bs.modal', function(){ if(btnExport) btnExport.classList.add('d-none'); }, { once: true });
+    }catch(e){ console.error('Error wiring export button', e); }
     new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
   });
 

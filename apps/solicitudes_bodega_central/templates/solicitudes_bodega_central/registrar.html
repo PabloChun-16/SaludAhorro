@@ -200,6 +200,22 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 
 .dv-grid.--compact{ gap:.5rem; }
 .dv.--compact .dv__field{ padding:.45rem .6rem; }
+
+/* Compact adjustments: reduce vertical spacing and cap product table height */
+#consultarSolicitudModal .saif-modal-body{ padding-top:0.6rem; padding-bottom:0.8rem; }
+#consultarSolicitudModal .saif-summary .saif-info-card{ padding:0.7rem 0.9rem; gap:0.5rem }
+#consultarSolicitudModal .saif-info-card__icon{ width:40px; height:40px; font-size:1rem }
+#consultarSolicitudModal .saif-info-card__value{ font-size:0.98rem }
+#consultarSolicitudModal .saif-block__header{ padding:.6rem .9rem }
+#consultarSolicitudModal .saif-block__body{ padding:.6rem .9rem }
+#consultarSolicitudModal .saif-block__body .table-responsive{ max-height:240px; overflow:auto; padding:0; background:transparent; }
+#consultarSolicitudModal .saif-block__body .table-responsive table{ margin:0; }
+#consultarSolicitudModal .saif-table--compact thead th{ padding:.45rem .6rem }
+#consultarSolicitudModal .saif-table--compact td{ padding:.45rem .6rem }
+#consultarSolicitudModal .saif-summary .saif-info-card{ min-height:56px }
+#consultarSolicitudModal .dv{ padding:.5rem .6rem }
+#consultarSolicitudModal .dv__label{ font-size:.72rem }
+#consultarSolicitudModal .dv__value{ font-size:.95rem }
 </style>
 
 <section class="p-6 md:p-8">
@@ -213,29 +229,19 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
     <div class="table-container">
       <table class="table table-hover align-middle text-center" id="tablaSolicitudes">
         <colgroup>
-          <col class="wp-18"><col class="wp-26"><col class="wp-12"><col class="wp-10"><col class="wp-24"><col class="wp-10b">
+          <col style="width:36%"><col style="width:18%"><col style="width:18%"><col style="width:28%">
         </colgroup>
         <thead class="table-success text-dark shadow-sm sticky-top">
           <tr>
             <th scope="col">Documento</th>
-            <th scope="col">Producto</th>
-            <th scope="col">Cantidad</th>
-            <th scope="col">Urgente</th>
-            <th scope="col">Observaciones</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Usuario</th>
             <th scope="col">Estado</th>
           </tr>
           <tr class="filter-row">
             <th><input id="f-doc" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-prod" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-cant" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-urg" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option><option value="si">Sí</option><option value="no">No</option>
-                </select>
-              </div>
-            </th>
-            <th><input id="f-obs" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="YYYY-MM-DD"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
             <th>
               <div class="filter-wrap">
                 <select id="f-estado" class="form-select form-select-sm filter-control text-center">
@@ -250,29 +256,14 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
         </thead>
         <tbody>
           {% for solicitud in solicitudes %}
-          {% with d=solicitud.detalles.first %}
           <tr
             data-id="{{ solicitud.id }}"
-            data-documento="{{ solicitud.nombre_documento }}"
-            data-producto="{% if d %}{{ d.id_producto.nombre }}{% endif %}"
-            data-producto-id="{% if d %}{{ d.id_producto.id }}{% endif %}"
-            data-cantidad="{% if d %}{{ d.cantidad_solicitada }}{% endif %}"
-            data-urgente="{% if d and d.es_urgente %}True{% else %}False{% endif %}"
-            data-observaciones="{% if d %}{{ d.observaciones|default:'—' }}{% endif %}"
-            data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}"
-            data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d H:i' }}"
-          >
+            data-fecha="{{ solicitud.fecha_solicitud|date:'Y-m-d' }}"
+            data-usuario="{% if solicitud.id_usuario %}{{ solicitud.id_usuario.username|default:solicitud.id_usuario.nombre }}{% else %}{% endif %}"
+            data-estado="{{ solicitud.id_estado_solicitud.nombre_estado }}">
             <td class="text-truncate fw-semibold">{{ solicitud.nombre_documento }}</td>
-            <td class="text-truncate">{% if d %}{{ d.id_producto.nombre }}{% else %}—{% endif %}</td>
-            <td class="text-truncate">{% if d %}{{ d.cantidad_solicitada }}{% else %}—{% endif %}</td>
-            <td>
-              {% if d and d.es_urgente %}
-                <span class="badge bg-primary">Sí</span>
-              {% else %}
-                <span class="badge bg-secondary">No</span>
-              {% endif %}
-            </td>
-            <td class="text-truncate">{% if d %}{{ d.observaciones|default:"—" }}{% else %}—{% endif %}</td>
+            <td class="text-truncate">{{ solicitud.fecha_solicitud|date:"Y-m-d H:i" }}</td>
+            <td class="text-truncate">{% if solicitud.id_usuario %}{{ solicitud.id_usuario.username|default:solicitud.id_usuario.nombre }}{% else %}—{% endif %}</td>
             <td>
               {% if solicitud.id_estado_solicitud.nombre_estado == "Activo" %}
                 <span class="badge bg-success">Activo</span>
@@ -283,10 +274,9 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
               {% endif %}
             </td>
           </tr>
-          {% endwith %}
           {% empty %}
           <tr>
-            <td colspan="6" class="py-5 text-muted" data-empty-row>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
               <i class="bi bi-inbox fs-3 d-block mb-2"></i>
               No hay solicitudes registradas
             </td>
@@ -312,10 +302,11 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
       </button>
 
       <!-- patrones de URL para JS -->
-      <span id="urlPatterns"
-            data-cambiar-modal="{% url 'solicitudes_bodega_central:solicitud_cambiar_estado_modal' 0 %}"
-            data-obtener="{% url 'solicitudes_bodega_central:obtener_solicitud' 0 %}"
-            hidden></span>
+  <span id="urlPatterns"
+    data-cambiar-modal="{% url 'solicitudes_bodega_central:solicitud_cambiar_estado_modal' 0 %}"
+    data-obtener="{% url 'solicitudes_bodega_central:obtener_solicitud' 0 %}"
+    data-export="{% url 'solicitudes_bodega_central:exportar_solicitudes_pdf' %}"
+    hidden></span>
     </div>
   </div>
 </section>
@@ -509,7 +500,12 @@ thead .form-control-sm, thead .form-select-sm{ padding-top:.25rem; padding-botto
 
       <div class="modal-footer justify-content-between saif-footer">
         <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i> SAIF</span>
-        <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
+        <div>
+          <a id="btnExportPdf" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" target="_blank" style="display:none;">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+          </a>
+          <button class="btn btn-light saif-btn-light" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cerrar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -745,6 +741,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // Usuario
     setValue("detalleUsuario", data.usuario || "", "-");
     modalConsultar.show();
+
+    // Configure per-solicitud Export button (opens PDF for this solicitud)
+    try {
+      const exportBtn = document.getElementById("btnExportPdf");
+      const exportBase = document.getElementById("urlPatterns")?.dataset?.export || "";
+      if (exportBtn && exportBase && selectedId) {
+        exportBtn.href = exportBase + "?id=" + encodeURIComponent(selectedId);
+        exportBtn.style.display = "inline-block";
+      } else if (exportBtn) {
+        exportBtn.style.display = "none";
+      }
+    } catch (e) { /* noop */ }
   });
 
 
@@ -982,28 +990,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   function installFilters(){
     const fDoc=document.getElementById("f-doc");
-    const fProd=document.getElementById("f-prod");
-    const fCant=document.getElementById("f-cant");
-    const fUrg=document.getElementById("f-urg");
-    const fObs=document.getElementById("f-obs");
+    const fFecha=document.getElementById("f-fecha");
+    const fUsuario=document.getElementById("f-usuario");
     const fEst=document.getElementById("f-estado");
-    const inputs=[fDoc,fProd,fCant,fUrg,fObs,fEst].filter(Boolean);
+    const inputs=[fDoc,fFecha,fUsuario,fEst].filter(Boolean);
     const norm=(s)=>(s||"").toString().trim().toLowerCase();
-    const yesNo=(s)=>{ const t=norm(s).replace(/[íi]/g,"i"); if(t==="si") return "si"; if(t==="no") return "no"; return t; };
     function applyFilters(){
-      const vDoc=norm(fDoc?.value), vProd=norm(fProd?.value), vCant=norm(fCant?.value),
-            vUrg=yesNo(fUrg?.value), vObs=norm(fObs?.value), vEst=norm(fEst?.value);
+      const vDoc=norm(fDoc?.value), vFecha=norm(fFecha?.value), vUsuario=norm(fUsuario?.value), vEst=norm(fEst?.value);
       const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
       rows.forEach(tr=>{
         const tds=tr.querySelectorAll("td");
         const txt=i=>norm(tds[i]?.textContent);
         const ok =
-          (!vDoc  || txt(0).includes(vDoc)) &&
-          (!vProd || txt(1).includes(vProd)) &&
-          (!vCant || txt(2).includes(vCant)) &&
-          (!vUrg  || (txt(3).includes("sí") || txt(3).includes("si")) === (vUrg==="si")) &&
-          (!vObs  || txt(4).includes(vObs)) &&
-          (!vEst  || norm(tds[5]?.innerText)===vEst);
+          (!vDoc     || txt(0).includes(vDoc)) &&
+          (!vFecha   || (tr.getAttribute("data-fecha")||txt(1)).includes(vFecha)) &&
+          (!vUsuario || txt(2).includes(vUsuario)) &&
+          (!vEst     || norm(txt(3))===vEst);
         tr.style.display = ok ? "" : "none";
       });
       currentPage=1; applyPagination();

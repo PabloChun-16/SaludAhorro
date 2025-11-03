@@ -401,28 +401,44 @@ document.addEventListener("DOMContentLoaded", function () {
       fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r=>r.json())
       .then(data=>{
-        tablaLotes.innerHTML = "";
-        if(!data || data.length===0){
-          tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes registrados.</td></tr>';
-          return;
-        }
-        data.forEach(l=>{
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${l.numero_lote}</td>
-            <td>${l.fecha_caducidad || "-"}</td>
-            <td>${l.cantidad || 0}</td>
-            <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>`;
-          tr.querySelector("button").addEventListener("click", ()=>{
-            if(loteInput && loteIdInput){
-              loteInput.value = l.numero_lote;
-              loteIdInput.value = l.id;
-            }
-            bootstrap.Modal.getInstance(modalLote)?.hide(); // al cerrar, reabre el padre
+          tablaLotes.innerHTML = "";
+          if(!data || data.length===0){
+            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes registrados.</td></tr>';
+            return;
+          }
+          // Filtrar solo lotes disponibles (cantidad>0) y ordenar por fecha de caducidad asc (próximos a vencer primero)
+          const filtered = (data || []).filter(l => Number(l.cantidad || l.disponible || 0) > 0)
+                                     .sort((a,b)=>{
+                                       const fa = a.fecha_caducidad ? new Date(a.fecha_caducidad) : null;
+                                       const fb = b.fecha_caducidad ? new Date(b.fecha_caducidad) : null;
+                                       if (!fa && !fb) return 0;
+                                       if (!fa) return 1;
+                                       if (!fb) return -1;
+                                       return fa - fb;
+                                     });
+
+          if (!filtered.length){
+            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">No hay lotes disponibles para este producto.</td></tr>';
+            return;
+          }
+
+          filtered.forEach(l=>{
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="text-start">${l.numero_lote}</td>
+              <td>${l.fecha_caducidad || "-"}</td>
+              <td>${l.cantidad || l.disponible || 0}</td>
+              <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>`;
+            tr.querySelector("button").addEventListener("click", ()=>{
+              if(loteInput && loteIdInput){
+                loteInput.value = l.numero_lote;
+                loteIdInput.value = l.id;
+              }
+              bootstrap.Modal.getInstance(modalLote)?.hide(); // al cerrar, reabre el padre
+            });
+            tablaLotes.appendChild(tr);
           });
-          tablaLotes.appendChild(tr);
         });
-      });
     }
     modalLote?.querySelector("#searchLote")?.addEventListener("input", cargarLotes);
   }
@@ -448,21 +464,62 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Reemplaza el confirm() nativo por un modal de confirmación más amable
+  const modalConfirmAnularEl = document.createElement('div');
+  modalConfirmAnularEl.innerHTML = `
+  <div class="modal fade" id="modalConfirmAnular" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content saif-modal">
+        <div class="modal-header">
+          <div class="saif-modal-title">
+            <span class="saif-modal-icon"><i class="bi bi-exclamation-triangle"></i></span>
+            <span>Confirmar anulación</span>
+          </div>
+          <span class="saif-badge">SAIF</span>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="saif-block__body">
+            <p class="mb-0">¿Seguro que desea anular esta salida? Esta acción revertirá el stock.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="confirmAnularBtn" class="btn btn-danger">Anular</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  // Insertar modal al final del body para que funcione correctamente
+  document.body.appendChild(modalConfirmAnularEl);
+  const modalConfirmAnular = new bootstrap.Modal(document.getElementById('modalConfirmAnular'));
+
   btnAnular?.addEventListener("click", () => {
     const id = btnConsultar?.dataset.id;
-    if (!id) return alert("Seleccione una salida para anular.");
-    if (!confirm("¿Seguro que desea anular esta salida? Esto devolverá el stock retirado.")) return;
-
-    fetch(`/ajustes_inventario/salidas/anular/${id}/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value, "X-Requested-With": "XMLHttpRequest" },
-    })
-    .then(r=>r.json())
-    .then(data=>{
-      if (data.success) { alert("Salida anulada correctamente. El stock fue restaurado."); window.location.reload(); }
-      else { alert("Error: " + (data.error || "No se pudo anular la salida.")); }
-    })
-    .catch(()=>alert("Error de red o servidor."));
+    if (!id) { alert("Seleccione una salida para anular."); return; }
+    // abrir modal de confirmación
+    modalConfirmAnular.show();
+    const confirmBtn = document.getElementById('confirmAnularBtn');
+    // quitar listeners previos para evitar duplicados
+    const newHandler = () => {
+      confirmBtn.disabled = true;
+      fetch(`/ajustes_inventario/salidas/anular/${id}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value, "X-Requested-With": "XMLHttpRequest" },
+      })
+      .then(r=>r.json())
+      .then(data=>{
+        modalConfirmAnular.hide();
+        confirmBtn.disabled = false;
+        if (data.success) { alert("Salida anulada correctamente. El stock fue restaurado."); window.location.reload(); }
+        else { alert("Error: " + (data.error || "No se pudo anular la salida.")); }
+      })
+      .catch(()=>{ modalConfirmAnular.hide(); confirmBtn.disabled = false; alert("Error de red o servidor."); });
+    };
+    // remove previous click handlers by cloning
+    const clone = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(clone, confirmBtn);
+    clone.addEventListener('click', newHandler, { once: true });
   });
 
   btnConsultar?.addEventListener("click", () => {

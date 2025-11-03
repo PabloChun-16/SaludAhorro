@@ -337,35 +337,61 @@ def exportar_solicitudes_pdf(request):
     header.setStyle(TableStyle([("ALIGN", (1, 0), (1, 0), "RIGHT")]))
     elementos.append(header)
     elementos.append(Spacer(1, 12))
+    # Si viene ?id=NN exportamos solo esa solicitud
+    solicitud_id = request.GET.get("id")
 
     data = [["Documento", "Producto", "Cantidad", "Urgente", "Observaciones", "Estado", "Fecha"]]
 
-    solicitudes = (
-        Solicitudes_Faltantes.objects
-        .select_related("id_estado_solicitud")
-        .prefetch_related("detalles__id_producto")
-        .order_by("-fecha_solicitud")
-    )
+    if solicitud_id:
+        s = get_object_or_404(
+            Solicitudes_Faltantes.objects.select_related("id_estado_solicitud").prefetch_related("detalles__id_producto"),
+            pk=solicitud_id,
+        )
 
-    for s in solicitudes:
         if not s.detalles.exists():
             data.append([
                 s.nombre_documento or "", "", "", "", "—",
                 s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
                 s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
             ])
-            continue
+        else:
+            for d in s.detalles.all():
+                data.append([
+                    s.nombre_documento or "",
+                    d.id_producto.nombre if d.id_producto else "",
+                    d.cantidad_solicitada or "",
+                    "Sí" if d.es_urgente else "No",
+                    d.observaciones or "—",
+                    s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
+                    s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
+                ])
+    else:
+        solicitudes = (
+            Solicitudes_Faltantes.objects
+            .select_related("id_estado_solicitud")
+            .prefetch_related("detalles__id_producto")
+            .order_by("-fecha_solicitud")
+        )
 
-        for d in s.detalles.all():   # 👈 ya no .first()
-            data.append([
-                s.nombre_documento or "",
-                d.id_producto.nombre if d.id_producto else "",
-                d.cantidad_solicitada or "",
-                "Sí" if d.es_urgente else "No",
-                d.observaciones or "—",
-                s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
-                s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
-            ])
+        for s in solicitudes:
+            if not s.detalles.exists():
+                data.append([
+                    s.nombre_documento or "", "", "", "", "—",
+                    s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
+                    s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
+                ])
+                continue
+
+            for d in s.detalles.all():   # 👈 ya no .first()
+                data.append([
+                    s.nombre_documento or "",
+                    d.id_producto.nombre if d.id_producto else "",
+                    d.cantidad_solicitada or "",
+                    "Sí" if d.es_urgente else "No",
+                    d.observaciones or "—",
+                    s.id_estado_solicitud.nombre_estado if s.id_estado_solicitud else "",
+                    s.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if s.fecha_solicitud else "",
+                ])
 
     tabla = Table(data, repeatRows=1)
     tabla.setStyle(TableStyle([

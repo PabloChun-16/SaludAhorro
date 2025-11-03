@@ -225,13 +225,27 @@ def recepcion_graficas(request):
 @login_required
 def search_productos(request):
     term = request.GET.get("term", "").strip()
+    factura = (request.GET.get("factura") or "").strip()
+
+    # If a factura is provided, limit products to those that appear in that factura
+    if factura:
+        # Encontrar productos asociados a movimientos con esa referencia_transaccion
+        producto_ids = (
+            Movimientos_Inventario_Sucursal.objects
+            .filter(referencia_transaccion=factura)
+            .select_related("id_lote", "id_lote__id_producto")
+            .values_list("id_lote__id_producto", flat=True)
+        )
+        productos_qs = Productos.objects.filter(id__in=producto_ids)
+    else:
+        productos_qs = Productos.objects.all()
 
     productos = (
-        Productos.objects
+        productos_qs
         .select_related("id_presentacion", "id_unidad_medida", "id_condicion_almacenamiento", "id_estado_producto")
         .filter(
             Q(nombre__icontains=term) | Q(codigo_producto__icontains=term),
-            id_estado_producto__nombre_estado__iexact="Activo",   # <- SOLO activos
+            id_estado_producto__nombre_estado__iexact="Activo",
         )
         [:20]
     )

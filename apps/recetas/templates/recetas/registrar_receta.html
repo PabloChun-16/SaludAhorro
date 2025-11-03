@@ -78,6 +78,8 @@
       <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
         <i class="bi bi-trash"></i> Eliminar
       </button>
+      <!-- export pattern for recetas (used by consult modal) -->
+      <span id="urlPatternsRecetas" data-export="{% url 'recetas:exportar_recetas_pdf' %}" hidden></span>
     </div>
   </div>
 </section>
@@ -190,6 +192,9 @@
       </div>
 
       <div class="modal-footer">
+        <a id="btnExportReceta" class="btn btn-outline-success rounded-pill px-4 d-none" href="#" target="_blank">
+          <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </a>
         <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
@@ -564,6 +569,15 @@ document.addEventListener("DOMContentLoaded", function(){
     document.getElementById("detalleProducto").textContent  = selectedRow.dataset.productoNombre || "—";
     document.getElementById("detalleUsuario").textContent   = selectedRow.dataset.usuarioNombre || "—";
     document.getElementById("detalleFecha").textContent     = selectedRow.dataset.fecha || "—";
+    // Wire Export button (only visible when a receta is selected)
+    try{
+      const exportBase = document.getElementById('urlPatternsRecetas')?.dataset.export || "";
+      const btnExp = document.getElementById('btnExportReceta');
+      if(exportBase && btnExp && selectedRow){
+        btnExp.href = exportBase + '?id=' + encodeURIComponent(selectedRow.dataset.id || selectedId || '');
+        btnExp.classList.remove('d-none');
+      }
+    }catch(e){ /* ignore */ }
     new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
   });
 
@@ -764,7 +778,16 @@ document.addEventListener("DOMContentLoaded", function(){
   if (searchProducto){
     searchProducto.oninput = function(){
       const term = this.value || "";
-      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+      // If a factura is selected in the parent modal, pass it to the product search
+      let facturaParam = "";
+      try{
+        if (parentContext === 'editar') facturaParam = document.getElementById('editFacturaVal')?.value || "";
+        else facturaParam = document.getElementById('crearFacturaVal')?.value || "";
+      }catch(e){ facturaParam = ""; }
+
+      let url = "{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term);
+      if (facturaParam) url += "&factura=" + encodeURIComponent(facturaParam);
+      fetch(url)
         .then(r => r.json())
         .then(data => {
           tbodyBuscarProd.innerHTML = "";

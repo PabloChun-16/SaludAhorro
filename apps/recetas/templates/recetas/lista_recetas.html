@@ -69,9 +69,9 @@
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-file-earmark-text"></i> Consultar
       </button>
-      <a href="{% url 'recetas:exportar_recetas_pdf' %}" class="btn btn-success rounded-pill px-3 me-2 shadow-sm">
-        <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
-      </a>
+      <!-- Export moved into Consultar modal so it exports only the selected receta -->
+      <!-- export base URL holder -->
+      <div id="urlPatternsRecetas" data-export="{% url 'recetas:exportar_recetas_pdf' %}" style="display:none"></div>
       <button class="btn btn-info rounded-pill px-3 text-white shadow-sm"
               data-bs-toggle="modal" data-bs-target="#dashboardModal"
               style="background-color:#8b5cf6; border:none;">
@@ -105,6 +105,9 @@
       </div>
 
       <div class="modal-footer py-2 bg-white">
+        <a id="btnExportReceta" class="btn btn-success rounded-pill px-3 me-2 shadow-sm d-none" target="_blank" rel="noopener">
+          <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </a>
         <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
@@ -246,6 +249,17 @@ document.addEventListener("DOMContentLoaded",function(){
     document.getElementById("detalleProducto").innerText  = selectedRow.dataset.producto || "—";
     document.getElementById("detalleUsuario").innerText   = selectedRow.dataset.usuario || "—";
     document.getElementById("detalleFecha").innerText     = selectedRow.dataset.fecha || "—";
+    // Wire the Export button to export only the selected receta
+    try{
+      const exportBase = document.getElementById('urlPatternsRecetas')?.dataset?.export;
+      const btnExport = document.getElementById('btnExportReceta');
+      if(exportBase && btnExport && selectedId){
+        btnExport.href = exportBase + '?id=' + encodeURIComponent(selectedId);
+        btnExport.classList.remove('d-none');
+      }
+      const modalEl = document.getElementById("consultarRecetaModal");
+      modalEl.addEventListener('hidden.bs.modal', function(){ if(btnExport) btnExport.classList.add('d-none'); }, { once: true });
+    }catch(e){ console.error('Error wiring export button', e); }
     new bootstrap.Modal(document.getElementById("consultarRecetaModal")).show();
   });
 

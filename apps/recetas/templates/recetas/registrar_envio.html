@@ -102,9 +102,9 @@
       <button id="btnEditar" class="btn btn-success rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-pencil"></i> Editar
       </button>
-      <button id="btnEliminar" class="btn btn-danger rounded-pill px-3 shadow-sm" disabled>
-        <i class="bi bi-trash"></i> Eliminar
-      </button>
+      <!-- Eliminar se gestiona a través de Cambiar estado (eliminación lógica) - botón eliminado del footer -->
+      <!-- export pattern for envios (used by consult modal) -->
+      <span id="urlPatternsEnvios" data-export="{% url 'recetas:exportar_envios_pdf' %}" hidden></span>
 
       <button id="btnCambiarEstado" class="btn btn-outline-success rounded-pill px-3 me-2 shadow-sm" disabled>
         <i class="bi bi-arrow-repeat"></i> Cambiar estado
@@ -257,6 +257,9 @@
       </div>
 
       <div class="modal-footer">
+        <a id="btnExportEnvio" class="btn btn-outline-success rounded-pill px-4 d-none" href="#" target="_blank">
+          <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </a>
         <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
           <i class="bi bi-x-lg"></i> Cerrar
         </button>
@@ -308,39 +311,7 @@
   </div>
 </div>
 
-<!-- ============================= MODAL ELIMINAR ============================= -->
-<div class="modal fade saif-modal" id="eliminarEnvioModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form method="post" id="eliminarEnvioForm">
-        {% csrf_token %}
-        <div class="modal-header">
-          <div class="saif-modal-title">
-            <span class="saif-modal-icon"><i class="bi bi-trash"></i></span>
-            <span>Eliminar Envío</span>
-          </div>
-          <span class="saif-badge">SAIF</span>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body text-center py-4 bg-slate-50">
-          <p class="fw-semibold text-slate-700">
-            ¿Seguro que deseas eliminar el envío <strong id="eliminarReporte" class="text-red-600"></strong>?
-          </p>
-        </div>
-
-        <div class="modal-footer justify-center bg-white">
-          <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
-            <i class="bi bi-x-lg"></i> Cancelar
-          </button>
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash-fill"></i> Eliminar
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<!-- Eliminado: modal de eliminación (se gestiona por 'Cambiar estado' para eliminación lógica) -->
 
 <!-- ============================= MODAL BUSCAR RECETA ============================= -->
 <div class="modal fade saif-modal" id="modalBuscarReceta" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
@@ -457,7 +428,7 @@ document.addEventListener("DOMContentLoaded",function(){
   let selectedRow=null, selectedId=null;
 
   function toggleButtons(enabled){
-    ["btnConsultar","btnEditar","btnEliminar","btnCambiarEstado"].forEach(id=>{
+    ["btnConsultar","btnEditar","btnCambiarEstado"].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.disabled = !enabled;
     });
@@ -542,6 +513,16 @@ document.getElementById("btnConsultar").addEventListener("click", async function
     console.error("Error al obtener recetas:", error);
   }
 
+  // Wire Export button for this envio
+  try{
+    const exportBase = document.getElementById('urlPatternsEnvios')?.dataset.export || "";
+    const btnExp = document.getElementById('btnExportEnvio');
+    if(exportBase && btnExp){
+      btnExp.href = exportBase + '?id=' + encodeURIComponent(idEnvio);
+      btnExp.classList.remove('d-none');
+    }
+  }catch(e){/* ignore */}
+
   new bootstrap.Modal(document.getElementById("consultarEnvioModal")).show();
 });
 
@@ -558,14 +539,7 @@ document.getElementById("btnConsultar").addEventListener("click", async function
     new bootstrap.Modal(document.getElementById("editarEnvioModal")).show();
   });
 
-  // ====== Eliminar ======
-  document.getElementById("btnEliminar").addEventListener("click",function(){
-    if(!selectedRow){ alert("Selecciona un envío primero."); return; }
-    const id=selectedRow.dataset.id;
-    document.getElementById("eliminarReporte").textContent = selectedRow.dataset.reporte || "";
-    document.getElementById("eliminarEnvioForm").action = `/recetas/envio/${id}/eliminar/`;
-    new bootstrap.Modal(document.getElementById("eliminarEnvioModal")).show();
-  });
+  // Nota: Eliminar está gestionado mediante 'Cambiar estado' (eliminación lógica). Event listener eliminado.
 
   // ====== Utilidades ======
   function refreshAutoTitles(){

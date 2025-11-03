@@ -549,23 +549,55 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* === ANULAR AJUSTE === */
+  /* === ANULAR AJUSTE (modal confirmation) === */
   const btnAnular = document.getElementById("btnAnularAjuste");
+  // crear modal de confirmación y anexarlo al body
+  const modalConfirmAnularEl2 = document.createElement('div');
+  modalConfirmAnularEl2.innerHTML = `
+  <div class="modal fade" id="modalConfirmAnularIngreso" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content saif-modal">
+        <div class="modal-header">
+          <div class="saif-modal-title">
+            <span class="saif-modal-icon"><i class="bi bi-exclamation-triangle"></i></span>
+            <span>Confirmar anulación</span>
+          </div>
+          <span class="saif-badge">SAIF</span>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="saif-block__body">
+            <p class="mb-0">¿Seguro que desea anular este ajuste? Esta acción revertirá el stock.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="confirmAnularIngresoBtn" class="btn btn-danger">Anular</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modalConfirmAnularEl2);
+  const modalConfirmAnularIngreso = new bootstrap.Modal(document.getElementById('modalConfirmAnularIngreso'));
+
   btnAnular?.addEventListener("click", () => {
     const id = btnConsultar?.dataset.id; // usamos el mismo id seleccionado
-    if (!id) return alert("Seleccione un ajuste para anular.");
-
-    if (!confirm("¿Seguro que desea anular este ajuste? Esta acción revertirá el stock.")) return;
-
-    fetch(`/ajustes_inventario/ingresos/anular/${id}/`, {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    })
+    if (!id) { alert("Seleccione un ajuste para anular."); return; }
+    modalConfirmAnularIngreso.show();
+    const confirmBtn = document.getElementById('confirmAnularIngresoBtn');
+    const handler = () => {
+      confirmBtn.disabled = true;
+      fetch(`/ajustes_inventario/ingresos/anular/${id}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      })
       .then(r => r.json())
       .then(data => {
+        modalConfirmAnularIngreso.hide();
+        confirmBtn.disabled = false;
         if (data.success) {
           alert("Ajuste anulado correctamente. El stock ha sido revertido.");
           window.location.reload();
@@ -573,7 +605,12 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("Error: " + (data.error || "No se pudo anular el ajuste."));
         }
       })
-      .catch(() => alert("Error de red o servidor."));
+      .catch(() => { modalConfirmAnularIngreso.hide(); confirmBtn.disabled = false; alert("Error de red o servidor."); });
+    };
+    // avoid duplicate listeners
+    const clone = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(clone, confirmBtn);
+    clone.addEventListener('click', handler, { once: true });
   });
 
   // activar selección de filas desde el inicio

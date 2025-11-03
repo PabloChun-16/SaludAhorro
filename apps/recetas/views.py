@@ -176,8 +176,13 @@ def exportar_recetas_pdf(request):
     """
     Reporte PDF estilo SAIF (Recetas).
     """
+    # Optional: export only a single receta when ?id=<receta_id> is provided
+    receta_id = request.GET.get("id") or request.GET.get("receta_id")
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="reporte_recetas.pdf"'
+    if receta_id:
+        response["Content-Disposition"] = f'attachment; filename="receta_{receta_id}.pdf"'
+    else:
+        response["Content-Disposition"] = 'attachment; filename="reporte_recetas.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
     elements = []
@@ -193,7 +198,11 @@ def exportar_recetas_pdf(request):
     elements.append(Spacer(1, 12))
 
     data = [["Factura", "Referente", "Producto", "Usuario Venta", "Fecha"]]
-    recetas = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").all()
+    if receta_id:
+        recetas = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").filter(pk=receta_id)
+    else:
+        recetas = RecetaMedica.objects.select_related("id_producto", "id_usuario_venta").all()
+
     for r in recetas:
         data.append([
             r.referencia_factura or "",
@@ -471,10 +480,15 @@ def exportar_envios_pdf(request):
 
     data = [["Reporte", "Estado", "Usuario Envío", "Fecha Envío", "Factura Receta", "Producto"]]
 
-    detalles = DetalleEnvioReceta.objects.select_related(
+    # Support exporting a single envio if ?id=<envio_id> is given
+    envio_id = request.GET.get("id") or request.GET.get("envio_id")
+    qs = DetalleEnvioReceta.objects.select_related(
         "id_envio", "id_envio__id_estado_envio", "id_envio__id_usuario",
         "id_receta", "id_receta__id_producto"
-    ).all()
+    )
+    if envio_id:
+        qs = qs.filter(id_envio_id=envio_id)
+    detalles = qs.all()
 
     for d in detalles:
         data.append([
@@ -503,4 +517,7 @@ def exportar_envios_pdf(request):
     elementos.append(table)
     doc.build(elementos)
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename="detalle_envios.pdf")
+    filename = "detalle_envios.pdf"
+    if envio_id:
+        filename = f"envio_{envio_id}.pdf"
+    return FileResponse(buffer, as_attachment=True, filename=filename)
