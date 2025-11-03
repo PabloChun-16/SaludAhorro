@@ -16,7 +16,11 @@ ESTADOS_FUERTES = {"Retirado", "Devuelto"}              # nunca tocarlos automá
 _estado_id_cache = {}
 def estado_id(nombre: str) -> int:
     if nombre not in _estado_id_cache:
-        _estado_id_cache[nombre] = Estado_Lote.objects.only("id").get(nombre_estado=nombre).id
+        obj, _ = Estado_Lote.objects.get_or_create(
+            nombre_estado=nombre,
+            defaults={"descripcion": nombre},
+        )
+        _estado_id_cache[nombre] = obj.id
     return _estado_id_cache[nombre]
 
 def calcular_estado_por_fecha(fecha_caducidad):

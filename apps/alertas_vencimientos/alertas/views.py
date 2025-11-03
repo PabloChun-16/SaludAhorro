@@ -47,74 +47,34 @@ def alertas_dashboard(request):
 
 @login_required
 def alertas_stock_bajo(request):
+    # Productos cuyo stock_total <= stock_minimo (stock bajo)
     productos = (
         Productos.objects
-        .annotate(
-            stock_total=Coalesce(Sum('lotes__cantidad_disponible'), Value(0))
-        )
-        .filter(
-            stock_total__lt=F('stock_minimo'),
-            stock_minimo__gt=0
-        )
-        .select_related('id_presentacion', 'id_unidad_medida')
+        .annotate(stock_total=Coalesce(Sum('lotes__cantidad_disponible'), Value(0)))
+        .filter(stock_minimo__isnull=False, stock_minimo__gt=0, stock_total__lte=F('stock_minimo'))
+        .select_related('id_unidad_medida', 'id_presentacion')
     )
 
     return render(request, "alertas/partials/stock_bajo.html", {"productos": productos})
-
+    
 @login_required
 def alertas_proximos_vencer(request):
     hoy = timezone.now().date()
     lotes = (
         Lotes.objects
-        .filter(
-            fecha_caducidad__range=[hoy, hoy + timedelta(days=30)],
-            cantidad_disponible__gt=0
-        )
         .select_related('id_producto')
+        .filter(fecha_caducidad__range=[hoy, hoy + timedelta(days=30)], cantidad_disponible__gt=0)
+        .order_by('fecha_caducidad')
     )
 
-    # Calcula los días restantes en Python
+    # Agregar atributo dinámico 'dias_restantes' a cada lote para la plantilla
     for lote in lotes:
-        lote.dias_restantes = (lote.fecha_caducidad - hoy).days
+        try:
+            lote.dias_restantes = (lote.fecha_caducidad - hoy).days
+        except Exception:
+            lote.dias_restantes = ""
 
     return render(request, "alertas/partials/proximos_vencer.html", {"lotes": lotes})
-
-
-@login_required
-def alertas_vencidos(request):
-    hoy = timezone.now().date()
-    lotes = (
-        Lotes.objects
-        .filter(
-            fecha_caducidad__lt=hoy,
-            cantidad_disponible__gt=0
-        )
-        .select_related('id_producto')
-    )
-    return render(request, "alertas/partials/vencidos.html", {"lotes": lotes})
-
-
-@login_required
-def alertas_agotamiento(request):
-    productos = (
-        Productos.objects
-        .annotate(stock_total=Coalesce(Sum('lotes__cantidad_disponible'), Value(0)))
-        .filter(
-            stock_total__gt=F('stock_minimo'),  # 🔹 mayor que el mínimo (no están aún “bajos”)
-            stock_total__lte=F('stock_minimo') * 1.5,  # 🔹 pero cerca de agotarse
-            stock_minimo__gt=0
-        )
-        .select_related('id_unidad_medida', 'id_presentacion')
-    )
-
-    # Calcular margen de agotamiento
-    for p in productos:
-        try:
-            p.margen_porcentaje = round((p.stock_total / p.stock_minimo) * 100, 1)
-        except ZeroDivisionError:
-            p.margen_porcentaje = 0
-
-    return render(request, "alertas/partials/agotamiento.html", {"productos": productos})
 
 
 
@@ -136,3 +96,29 @@ def _qs_agotamiento():
         )
         .select_related('id_unidad_medida', 'id_presentacion')
     )
+
+
+@login_required
+def alertas_agotamiento(request):
+    """Devuelve el partial con los productos próximos a agotarse (misma lógica que alertas_stock_bajo)."""
+    productos = _qs_agotamiento()
+    # Calcular margen de agotamiento
+    for p in productos:
+        try:
+            p.margen_porcentaje = round((p.stock_total / p.stock_minimo) * 100, 1)
+        except ZeroDivisionError:
+            p.margen_porcentaje = 0
+
+    return render(request, "alertas/partials/agotamiento.html", {"productos": productos})
+
+
+@login_required
+def alertas_vencidos(request):
+    hoy = timezone.now().date()
+    lotes = (
+        Lotes.objects
+        .select_related('id_producto')
+        .filter(fecha_caducidad__lt=hoy, cantidad_disponible__gt=0)
+        .order_by('-fecha_caducidad')
+    )
+    return render(request, "alertas/partials/vencidos.html", {"lotes": lotes})

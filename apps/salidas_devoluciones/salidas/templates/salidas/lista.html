@@ -461,142 +461,215 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ====== Inicializador del FORM (TAL CUAL TU LÓGICA) ====== */
   function inicializarFormularioVenta(){
-    const alertBox        = document.getElementById("formAlert");
-    const detalles        = []; // vive mientras está abierto el modal
-    const fechaInput      = document.querySelector("#modalVenta #fechaInput");
-    const totalItemsEl    = document.querySelector("#modalVenta #totalItems");
-    const productoInput   = document.querySelector("#modalVenta #productoInput");
-    const productoIdInput = document.querySelector("#modalVenta #productoIdInput");
-    const cantidadInput   = document.querySelector("#modalVenta #cantidadInput");
-    const tbodyDet        = document.querySelector("#modalVenta #detalleTable");
+    const root = document.querySelector("#modalVenta");
+    if (!root) return;
 
-    const showAlert = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove("d-none"); };
-    const hideAlert = ()=>{ alertBox.textContent=""; alertBox.classList.add("d-none"); };
+    const alertBox        = root.querySelector("#formAlert");
+    const fechaInput      = root.querySelector("#fechaInput");
+    const productoInput   = root.querySelector("#productoInput");
+    const productoIdInput = root.querySelector("#productoIdInput");
+    const cantidadInput   = root.querySelector("#cantidadInput");
+    const tbodyDet        = root.querySelector("#detalleTable");
+    const pagerDetalles   = root.querySelector("#pagerDetalles");
+    const totalItemsEl    = root.querySelector("#totalItems");
+    const hiddenDetalles  = root.querySelector("#detallesJson");
+    const form            = root.querySelector("#form-venta");
+    const addBtn          = root.querySelector("#btnAddDetalle");
 
-    const toLocalInputValue = ()=>{
+    const showAlert = (msg) => { if (alertBox){ alertBox.textContent = msg; alertBox.classList.remove("d-none"); } };
+    const hideAlert = () => { if (alertBox){ alertBox.textContent = ""; alertBox.classList.add("d-none"); } };
+
+    const nowLocal = () => {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       return now.toISOString().slice(0,16);
     };
+    if (fechaInput) fechaInput.value = nowLocal();
+    root.addEventListener("shown.bs.modal", () => { if (fechaInput) fechaInput.value = nowLocal(); });
 
-    const setFechaActual = ()=>{
-      if (fechaInput) fechaInput.value = toLocalInputValue();
-    };
+    if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
 
-    const actualizarTotal = ()=>{
+    let detalles = [];
+    let detalleSeq = 0;
+    let currentPage = 1;
+    const PAGE_SIZE = 5;
+
+    const activos = () => detalles.filter(Boolean);
+
+    const actualizarTotal = () => {
       if (!totalItemsEl) return;
-      const total = detalles.reduce((acc, item)=>acc + (parseInt(item.cantidad,10) || 0), 0);
+      const total = activos().reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
       totalItemsEl.textContent = String(total);
     };
 
-    setFechaActual();
-    if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
-    actualizarTotal();
-
-    // API global para el buscador (modal reutilizado)
-    window.setProductoSeleccionado = function({id, texto}) {
-      if (productoIdInput) productoIdInput.value = id || "";
-      if (productoInput)   productoInput.value   = texto || "";
-      if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
+    const actualizarHidden = () => {
+      if (!hiddenDetalles) return;
+      const payload = activos().map(({ uid, ...rest }) => rest);
+      hiddenDetalles.value = JSON.stringify(payload);
     };
 
-    // Añadir detalle
-    const addBtn = document.querySelector("#modalVenta #btnAddDetalle");
-    if (addBtn){
-      addBtn.addEventListener("click", () => {
-        hideAlert();
-        const pid = productoIdInput?.value || "";
-        const ptx = (productoInput?.value || "").trim();
-        const qty = parseInt(cantidadInput?.value || 0, 10);
+    const renderPager = (total) => {
+      if (!pagerDetalles) return;
+      if (total <= PAGE_SIZE) {
+        pagerDetalles.innerHTML = "";
+        pagerDetalles.style.display = "none";
+        return;
+      }
 
-        if (!pid){ showAlert("Seleccione un producto."); return; }
-        if (!qty || qty <= 0){ showAlert("Cantidad inválida."); return; }
+      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
 
-        const item = { producto_id: parseInt(pid,10), cantidad: qty, producto: ptx };
-        detalles.push(item);
+      pagerDetalles.style.display = "flex";
+      pagerDetalles.classList.add("justify-content-center", "align-items-center", "py-3", "gap-3");
+      pagerDetalles.innerHTML = "";
 
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      prev.innerHTML = "<i class='bi bi-chevron-left me-1'></i> Anterior";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          renderDetalleTable();
+        }
+      });
+
+      const info = document.createElement("span");
+      info.className = "fw-semibold text-success small";
+      info.textContent = "Pagina " + currentPage + " de " + totalPages;
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      next.innerHTML = "Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+      next.disabled = currentPage === totalPages;
+      next.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          currentPage += 1;
+          renderDetalleTable();
+        }
+      });
+
+      pagerDetalles.append(prev, info, next);
+    };
+
+    const renderDetalleTable = () => {
+      if (!tbodyDet) return;
+      const data = activos();
+      tbodyDet.innerHTML = "";
+
+      if (!data.length) {
+        actualizarTotal();
+        actualizarHidden();
+        renderPager(0);
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = data.slice(start, start + PAGE_SIZE);
+
+      pageItems.forEach((item) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="text-start">${item.producto}</td>
-          <td>${item.cantidad}</td>
-          <td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>`;
-        tr.querySelector(".btn-del").addEventListener("click", () => {
-          tr.remove();
-          const idx = detalles.indexOf(item);
-          if (idx >= 0) detalles.splice(idx,1);
-          actualizarTotal();
+        tr.dataset.uid = item.uid;
+        tr.innerHTML = '<td class="text-start">' + item.producto + '</td>' +
+          '<td>' + item.cantidad + '</td>' +
+          '<td><button type="button" class="btn btn-sm btn-outline-danger btn-del"><i class="bi bi-trash"></i></button></td>';
+        tr.querySelector(".btn-del")?.addEventListener("click", () => {
+          const idx = detalles.findIndex(d => d && d.uid === item.uid);
+          if (idx >= 0) {
+            detalles[idx] = null;
+            renderDetalleTable();
+          }
         });
         tbodyDet.appendChild(tr);
-        actualizarTotal();
-
-        // limpiar captura
-        if (productoIdInput) productoIdInput.value = "";
-        if (productoInput)  productoInput.value  = "";
-        if (cantidadInput)  cantidadInput.value  = "1";
       });
-    }
 
-    if (cantidadInput){
-      cantidadInput.addEventListener("keydown", (ev)=>{
-        if (ev.key === "Enter"){
-          ev.preventDefault();
-          addBtn?.click();
+      actualizarTotal();
+      actualizarHidden();
+      renderPager(data.length);
+    };
+
+    const resetInputs = () => {
+      if (productoInput) {
+        productoInput.value = "";
+        productoInput.dispatchEvent(new Event("input", { bubbles: true }));
+        productoInput.focus();
+      }
+      if (productoIdInput) productoIdInput.value = "";
+      if (cantidadInput) cantidadInput.value = "1";
+    };
+
+    window.setProductoSeleccionado = function({ id, texto }) {
+      if (productoIdInput) productoIdInput.value = id || "";
+      if (productoInput) productoInput.value = texto || "";
+      if (cantidadInput && (!cantidadInput.value || Number(cantidadInput.value) < 1)) cantidadInput.value = "1";
+      productoInput?.focus();
+    };
+
+    addBtn?.addEventListener("click", () => {
+      hideAlert();
+      const pid = (productoIdInput?.value || "").trim();
+      const texto = (productoInput?.value || "").trim();
+      const qty = parseInt(cantidadInput?.value || "0", 10);
+
+      if (!pid) { showAlert("Seleccione un producto."); return; }
+      if (!qty || qty <= 0) { showAlert("Cantidad invalida."); return; }
+
+      detalles.push({
+        uid: "v-" + Date.now() + "-" + (detalleSeq++),
+        producto_id: parseInt(pid, 10),
+        producto: texto,
+        cantidad: qty
+      });
+      currentPage = Math.max(1, Math.ceil(activos().length / PAGE_SIZE));
+      renderDetalleTable();
+      resetInputs();
+    });
+
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const ref   = (root.querySelector("#facturaInput")?.value || "").trim();
+      const fecha = root.querySelector("#fechaInput")?.value || "";
+      const comentario = (root.querySelector("#comentarioInput")?.value || "").trim();
+      const dataDetalles = activos().map(({ uid, ...rest }) => rest);
+
+      if (!ref) { showAlert("Ingrese No. de factura."); return; }
+      if (!dataDetalles.length) { showAlert("Agregue al menos un producto."); return; }
+
+      const payload = {
+        form_data: { numero_factura: ref, fecha_venta: fecha, comentario: comentario },
+        detalles: dataDetalles
+      };
+
+      try {
+        const resp = await fetch("{% url 'sd:salidas:create' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With":"XMLHttpRequest",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+          showAlert((data && data.errors) ? data.errors : "Error al guardar.");
+          return;
         }
-      });
-    }
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        showAlert("Error de red.");
+      }
+    });
 
-    if (productoInput){
-      productoInput.addEventListener("keydown", (ev)=>{
-        if (ev.key === "Enter"){
-          ev.preventDefault();
-          addBtn?.click();
-        }
-      });
-    }
-
-    // Envío del form
-    const form = document.querySelector("#modalVenta #form-venta");
-    if (form){
-      form.addEventListener("submit", async (e)=>{
-        e.preventDefault(); hideAlert();
-
-        const ref   = (document.querySelector("#modalVenta #facturaInput")?.value || "").trim();
-        const fecha = document.querySelector("#modalVenta #fechaInput")?.value || "";
-        const comentario = (document.querySelector("#modalVenta #comentarioInput")?.value || "").trim();
-
-        if (!ref){ showAlert("Ingrese No. de factura."); return; }
-        if (!detalles.length){ showAlert("Agregue al menos un producto."); return; }
-
-        const payload = {
-          form_data: { numero_factura: ref, fecha_venta: fecha, comentario: comentario },
-          detalles: detalles
-        };
-
-        try{
-          const resp = await fetch("{% url 'sd:salidas:create' %}", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With":"XMLHttpRequest",
-              "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify(payload)
-          });
-          const data = await resp.json();
-          if (!resp.ok || !data.success){
-            showAlert((data && data.errors) ? data.errors : "Error al guardar.");
-            return;
-          }
-          window.location.reload();
-        }catch(err){
-          console.error(err);
-          showAlert("Error de red.");
-        }
-      });
-    }
+    renderDetalleTable();
   }
-
-
   /* ====== Buscador de productos (reuso) (TAL CUAL) ====== */
   const modalBuscar   = document.getElementById("modalBuscarProducto");
   const searchInput   = document.getElementById("searchProducto");
@@ -804,3 +877,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+

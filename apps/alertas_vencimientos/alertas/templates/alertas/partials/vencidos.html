@@ -58,7 +58,7 @@
               {% for lote in lotes %}
               <tr>
                 <td class="text-truncate" title="{{ lote.id_producto.nombre }}">{{ lote.id_producto.nombre }}</td>
-                <td class="text-truncate" title="{{ lote.codigo_lote }}">{{ lote.codigo_lote }}</td>
+                <td class="text-truncate" title="{{ lote.numero_lote|default:'-' }}">{{ lote.numero_lote|default:'-' }}</td>
                 <td>{{ lote.cantidad_disponible }}</td>
                 <td>{{ lote.fecha_caducidad|date:"d/m/Y" }}</td>
               </tr>

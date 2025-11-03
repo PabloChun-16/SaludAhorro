@@ -59,3 +59,11 @@ class Lotes(models.Model):
             )
         ]
 
+    @property
+    def codigo_lote(self):
+        """Compatibilidad: algunos templates/funciones esperan `codigo_lote`.
+        Este alias devuelve `numero_lote` para evitar errores al acceder
+        desde plantillas antiguas.
+        """
+        return self.numero_lote
+

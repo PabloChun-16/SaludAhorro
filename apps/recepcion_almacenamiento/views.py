@@ -315,10 +315,10 @@ def create_lote(request):
         except ValueError:
             return JsonResponse({"success": False, "error": "Formato de fecha inválido."}, status=400)
 
-    try:
-        estado_disponible = Estado_Lote.objects.get(nombre_estado="Disponible")
-    except Estado_Lote.DoesNotExist:
-        return JsonResponse({"success": False, "error": "No existe el estado 'Disponible'."}, status=400)
+    estado_disponible, _ = Estado_Lote.objects.get_or_create(
+        nombre_estado="Disponible",
+        defaults={"descripcion": "Disponible"},
+    )
 
     lote = Lotes.objects.create(
         id_producto_id=producto_id,

@@ -46,7 +46,7 @@
   }
 </style>
 
-<div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalBuscarLote" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content saif-modal">
 
@@ -179,6 +179,11 @@
     searchLoteInput.value = "";
     loadLotes("");
     searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
+  });
+
+  modalLote.addEventListener("hidden.bs.modal", () => {
+    const principal = document.getElementById("modalDevolucion");
+    if (principal) bootstrap.Modal.getOrCreateInstance(principal).show();
   });
 })();
 </script>

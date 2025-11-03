@@ -234,6 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function inicializarFormulario() {
     const btnAdd = document.getElementById("btnAddDetalle");
     const tableBody = document.getElementById("detalleTable");
+    const pagerDetalles = document.getElementById("pagerDetalles");
     const modalProducto = document.getElementById("modalBuscarProducto");
     const modalLote = document.getElementById("modalBuscarLote");
     attachChildModal(modalProducto);
@@ -245,54 +246,129 @@ document.addEventListener("DOMContentLoaded", function () {
     const loteIdInput = document.getElementById("loteIdInput");
     const cantidadInput = document.getElementById("cantidadInput");
 
-    // === AÑADIR DETALLE ===
+    detalles = [];
+    let detalleSeq = 0;
+    let currentPage = 1;
+    const PAGE_SIZE = 5;
+
+    const activos = () => detalles.filter(Boolean);
+
+    const renderPager = (total) => {
+      if (!pagerDetalles) return;
+      if (total <= PAGE_SIZE) {
+        pagerDetalles.innerHTML = "";
+        pagerDetalles.style.display = "none";
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      pagerDetalles.style.display = "flex";
+      pagerDetalles.classList.add("justify-content-center", "align-items-center", "py-3", "gap-3");
+      pagerDetalles.innerHTML = "";
+
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      prev.innerHTML = "<i class='bi bi-chevron-left me-1'></i> Anterior";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          renderDetalleTable();
+        }
+      });
+
+      const info = document.createElement("span");
+      info.className = "fw-semibold text-success small";
+      info.textContent = "Pagina " + currentPage + " de " + totalPages;
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      next.innerHTML = "Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+      next.disabled = currentPage === totalPages;
+      next.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          currentPage += 1;
+          renderDetalleTable();
+        }
+      });
+
+      pagerDetalles.append(prev, info, next);
+    };
+
+    const renderDetalleTable = () => {
+      if (!tableBody) return;
+      const data = activos();
+      tableBody.innerHTML = "";
+
+      if (!data.length) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+        renderPager(0);
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageItems = data.slice(start, start + PAGE_SIZE);
+
+      pageItems.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.dataset.uid = item.uid;
+        tr.innerHTML =
+          "<td>" + item.producto + "</td>" +
+          "<td>" + item.numero_lote + "</td>" +
+          "<td>" + item.cantidad_ajustada + "</td>" +
+          '<td><button type="button" class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>';
+        tr.querySelector(".btnRemove")?.addEventListener("click", () => {
+          const idx = detalles.findIndex(d => d && d.uid === item.uid);
+          if (idx >= 0) {
+            detalles[idx] = null;
+            renderDetalleTable();
+          }
+        });
+        tableBody.appendChild(tr);
+      });
+
+      renderPager(data.length);
+    };
+
+    const resetInputs = () => {
+      if (productoInput) productoInput.value = "";
+      if (productoIdInput) productoIdInput.value = "";
+      if (loteInput) loteInput.value = "";
+      if (loteIdInput) loteIdInput.value = "";
+      if (cantidadInput) cantidadInput.value = "0";
+    };
+
+    // === Añadir detalle ===
     btnAdd?.addEventListener("click", () => {
       const productoId = productoIdInput.value.trim();
       const producto = productoInput.value.trim();
       const loteId = loteIdInput.value.trim();
       const lote = loteInput.value.trim();
-      const cantidad = parseInt(cantidadInput.value) || 0;
+      const cantidad = parseInt(cantidadInput.value, 10) || 0;
 
-      if (!productoId) return alert("Seleccione un producto antes de añadir.");
-      if (!lote && !loteId) return alert("Seleccione o ingrese un lote.");
-      if (cantidad <= 0) return alert("Ingrese una cantidad válida.");
+      if (!productoId) { alert("Seleccione un producto antes de añadir."); return; }
+      if (!lote && !loteId) { alert("Seleccione o ingrese un lote."); return; }
+      if (cantidad <= 0) { alert("Ingrese una cantidad valida."); return; }
 
-      const item = {
+      detalles.push({
+        uid: "ai-" + Date.now() + "-" + (detalleSeq++),
         producto_id: productoId,
         producto,
         lote_id: loteId,
         numero_lote: lote,
         cantidad_ajustada: cantidad
-      };
-      detalles.push(item);
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${producto}</td>
-        <td>${lote}</td>
-        <td>${cantidad}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-outline-danger btnRemove">
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>
-      `;
-      row.querySelector(".btnRemove").addEventListener("click", () => {
-        row.remove();
-        detalles = detalles.filter(d => d !== item);
-        if (detalles.length === 0)
-          tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
       });
-
-      if (detalles.length === 1) tableBody.innerHTML = "";
-      tableBody.appendChild(row);
-
-      productoInput.value = "";
-      productoIdInput.value = "";
-      loteInput.value = "";
-      loteIdInput.value = "";
-      cantidadInput.value = "0";
+      currentPage = Math.max(1, Math.ceil(activos().length / PAGE_SIZE));
+      renderDetalleTable();
+      resetInputs();
     });
+    renderDetalleTable();
 
     // === GUARDAR AJUSTE (POST AJAX) ===
     const form = document.getElementById("formAjusteIngreso");
@@ -301,7 +377,8 @@ document.addEventListener("DOMContentLoaded", function () {
       e.preventDefault();
       document.activeElement?.blur();
 
-      if (detalles.length === 0) {
+      const activosDetalles = activos();
+      if (!activosDetalles.length) {
         alert("Debe agregar al menos un producto antes de guardar.");
         return;
       }
@@ -311,7 +388,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // ✅ Generar JSON de detalles
       const hiddenDetalles = document.getElementById("detallesJson");
-      if (hiddenDetalles) hiddenDetalles.value = JSON.stringify(detalles);
+      if (hiddenDetalles) hiddenDetalles.value = JSON.stringify(activosDetalles);
 
       // Limpiar campo cantidad (evita validación)
       const cantidadInput = document.getElementById("cantidadInput");
@@ -320,7 +397,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // === Enviar datos ===
       const payload = {
         form_data: { fecha_ajuste },
-        detalles: detalles
+        detalles: activosDetalles
       };
 
       fetch("{% url 'ajustes_inventario:ingresos:ajuste_ingreso_create' %}", {

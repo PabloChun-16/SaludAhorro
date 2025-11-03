@@ -117,7 +117,10 @@ def exportar_stock_pdf(request):
     if pres:
         qs = qs.filter(id_producto__id_presentacion__nombre_presentacion__icontains=pres)
     if lote:
-        qs = qs.filter(Q(numero_lote__icontains=lote) | Q(codigo_lote__icontains=lote))
+        # `Lotes` model uses `numero_lote` as the DB field. Avoid querying
+        # non-existent `codigo_lote` field (some older code/templates
+        # referenced it). Use `numero_lote` only.
+        qs = qs.filter(Q(numero_lote__icontains=lote))
 
     # rango de caducidad
     def parse_date(d):
@@ -184,7 +187,9 @@ def exportar_stock_pdf(request):
         desc_v   = getattr(prod, "descripcion", "") or ""
         presentacion_v = getattr(pres_o, "nombre_presentacion", "") if pres_o else ""
         disp_v   = lote_obj.cantidad_disponible or 0
-        nro_v    = getattr(lote_obj, "numero_lote", "") or getattr(lote_obj, "codigo_lote", "") or ""
+        # Use numero_lote as canonical value; `codigo_lote` is provided
+        # via a compatibility property on the model if needed.
+        nro_v    = getattr(lote_obj, "numero_lote", "") or ""
         venc_v   = lote_obj.fecha_caducidad.strftime("%d/%m/%Y") if getattr(lote_obj, "fecha_caducidad", None) else ""
         est_v    = getattr(estado_o, "nombre_estado", "") if estado_o else ""
         pcomp_v  = money(lote_obj.precio_compra)
