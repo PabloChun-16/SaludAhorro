@@ -444,11 +444,14 @@
 
       {% block content %}{% endblock %}
     </main>
+</div> <!-- 👈 Cierra el grid aquí -->
 
-  <footer class="border-t text-xs text-slate-600 px-4 py-3">
-    <div class="flex items-center justify-between">
+  <footer class="border-t text-xs text-slate-600 ps-4 pe-4 py-3">
+    <div class="d-flex align-items-center justify-content-between w-100">
       <span>SAIF | &copy; 2025 Todos los derechos reservados.</span>
-      <img src="{% static 'home/img/logomarianogalvezcolor.png' %}" alt="Logo Mariano Gálvez" class="h-6 opacity-80 hover:opacity-100 transition" />
+      <a href="https://www.umg.edu.gt/" target="_blank" rel="noopener noreferrer" class="flex-shrink-0">
+        <img src="{% static 'home/img/logomarianogalvezcolor.png' %}" alt="Logo Universidad Mariano Galvez" class="h-6 opacity-80 hover:opacity-100 transition" />
+      </a>
     </div>
   </footer>
 
