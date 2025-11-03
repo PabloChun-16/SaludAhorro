@@ -32,19 +32,56 @@ from io import BytesIO
 from django.db.models import Sum  
 # Listado
 def productos_list(request):
-    productos = Productos.objects.all().order_by("nombre")
-    laboratorios = (
-        Productos.objects.filter(id_laboratorio__isnull=False)
-        .order_by("id_laboratorio__nombre_laboratorio")
-        .values_list("id_laboratorio__nombre_laboratorio", flat=True)
-        .distinct()
+    """
+    Listado principal de productos.
+
+    Se usa select_related/only para evitar la carga perezosa de catálogos en la
+    plantilla (reduce el número de consultas cuando hay cientos/miles de
+    productos) y se reutiliza ese resultado para poblar los datalist de filtros.
+    """
+    productos_qs = (
+        Productos.objects.select_related(
+            "id_laboratorio",
+            "id_presentacion",
+            "id_unidad_medida",
+            "id_estado_producto",
+        )
+        .only(
+            "id",
+            "codigo_producto",
+            "nombre",
+            "descripcion",
+            "requiere_receta",
+            "es_controlado",
+            "stock_minimo",
+            "id_laboratorio_id",
+            "id_laboratorio__nombre_laboratorio",
+            "id_presentacion_id",
+            "id_presentacion__nombre_presentacion",
+            "id_unidad_medida_id",
+            "id_unidad_medida__nombre_unidad",
+            "id_estado_producto_id",
+            "id_estado_producto__nombre_estado",
+        )
+        .order_by("nombre")
     )
-    presentaciones = (
-        Productos.objects.filter(id_presentacion__isnull=False)
-        .order_by("id_presentacion__nombre_presentacion")
-        .values_list("id_presentacion__nombre_presentacion", flat=True)
-        .distinct()
+
+    productos = list(productos_qs)
+    laboratorios = sorted(
+        {
+            p.id_laboratorio.nombre_laboratorio
+            for p in productos
+            if p.id_laboratorio_id and p.id_laboratorio.nombre_laboratorio
+        }
     )
+    presentaciones = sorted(
+        {
+            p.id_presentacion.nombre_presentacion
+            for p in productos
+            if p.id_presentacion_id and p.id_presentacion.nombre_presentacion
+        }
+    )
+
     return render(
         request,
         "productos/lista.html",
@@ -83,24 +120,11 @@ def productos_create(request):
 @require_http_methods(["GET"])
 def productos_detail(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
-    lotes_qs = producto.lotes_set.order_by("-fecha_caducidad", "-id")
-    precio_compra = (
-        lotes_qs.filter(precio_compra__isnull=False)
-        .values_list("precio_compra", flat=True)
-        .first()
-    )
-    precio_venta = (
-        lotes_qs.filter(precio_venta__isnull=False)
-        .values_list("precio_venta", flat=True)
-        .first()
-    )
     html = render_to_string(
         "productos/partials/_consultar.html",
         {
             "producto": producto,
             "titulo": "Detalle del Producto",
-            "precio_compra": precio_compra,
-            "precio_venta": precio_venta,
         },
         request=request,
     )
@@ -296,6 +320,7 @@ def obtener_kardex_data(producto, fecha_inicio, fecha_fin):
             fecha_hora__range=[fecha_inicio, fecha_fin],
             id_lote__id_producto=producto,
         )
+        .exclude(estado_movimiento_inventario__nombre_estado__iexact="Cancelado")
         .select_related("id_tipo_movimiento", "id_lote")
         .annotate(
             naturaleza_int=Cast(F("id_tipo_movimiento__naturaleza"), IntegerField()),

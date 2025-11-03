@@ -122,22 +122,6 @@
             </div>
           </div>
 
-          <!-- Precios -->
-          <div class="col-md-6">
-            <label class="form-label">Precio de Compra</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-cash-coin"></i></span>
-              {{ form.precio_compra }}
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Precio de Venta</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
-              {{ form.precio_venta }}
-            </div>
-          </div>
-
          {# ---- Imagen del Producto ---- #}
 <div class="col-12">
   <label class="form-label fw-bold">Imagen del Producto</label>
@@ -293,12 +277,15 @@
           helper.appendChild(datalist);
         }
         datalist.id = datalistId;
-        datalist.innerHTML = "";
-        options.forEach((opt) => {
-          const optionEl = document.createElement("option");
-          optionEl.value = opt.label;
-          datalist.appendChild(optionEl);
-        });
+        const renderSuggestions = (suggestions) => {
+          datalist.innerHTML = "";
+          suggestions.forEach((opt) => {
+            const optionEl = document.createElement("option");
+            optionEl.value = opt.label;
+            datalist.appendChild(optionEl);
+          });
+        };
+        renderSuggestions(options);
         input.setAttribute("list", datalistId);
 
         const showFeedback = (hasError) => {
@@ -327,18 +314,13 @@
           const raw = input.value;
           const norm = normalizeValue(raw);
           if (!norm) {
-            select.value = "";
-            select.dispatchEvent(new Event("change", { bubbles: true }));
+            renderSuggestions(options);
             showFeedback(false);
             return;
           }
-          const exact = options.find((opt) => opt.lower === norm);
-          const partial = exact || options.find((opt) => opt.lower.includes(norm));
-          if (partial) {
-            applyMatch(partial, { updateInputValue: false });
-          } else {
-            showFeedback(true);
-          }
+          const matches = options.filter((opt) => opt.lower.includes(norm));
+          renderSuggestions(matches.length ? matches : options);
+          showFeedback(!matches.length);
         });
 
         input.addEventListener("change", () => {
@@ -350,7 +332,9 @@
             showFeedback(false);
             return;
           }
-          const match = options.find((opt) => opt.lower === norm) || options.find((opt) => opt.lower.includes(norm));
+          const exact = options.find((opt) => opt.lower === norm);
+          const partials = options.filter((opt) => opt.lower.includes(norm));
+          const match = exact || (partials.length === 1 ? partials[0] : null);
           if (!applyMatch(match, { updateInputValue: true })) {
             showFeedback(true);
           }
@@ -366,7 +350,9 @@
             return;
           }
           const norm = normalizeValue(raw);
-          const match = options.find((opt) => opt.lower === norm) || options.find((opt) => opt.lower.includes(norm));
+          const exact = options.find((opt) => opt.lower === norm);
+          const partials = options.filter((opt) => opt.lower.includes(norm));
+          const match = exact || (partials.length === 1 ? partials[0] : null);
           if (!applyMatch(match, { updateInputValue: true })) {
             input.value = "";
             select.value = "";

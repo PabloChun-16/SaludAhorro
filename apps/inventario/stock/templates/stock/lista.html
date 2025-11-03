@@ -95,6 +95,24 @@ tbody tr.estado-retirado td:nth-child(5){
 }
 </style>
 <style>.table-container{ overflow-y:auto; }</style>
+<style>
+.saif-export-modal{border:0;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(14,122,58,.25);}
+.saif-export-modal .modal-header{background:#0f7a3a;color:#fff;border:0;padding:.85rem 1.1rem;}
+.saif-export-modal .modal-footer{border:0;background:#f7fbf9;padding:.75rem 1.1rem;}
+
+.saif-critico-modal{border:0;border-radius:18px;overflow:hidden;box-shadow:0 22px 48px rgba(14,122,58,.28);}
+.saif-critico-modal .modal-header{background:#0f7a3a;color:#fff;border:0;padding:.9rem 1.1rem;}
+.saif-critico-modal .modal-body{background:#f7fbf9;padding:1.1rem;}
+.saif-critico-modal .modal-footer{border:0;background:#f7fbf9;padding:.75rem 1.1rem;}
+
+.critico-layout{display:grid;gap:1rem;grid-template-columns:1fr;}
+.critico-table-wrapper{max-height:320px;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;background:#fff;padding:.5rem;}
+.critico-chart{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.75rem;box-shadow:0 4px 16px rgba(15,23,42,.06);}
+
+@media(min-width:992px){
+  .critico-layout{grid-template-columns:1.2fr .8fr;}
+}
+</style>
 
 <section class="p-3">
   <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
@@ -186,8 +204,20 @@ tbody tr.estado-retirado td:nth-child(5){
                 </span>
               {% endwith %}
             </td>
-            <td>{{ lote.precio_compra }}</td>
-            <td>{{ lote.precio_venta }}</td>
+            <td class="text-end">
+              {% if lote.precio_compra is not None %}
+                Q {{ lote.precio_compra|floatformat:2 }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if lote.precio_venta is not None %}
+                Q {{ lote.precio_venta|floatformat:2 }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </td>
           </tr>
           {% empty %}
           <tr>
@@ -207,9 +237,12 @@ tbody tr.estado-retirado td:nth-child(5){
       <button id="btnConsultar" class="btn btn-primary rounded-pill px-4 me-2 shadow-sm" disabled aria-disabled="true">
         <i class="bi bi-search"></i> Consultar
       </button>
-      <a href="{% url 'inventario:stock:exportar_pdf' %}" id="btnExportPdf" class="btn btn-success rounded-pill px-4 shadow-sm">
+      <button type="button"
+              id="btnExportPdf"
+              class="btn btn-success rounded-pill px-4 shadow-sm"
+              data-export-url="{% url 'inventario:stock:exportar_pdf' %}">
         <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
-      </a>
+      </button>
       <button id="btnReporteStockCritico" class="btn btn-warning rounded-pill px-4 shadow-sm">
         <i class="bi bi-bar-chart-line"></i> Reporte Stock Crítico
       </button>
@@ -223,10 +256,63 @@ tbody tr.estado-retirado td:nth-child(5){
   </div>
 </div>
 
+<!-- Modal Exportar PDF -->
+<div class="modal fade" id="modalExportarStock" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content saif-export-modal">
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-funnel"></i></span>
+          <span>Filtrar reporte de stock</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formExportarStock" class="needs-validation" novalidate>
+          <p class="small text-muted mb-3">
+            Se aplicarán los filtros escritos en la tabla y puedes complementar con estas opciones antes de exportar.
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Estado del lote</label>
+            <select class="form-select" name="estado">
+              <option value="">Todos</option>
+              <option value="vigente">Vigente</option>
+              <option value="vencido">Vencido</option>
+              <option value="otros">Otros</option>
+            </select>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Caducidad desde</label>
+              <input type="date" class="form-control" name="cadu_desde">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Caducidad hasta</label>
+              <input type="date" class="form-control" name="cadu_hasta">
+            </div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="soloDisponibles" name="solo_disponibles" value="1">
+            <label class="form-check-label" for="soloDisponibles">Solo lotes con stock disponible</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="submit" form="formExportarStock" class="btn btn-success">
+          <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Reporte Stock Crítico -->
-<div class="modal fade" id="modalReporteStockCritico" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalReporteStockCritico" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content saif-critico-modal">
       <div class="modal-header">
         <div class="saif-modal-title">
           <span class="saif-modal-icon"><i class="bi bi-bar-chart-line"></i></span>
@@ -235,23 +321,28 @@ tbody tr.estado-retirado td:nth-child(5){
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <canvas id="graficaStockCritico" style="width:100%;height:300px;"></canvas>
-        <hr>
-        <div class="table-responsive">
-          <table class="table table-bordered text-center align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Código</th>
-                <th>Producto</th>
-                <th>Stock Disponible</th>
-              </tr>
-            </thead>
-            <tbody id="tablaStockCritico"></tbody>
-          </table>
+        <div class="critico-layout">
+          <div class="critico-chart">
+            <canvas id="graficaStockCritico" height="260"></canvas>
+          </div>
+          <div class="critico-table-wrapper">
+            <table class="table table-sm table-striped align-middle text-center mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-uppercase small">Código</th>
+                  <th class="text-uppercase small text-start">Producto</th>
+                  <th class="text-uppercase small">Stock Disponible</th>
+                </tr>
+              </thead>
+              <tbody id="tablaStockCritico"></tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cerrar
+        </button>
       </div>
     </div>
   </div>
@@ -265,13 +356,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const table        = document.getElementById("tablaStock");
   const tbody        = table.querySelector("tbody");
   const thead        = table.tHead;
-  const pagerEl      = document.getElementById("pagerStock");
-  const modalEl      = document.getElementById("modalStock");
-  const modalContent = document.getElementById("modal-stock-content");
-  const modal        = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+  const pagerEl       = document.getElementById("pagerStock");
+  const modalEl       = document.getElementById("modalStock");
+  const modalContent  = document.getElementById("modal-stock-content");
+  const modal         = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+  const exportModalEl = document.getElementById("modalExportarStock");
+  const exportModal   = exportModalEl ? new bootstrap.Modal(exportModalEl, { backdrop: "static", keyboard: false }) : null;
+  const exportForm    = document.getElementById("formExportarStock");
+  const exportBtn     = document.getElementById("btnExportPdf");
+  const exportUrl     = exportBtn?.dataset.exportUrl || "";
 
   let selectedId = null;
   const norm = (s)=> (s ?? "").toString().trim().toLowerCase();
+  const filterRefs = {};
 
   function fixStickyOffsets(){
     if(!thead) return;
@@ -468,12 +565,12 @@ function applyPagination(){
 
   /* ===== Filtros ===== */
   function installFilters(){
-    const fCodigo = document.getElementById("f-codigo");
-    const fNombre = document.getElementById("f-nombre");
-    const fDesc   = document.getElementById("f-desc");
-    const fPres   = document.getElementById("f-pres");
-    const fLote   = document.getElementById("f-lote");
-    const fEstado = document.getElementById("f-estado");
+    const fCodigo = filterRefs.codigo = document.getElementById("f-codigo");
+    const fNombre = filterRefs.nombre = document.getElementById("f-nombre");
+    const fDesc   = filterRefs.desc   = document.getElementById("f-desc");
+    const fPres   = filterRefs.pres   = document.getElementById("f-pres");
+    const fLote   = filterRefs.lote   = document.getElementById("f-lote");
+    const fEstado = filterRefs.estado = document.getElementById("f-estado");
 
     const inputs = [fCodigo,fNombre,fDesc,fPres,fLote,fEstado].filter(Boolean);
 
@@ -509,21 +606,6 @@ function applyPagination(){
       inp.addEventListener(ev, handler);
     });
 
-    /* Exportar PDF con filtros actuales */
-    document.getElementById("btnExportPdf")?.addEventListener("click", function(e){
-      e.preventDefault();
-      const base = this.getAttribute("href");
-      const params = new URLSearchParams({
-        codigo: fCodigo?.value || "",
-        nombre: fNombre?.value || "",
-        desc:   fDesc?.value   || "",
-        pres:   fPres?.value   || "",
-        lote:   fLote?.value   || "",
-        estado: fEstado?.value || ""
-      });
-      window.location.href = `${base}?${params.toString()}`;
-    });
-
     applyFilters();
   }
 
@@ -543,48 +625,137 @@ function applyPagination(){
   });
 
   setTimeout(()=>{ fixStickyOffsets(); recomputarPageSize(); applyPagination(); }, 0);
+
+  exportBtn?.addEventListener("click", () => {
+    if (!exportModal) return;
+    const estadoSelect = exportForm?.querySelector('select[name="estado"]');
+    if (estadoSelect && filterRefs.estado) {
+      estadoSelect.value = filterRefs.estado.value || "";
+    }
+    exportModal.show();
+  });
+
+  exportForm?.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    if (!exportUrl) return;
+
+    const params = new URLSearchParams();
+    const setIfValue = (key, el) => {
+      const value = (el?.value || "").trim();
+      if (value) params.set(key, value);
+    };
+
+    setIfValue("codigo", filterRefs.codigo);
+    setIfValue("nombre", filterRefs.nombre);
+    setIfValue("desc",   filterRefs.desc);
+    setIfValue("pres",   filterRefs.pres);
+    setIfValue("lote",   filterRefs.lote);
+
+    const estadoSelect = exportForm.querySelector('select[name="estado"]');
+    const estadoValue = (estadoSelect?.value || "").trim();
+    if (estadoValue) {
+      params.set("estado", estadoValue);
+    } else if (filterRefs.estado?.value) {
+      params.set("estado", filterRefs.estado.value);
+    }
+
+    const caduDesde = exportForm.querySelector('input[name="cadu_desde"]')?.value;
+    const caduHasta = exportForm.querySelector('input[name="cadu_hasta"]')?.value;
+    if (caduDesde) params.set("cadu_desde", caduDesde);
+    if (caduHasta) params.set("cadu_hasta", caduHasta);
+
+    const soloDisp = exportForm.querySelector('input[name="solo_disponibles"]')?.checked;
+    if (soloDisp) params.set("solo_disponibles", "1");
+
+    const qs = params.toString();
+    window.location.href = qs ? `${exportUrl}?${qs}` : exportUrl;
+    exportModal?.hide();
+  });
 });
 
-/* Reporte Stock Crítico (igual) */
+/* Reporte Stock Crítico */
 document.addEventListener("DOMContentLoaded", () => {
   const btnReporte = document.getElementById("btnReporteStockCritico");
   const modalEl    = document.getElementById("modalReporteStockCritico");
-  const modalInst  = new bootstrap.Modal(modalEl);
+  if (!btnReporte || !modalEl) return;
+
+  const modalInst  = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
 
   btnReporte.addEventListener("click", () => {
+    btnReporte.disabled = true;
+
     fetch("{% url 'inventario:stock:reporte_stock_critico' %}")
       .then(r => r.json())
       .then(data => {
         const tbody = document.getElementById("tablaStockCritico");
         tbody.innerHTML = "";
-        data.forEach(p => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${p.codigo_producto}</td>
-            <td>${p.nombre}</td>
-            <td>${p.stock_total ?? 0}</td>
-          `;
-          tbody.appendChild(tr);
-        });
 
-        const ctx = document.getElementById("graficaStockCritico").getContext("2d");
-        if (window.graficaStockCritico instanceof Chart) {
-            window.graficaStockCritico.destroy();
+        if (Array.isArray(data) && data.length) {
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+
+            const tdCodigo = document.createElement("td");
+            tdCodigo.textContent = p.codigo_producto || "--";
+
+            const tdNombre = document.createElement("td");
+            tdNombre.textContent = p.nombre || "Sin nombre";
+            tdNombre.classList.add("text-start");
+
+            const tdStock = document.createElement("td");
+            tdStock.textContent = (p.stock_total ?? 0);
+
+            tr.append(tdCodigo, tdNombre, tdStock);
+            tbody.appendChild(tr);
+          });
+        } else {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 3;
+          td.className = "py-4 text-muted";
+          td.textContent = "No hay productos con stock crítico.";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
         }
-        window.graficaStockCritico = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: data.map(p => p.nombre),
-            datasets: [{
-              label: "Stock Disponible",
-              data: data.map(p => p.stock_total ?? 0),
-              backgroundColor: "#ffc107"
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+
+        const canvas = document.getElementById("graficaStockCritico");
+        if (canvas) {
+          const ctx = canvas.getContext("2d");
+          if (window.graficaStockCritico instanceof Chart) {
+            window.graficaStockCritico.destroy();
+          }
+          if (Array.isArray(data) && data.length) {
+            window.graficaStockCritico = new Chart(ctx, {
+              type: "bar",
+              data: {
+                labels: data.map(p => p.nombre || "Sin nombre"),
+                datasets: [{
+                  label: "Stock Disponible",
+                  data: data.map(p => p.stock_total ?? 0),
+                  backgroundColor: "#ffc107",
+                  borderRadius: 6,
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+              }
+            });
+          }
+        }
 
         modalInst.show();
+      })
+      .catch(() => {
+        const tbody = document.getElementById("tablaStockCritico");
+        tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-danger">No se pudo cargar el reporte.</td></tr>`;
+        if (window.graficaStockCritico instanceof Chart) {
+          window.graficaStockCritico.destroy();
+        }
+        modalInst.show();
+      })
+      .finally(() => {
+        btnReporte.disabled = false;
       });
   });
 });

@@ -88,6 +88,7 @@ def exportar_stock_pdf(request):
     - codigo, nombre, desc, pres, lote
     - cadu_desde (yyyy-mm-dd), cadu_hasta (yyyy-mm-dd)
     - estado: "", "vigente", "vencido", "otros"
+    - solo_disponibles: "1" para incluir únicamente lotes con stock > 0
     """
     # ---- Leer filtros ----
     codigo = (request.GET.get("codigo") or "").strip()
@@ -98,6 +99,7 @@ def exportar_stock_pdf(request):
     cadu_desde = (request.GET.get("cadu_desde") or "").strip()
     cadu_hasta = (request.GET.get("cadu_hasta") or "").strip()
     estado = (request.GET.get("estado") or "").strip().lower()
+    solo_disponibles = request.GET.get("solo_disponibles") == "1"
 
     qs = (
         Lotes.objects
@@ -137,6 +139,9 @@ def exportar_stock_pdf(request):
         elif estado == "otros":
             qs = qs.exclude(id_estado_lote__nombre_estado__in=["Vigente", "Vencido"])
 
+    if solo_disponibles:
+        qs = qs.filter(cantidad_disponible__gt=0)
+
     # ---- Construcción del PDF ----
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -161,6 +166,14 @@ def exportar_stock_pdf(request):
     def cell(text, style):
         return Paragraph(escape(text or ""), style)
 
+    def money(val):
+        if val is None:
+            return ""
+        try:
+            return f"Q {float(val):,.2f}"
+        except (TypeError, ValueError):
+            return ""
+
     for lote_obj in qs:
         prod   = lote_obj.id_producto
         pres_o = getattr(prod, "id_presentacion", None)
@@ -174,8 +187,8 @@ def exportar_stock_pdf(request):
         nro_v    = getattr(lote_obj, "numero_lote", "") or getattr(lote_obj, "codigo_lote", "") or ""
         venc_v   = lote_obj.fecha_caducidad.strftime("%d/%m/%Y") if getattr(lote_obj, "fecha_caducidad", None) else ""
         est_v    = getattr(estado_o, "nombre_estado", "") if estado_o else ""
-        pcomp_v  = f"Q {lote_obj.precio_compra:.2f}" if lote_obj.precio_compra is not None else ""
-        pvent_v  = f"Q {lote_obj.precio_venta:.2f}" if lote_obj.precio_venta is not None else ""
+        pcomp_v  = money(lote_obj.precio_compra)
+        pvent_v  = money(lote_obj.precio_venta)
 
         data.append([
             cell(codigo_v, p8_center),

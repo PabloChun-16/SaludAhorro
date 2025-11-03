@@ -205,16 +205,8 @@ thead .form-control-sm{ padding-top:.25rem; padding-bottom:.25rem; height:28px; 
             <th><input id="f-cad"        class="form-control form-control-sm filter-control text-center" placeholder="AAAA-MM-DD"></th>
             <th><input id="f-disp"       class="form-control form-control-sm filter-control text-center" placeholder="≥ / = / ≤"></th>
             <th><input id="f-ubic"       class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  {% for est in estados_unicos %}
-                    <option value="{{ est|lower }}">{{ est }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </th>
+            <!-- Estado como input de texto -->
+            <th><input id="f-estado"     class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
           </tr>
         </thead>
         <tbody>
@@ -330,14 +322,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnEditar    = document.getElementById("btnEditar");
   const btnRetirar   = document.getElementById("btnRetirar");
 
-
   const patternsEl = document.getElementById('urlPatterns');
   const withId = (pat, id) => pat.replace(/\/0\/?$/, `/${id}/`);
 
   let selectedId  = null;
   let selectedRow = null;
   let puedeRetirarCache = { allow:false, reason:"" };
-
 
   /* ====== Helpers ====== */
   function getCookie(name){
@@ -420,17 +410,18 @@ document.addEventListener("DOMContentLoaded", function () {
         if(ok && vCad    && !t(3).includes(vCad))  ok = false;
         if(ok && dispF)  ok = cmpNum(dispF.op, tr.cells[4]?.textContent, dispF.num);
         if(ok && vUbic   && !t(5).includes(vUbic)) ok = false;
-        // ✅ Filtro de estado adaptado al combo:
-         if(ok && vEstado && vEstado !== "" && t(6) !== vEstado) ok = false;
+
+        /* ====== FIX: Estado ahora es input de texto (coincidencia parcial) ====== */
+        if(ok && vEstado && !t(6).includes(vEstado)) ok = false;
+
         tr.style.display = ok ? "" : "none";
       });
       currentPage = 1;
       applyPagination();
     }
-    [fCodigo,fProd,fLote,fCad,fDisp,fUbic].forEach(inp=>{
+    [fCodigo,fProd,fLote,fCad,fDisp,fUbic,fEstado].forEach(inp=>{
       inp.addEventListener("input", applyFilters);
     });
-    fEstado.addEventListener("change", applyFilters);
   })();
 
   /* ====== Selección de fila + Doble clic para consultar ====== */
@@ -443,21 +434,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       puedeRetirarCache = await r.json(); // {allow, reason}
     }catch(err){
-      // Si falla, deja deshabilitado Retirar pero NO los demás botones.
       puedeRetirarCache = { allow:false, reason:"No se pudo verificar si puede retirarse." };
       console.warn("Pre-chequeo retirar falló:", err);
     }
-    // repinta botones (Retirar dependerá de puedeRetirarCache)
     setButtonsEnabled(true);
   }
   
   function setButtonsEnabled(enabled){
     btnConsultar.disabled = !enabled;
     btnEditar.disabled    = !enabled;
-
-    // Retirar solo si además lo permite el pre-chequeo
-    btnRetirar.disabled = !enabled || !puedeRetirarCache.allow;
-    btnRetirar.title    = puedeRetirarCache.allow ? "" : (puedeRetirarCache.reason || "No puede retirarse.");
+    btnRetirar.disabled   = !enabled || !puedeRetirarCache.allow;
+    btnRetirar.title      = puedeRetirarCache.allow ? "" : (puedeRetirarCache.reason || "No puede retirarse.");
   }
 
   async function selectRow(row){
@@ -467,21 +454,16 @@ document.addEventListener("DOMContentLoaded", function () {
     selectedRow = row;
     selectedId  = row.dataset.id;
 
-    // 1) Habilita de inmediato Consultar/Editar (Retirar se ajusta luego).
     setButtonsEnabled(true);
-
-    // 2) Luego hace el pre-chequeo para Retirar; si falla, no “rompemos” los otros botones.
     await fetchPuedeRetirar(selectedId);
   }
 
-  // click = seleccionar
   tbody.addEventListener("click", async (ev) => {
     const row = ev.target.closest("tr[data-id]");
     if (!row) return;
     await selectRow(row);
   });
 
-  // **doble clic = seleccionar + abrir CONSULTAR** (igual que Productos)
   tbody.addEventListener("dblclick", async (ev) => {
     const row = ev.target.closest("tr[data-id]");
     if (!row) return;
@@ -499,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(() => modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando contenido.</div>');
   }
 
-  /* ====== Accesos rápidos (igual que Productos) ====== */
+  /* ====== Accesos rápidos ====== */
   document.addEventListener('keydown', (ev)=>{
     if(ev.key==='Enter' && selectedId){
       abrirModal(withId(patternsEl.dataset.consultar, selectedId)); ev.preventDefault();
@@ -566,7 +548,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     confirmModal.show();
   });
-
 
   /* ====== Submit universal dentro del modal ====== */
   modalContent.addEventListener("submit", function (e) {
