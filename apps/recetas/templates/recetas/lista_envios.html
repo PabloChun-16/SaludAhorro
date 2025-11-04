@@ -193,13 +193,40 @@
 .kv__key{ font-weight:700; color:#0b1220; display:flex; align-items:center; gap:.45rem; white-space:nowrap }
 .kv__val{ color:#0f172a; word-break:break-word }
 @media (max-width:768px){ .kv-grid{grid-template-columns:1fr} .kv{grid-template-columns:140px 1fr} }
+
+/* Extra styles for Dashboard charts */
+.saif-modal .modal-header{background:#0E7A3A;color:#fff;border-bottom:0;padding:.6rem .9rem}
+.saif-modal .saif-badge{background:rgba(255,255,255,.15);backdrop-filter:blur(4px);border-radius:999px;padding:.12rem .5rem;font-weight:600;font-size:.8rem}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem 1rem}
+.kv{display:grid;grid-template-columns:160px 1fr;align-items:start;gap:.35rem .5rem;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.65rem .75rem;box-shadow:0 4px 12px rgba(15,23,42,.04)}
+.kv__key{font-weight:700;color:#0b1220;display:flex;align-items:center;gap:.45rem;white-space:nowrap}
+.kv__val{color:#0f172a;word-break:break-word}
+
+/* Dashboard chart cards */
+.chart-card{display:flex;flex-direction:column;gap:0.5rem;min-height:260px}
+.chart-canvas-wrapper{position:relative;flex:1 1 auto;height:300px}
+.chart-canvas-wrapper canvas{position:absolute;inset:0;width:100% !important;height:100% !important}
+
+/* Small responsive tweaks */
+@media (max-width:768px){
+  .chart-canvas-wrapper{height:220px}
+  .saif-modal .modal-dialog{max-width:95%}
+}
+
+/* Interactive controls styling */
+.chart-card{transition:transform .18s ease, box-shadow .18s ease; overflow: visible}
+.chart-card:hover{transform:translateY(-4px);box-shadow:0 24px 48px rgba(14,122,58,0.12)}
+.form-select-sm{height:34px;padding:.25rem .75rem;min-width:96px;overflow:visible;background-clip:padding-box;-webkit-appearance:none;appearance:none;border-radius:10px;background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20'><polyline points='4 7 10 13 16 7' stroke='%230e7a3a' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat: no-repeat;background-position: right 0.9rem center;background-size: 1.1em;padding-right: 2.6rem}
+.form-select-sm:focus{box-shadow:0 0 0 .08rem rgba(14,122,58,0.12);border-color:#0e7a3a}
+.form-select-sm::-ms-expand{display:none}
+.btn-outline-secondary.btn-sm{height:34px;padding:.25rem .6rem;font-size:.78rem}
 </style>
 
 <!-- ============================= MODAL DASHBOARD ============================= -->
 <div class="modal fade saif-modal" id="dashboardModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
-            <div class="modal-header">
+      <div class="modal-header">
         <div class="saif-modal-title">
           <span class="saif-modal-icon"><i class="bi bi-bar-chart"></i></span>
           <span>Dashboard de Envíos</span>
@@ -209,32 +236,80 @@
       </div>
 
       <div class="modal-body bg-slate-50">
-        <!-- Filtros -->
-        <div class="d-flex flex-wrap gap-3 mb-3">
-          <select id="filtroUsuario" class="form-select w-auto">
-            <option value="">Filtrar por Usuario</option>
-          </select>
-          <select id="filtroEstado" class="form-select w-auto">
-            <option value="">Filtrar por Estado</option>
-          </select>
+        <!-- Filters -->
+        <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
           <div class="d-flex gap-2 align-items-center">
+            <label class="mb-0 me-1">Usuario</label>
+            <select id="filtroUsuario" class="form-select select-with-caret">
+              <option value="">Filtrar por Usuario</option>
+            </select>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <label class="mb-0 me-1">Estado</label>
+            <select id="filtroEstado" class="form-select select-with-caret">
+              <option value="">Filtrar por Estado</option>
+            </select>
+          </div>
+          <div class="d-flex gap-2 align-items-center ms-auto">
             <label class="mb-0">Desde: <input type="date" id="filtroFechaInicio" class="form-control"></label>
             <label class="mb-0">Hasta: <input type="date" id="filtroFechaFin" class="form-control"></label>
+          </div>
+          <div class="ms-2">
+            <button id="btnResetDash" class="btn btn-outline-secondary btn-sm">Restablecer</button>
           </div>
         </div>
 
         <!-- Gráficas -->
         <div class="row g-4">
           <div class="col-md-6">
-            <div class="bg-white p-3 rounded shadow" style="height: 320px;">
-              <h6 class="fw-bold mb-2">Envíos por Estado</h6>
-              <canvas id="chartEstados"></canvas>
+            <div class="bg-white p-3 rounded shadow chart-card">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold mb-0">Envíos por Estado</h6>
+                <small class="text-muted">Top estados</small>
+              </div>
+              <div class="d-flex gap-2 align-items-center justify-content-end mb-2">
+                <select id="tipoEstado" class="form-select form-select-sm w-auto">
+                  <option value="bar">Barras</option>
+                  <option value="pie">Pastel</option>
+                  <option value="doughnut">Doughnut</option>
+                </select>
+                <button id="btnDownloadEstado" class="btn btn-outline-secondary btn-sm">Exportar imagen</button>
+              </div>
+              <div class="chart-canvas-wrapper"><canvas id="chartEstados"></canvas></div>
             </div>
           </div>
+
           <div class="col-md-6">
-            <div class="bg-white p-3 rounded shadow" style="height: 320px;">
-              <h6 class="fw-bold mb-2">Envíos por Usuario</h6>
-              <canvas id="chartUsuarios"></canvas>
+            <div class="bg-white p-3 rounded shadow chart-card">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold mb-0">Envíos por Usuario</h6>
+                <small class="text-muted">Distribución</small>
+              </div>
+              <div class="d-flex gap-2 align-items-center justify-content-end mb-2">
+                <select id="tipoUsuario" class="form-select form-select-sm w-auto">
+                  <option value="pie">Pastel</option>
+                  <option value="bar">Barras</option>
+                </select>
+                <button id="btnDownloadUsuario" class="btn btn-outline-secondary btn-sm">Exportar imagen</button>
+              </div>
+              <div class="chart-canvas-wrapper"><canvas id="chartUsuarios"></canvas></div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="bg-white p-3 rounded shadow chart-card">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold mb-0">Envíos por Fecha</h6>
+                <small class="text-muted">Periodo seleccionado</small>
+              </div>
+              <div class="d-flex gap-2 align-items-center justify-content-end mb-2">
+                <select id="tipoFechas" class="form-select form-select-sm w-auto">
+                  <option value="line">Línea</option>
+                  <option value="bar">Barras</option>
+                </select>
+                <button id="btnDownloadFechas" class="btn btn-outline-secondary btn-sm">Exportar imagen</button>
+              </div>
+              <div class="chart-canvas-wrapper"><canvas id="chartFechas"></canvas></div>
             </div>
           </div>
         </div>
@@ -467,94 +542,183 @@ document.addEventListener("DOMContentLoaded", function () {
 <!-- ============================= DASHBOARD ============================= -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const rows = document.querySelectorAll("#tablaEnvios tbody tr");
+  const rowsSelector = "#tablaEnvios tbody tr";
   const filtroUsuario = document.getElementById("filtroUsuario");
   const filtroEstado  = document.getElementById("filtroEstado");
   const filtroFechaInicio = document.getElementById("filtroFechaInicio");
   const filtroFechaFin    = document.getElementById("filtroFechaFin");
 
-  let chartEstados=null, chartUsuarios=null;
+  let chartEstados=null, chartUsuarios=null, chartFechas=null;
 
-  // Normaliza "d/m/Y ..." -> "Y-m-d"
-  function normalizarFechaDMY(fechaStr){
-    if(!fechaStr) return "";
-    const soloFecha = fechaStr.split(" ")[0]; // dd/mm/YYYY
-    const [d,m,y] = soloFecha.split("/");
-    return `${y}-${m}-${d}`;
+  // Chart.js global defaults for crisp rendering
+  if(window.Chart){
+    Chart.defaults.font.family = "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial";
+    Chart.defaults.color = '#0f172a';
+    // Keep Chart.js aware of DPR, but we also explicitly scale canvases below.
+    Chart.defaults.devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
+    if(Chart.defaults.plugins && Chart.defaults.plugins.legend && Chart.defaults.plugins.legend.labels){
+      Chart.defaults.plugins.legend.labels.boxWidth = 12;
+      Chart.defaults.plugins.legend.labels.padding = 10;
+    }
+  }
+
+  // Cache DPR for chart construction
+  const DPR = Math.max(1, window.devicePixelRatio || 1);
+
+  // Ensure canvases are scaled to device pixel ratio to avoid blurriness
+  function scaleCanvasForHiDPI(canvas){
+    if(!canvas) return;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width * dpr));
+    const h = Math.max(1, Math.round(rect.height * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      const ctx = canvas.getContext('2d');
+      if(ctx && ctx.setTransform) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
   }
 
   function obtenerDatos(){
-    const data=[];
-    rows.forEach(r=>{
-      if(r.hasAttribute("data-empty-row")) return;
-      // Ojo: la celda visible tiene dd/mm/YYYY H:i, pero en data-fecha ya puse Y-m-d.
+    const rows = document.querySelectorAll(rowsSelector);
+    const data = [];
+    rows.forEach(r => {
+      if(r.hasAttribute('data-empty-row')) return;
       data.push({
-        usuario: r.dataset.usuario,
-        estado:  r.dataset.estado,
-        fecha:   r.dataset.fecha || normalizarFechaDMY(r.cells[3]?.textContent||""),
+        estado: r.dataset.estado || '',
+        usuario: r.dataset.usuario || '',
+        fecha: r.dataset.fecha || (r.cells[3]?.textContent ? toISODate(r.cells[3].textContent) : '')
       });
     });
     return data;
   }
 
-  function llenarFiltros(){
-    const data = obtenerDatos();
-    const usuarios=[...new Set(data.map(d=>d.usuario))];
-    const estados =[...new Set(data.map(d=>d.estado))];
-
-    if(filtroUsuario){
-      filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>` +
-        usuarios.map(u=>`<option value="${u}">${u}</option>`).join("");
-    }
-    if(filtroEstado){
-      filtroEstado.innerHTML = `<option value="">Filtrar por Estado</option>` +
-        estados.map(e=>`<option value="${e}">${e}</option>`).join("");
-    }
+  function toISODate(display){
+    // display: "dd/mm/YYYY ..." -> "YYYY-mm-dd"
+    if(!display) return '';
+    const parts = display.split(' ')[0].split('/'); if(parts.length<3) return '';
+    return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
   }
 
   function filtrarDatos(){
     let data = obtenerDatos();
     if(filtroUsuario && filtroUsuario.value) data = data.filter(d=>d.usuario===filtroUsuario.value);
-    if(filtroEstado  && filtroEstado.value)  data = data.filter(d=>d.estado===filtroEstado.value);
+    if(filtroEstado && filtroEstado.value) data = data.filter(d=>d.estado===filtroEstado.value);
     if(filtroFechaInicio && filtroFechaInicio.value) data = data.filter(d=>d.fecha >= filtroFechaInicio.value);
-    if(filtroFechaFin    && filtroFechaFin.value)    data = data.filter(d=>d.fecha <= filtroFechaFin.value);
+    if(filtroFechaFin && filtroFechaFin.value) data = data.filter(d=>d.fecha <= filtroFechaFin.value);
     return data;
   }
 
   function renderCharts(){
     const data = filtrarDatos();
-    const estados =[...new Set(data.map(d=>d.estado))];
-    const usuarios=[...new Set(data.map(d=>d.usuario))];
 
-    const conteoEstados  = estados.map(e=>data.filter(d=>d.estado===e).length);
-    const conteoUsuarios = usuarios.map(u=>data.filter(d=>d.usuario===u).length);
+    const estados = [...new Set(data.map(d=>d.estado))].filter(Boolean);
+    const usuarios = [...new Set(data.map(d=>d.usuario))].filter(Boolean);
+    const fechas = [...new Set(data.map(d=>d.fecha))].filter(Boolean).sort();
+
+    const conteoEstados = estados.map(e => data.filter(d => d.estado === e).length);
+    const conteoUsuarios = usuarios.map(u => data.filter(d => d.usuario === u).length);
+    const conteoFechas = fechas.map(f => data.filter(d => d.fecha === f).length);
 
     if(chartEstados) chartEstados.destroy();
     if(chartUsuarios) chartUsuarios.destroy();
+    if(chartFechas) chartFechas.destroy();
 
-    chartEstados = new Chart(document.getElementById("chartEstados"),{
-      type:"bar",
-      data:{ labels:estados, datasets:[{label:"Envíos por Estado", data:conteoEstados, backgroundColor:"#34d399"}]},
-      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }}}
-    });
+    const tipoE = document.getElementById('tipoEstado')?.value || 'bar';
+    const tipoU = document.getElementById('tipoUsuario')?.value || 'pie';
+    const tipoF = document.getElementById('tipoFechas')?.value || 'line';
 
-    chartUsuarios = new Chart(document.getElementById("chartUsuarios"),{
-      type:"pie",
-      data:{ labels:usuarios, datasets:[{label:"Envíos por Usuario", data:conteoUsuarios, backgroundColor:["#6366f1","#fbbf24","#ef4444","#10b981","#0ea5e9","#f472b6"]}]},
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom"}}}
+    const canvasEstados = document.getElementById('chartEstados');
+    // scale canvas first for crisp HiDPI rendering
+    scaleCanvasForHiDPI(canvasEstados);
+    // build options and enforce DPR + non-responsive rendering so Chart.js doesn't override our canvas sizing
+    let optionsE = (tipoE==='pie' || tipoE==='doughnut') ? { plugins:{ legend:{ position:'bottom' } } } : { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(15,23,42,0.06)' } } } };
+    optionsE.devicePixelRatio = DPR;
+    optionsE.responsive = false;
+    optionsE.maintainAspectRatio = false;
+    chartEstados = new Chart(canvasEstados, {
+      type: tipoE,
+      data: { labels: estados, datasets: [{ label: 'Envíos', data: conteoEstados, backgroundColor: '#10b981', borderRadius: 6 }] },
+      options: optionsE
     });
+    // ensure Chart uses the new canvas size
+    try{ chartEstados.resize(); chartEstados.update(); }catch(e){/*ignore*/}
+
+  const canvasUsuarios = document.getElementById('chartUsuarios');
+  scaleCanvasForHiDPI(canvasUsuarios);
+  let optionsU = (tipoU==='pie' || tipoU==='doughnut') ? { plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true } } } } : { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(15,23,42,0.06)' } } } };
+  optionsU.devicePixelRatio = DPR; optionsU.responsive = false; optionsU.maintainAspectRatio = false;
+  chartUsuarios = new Chart(canvasUsuarios, {
+      type: tipoU,
+      data: { labels: usuarios, datasets: [{ label: 'Envíos', data: conteoUsuarios, backgroundColor: usuarios.map((_,i)=>['#0E7A3A','#10b981','#f59e0b','#6366f1','#ef4444'][i%5]) }] },
+      options: optionsU
+    });
+  try{ chartUsuarios.resize(); chartUsuarios.update(); }catch(e){/*ignore*/}
+
+  const canvasFechas = document.getElementById('chartFechas');
+  scaleCanvasForHiDPI(canvasFechas);
+  let optionsF = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(15,23,42,0.06)' } } } };
+  optionsF.devicePixelRatio = DPR; optionsF.responsive = false; optionsF.maintainAspectRatio = false;
+  chartFechas = new Chart(canvasFechas, {
+      type: tipoF,
+      data: { labels: fechas, datasets: [{ label: 'Envíos', data: conteoFechas, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.14)', fill: tipoF==='line', tension:0.3 }] },
+      options: optionsF
+    });
+  try{ chartFechas.resize(); chartFechas.update(); }catch(e){/*ignore*/}
   }
 
-  const dash = document.getElementById("dashboardModal");
+  function downloadCanvasAsImage(canvasId, filename){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    try{
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a'); a.href = url; a.download = filename || 'chart.png'; document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ console.error('Export failed', e); }
+  }
+
+  function llenarFiltros(){
+    const data = obtenerDatos();
+    const usuarios = [...new Set(data.map(d=>d.usuario))].filter(Boolean);
+    const estados = [...new Set(data.map(d=>d.estado))].filter(Boolean);
+
+    if(filtroUsuario) filtroUsuario.innerHTML = `<option value="">Filtrar por Usuario</option>` + usuarios.map(u=>`<option value="${u}">${u}</option>`).join('');
+    if(filtroEstado) filtroEstado.innerHTML = `<option value="">Filtrar por Estado</option>` + estados.map(e=>`<option value="${e}">${e}</option>`).join('');
+  }
+
+  const dash = document.getElementById('dashboardModal');
   if(dash){
-    dash.addEventListener("shown.bs.modal", ()=>{ llenarFiltros(); renderCharts(); });
-    ["change","input"].forEach(ev=>{
-      if(filtroUsuario) filtroUsuario.addEventListener(ev,renderCharts);
-      if(filtroEstado)  filtroEstado.addEventListener(ev,renderCharts);
-      if(filtroFechaInicio) filtroFechaInicio.addEventListener(ev,renderCharts);
-      if(filtroFechaFin)    filtroFechaFin.addEventListener(ev,renderCharts);
+    dash.addEventListener('shown.bs.modal', ()=>{ llenarFiltros(); renderCharts(); });
+
+    ['change','input'].forEach(ev=>{
+      if(filtroUsuario) filtroUsuario.addEventListener(ev, renderCharts);
+      if(filtroEstado) filtroEstado.addEventListener(ev, renderCharts);
+      if(filtroFechaInicio) filtroFechaInicio.addEventListener(ev, renderCharts);
+      if(filtroFechaFin) filtroFechaFin.addEventListener(ev, renderCharts);
+    });
+
+    // selectors
+    document.getElementById('tipoEstado')?.addEventListener('change', renderCharts);
+    document.getElementById('tipoUsuario')?.addEventListener('change', renderCharts);
+    document.getElementById('tipoFechas')?.addEventListener('change', renderCharts);
+
+    // download buttons
+    document.getElementById('btnDownloadEstado')?.addEventListener('click', ()=> downloadCanvasAsImage('chartEstados','envios_por_estado.png'));
+    document.getElementById('btnDownloadUsuario')?.addEventListener('click', ()=> downloadCanvasAsImage('chartUsuarios','envios_por_usuario.png'));
+    document.getElementById('btnDownloadFechas')?.addEventListener('click', ()=> downloadCanvasAsImage('chartFechas','envios_por_fecha.png'));
+
+    // reset
+    document.getElementById('btnResetDash')?.addEventListener('click', ()=>{
+      if(filtroUsuario) filtroUsuario.value = '';
+      if(filtroEstado) filtroEstado.value = '';
+      if(filtroFechaInicio) filtroFechaInicio.value = '';
+      if(filtroFechaFin) filtroFechaFin.value = '';
+      renderCharts();
     });
   }
+
 });
 </script>
 {% endblock %}
