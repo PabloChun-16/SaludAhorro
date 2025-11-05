@@ -1,7 +1,6 @@
 {% load static %}
 
-{# Inclúyelo solo si NO cargas este CSS globalmente #}
-<link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
   <div class="modal-header">
@@ -10,13 +9,13 @@
       <span>{{ titulo|default:"Eliminar Usuario" }}</span>
     </div>
     <span class="saif-badge">SAIF</span>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
   <form method="post" id="form-eliminar" action="{{ action }}">
     {% csrf_token %}
     <div class="modal-body">
-      <div class="alert alert-danger d-flex align-items-center gap-2 mb-0" role="alert">
+      <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <div>
           <span class="fw-semibold">¿Seguro que deseas eliminar a</span>
@@ -25,12 +24,12 @@
       </div>
     </div>
 
-    <div class="modal-footer">
+    <div class="modal-footer bg-white">
       <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
-        <i class="bi bi-x-circle me-1"></i> Cancelar
+        <i class="bi bi-x-lg"></i> Cancelar
       </button>
       <button type="submit" class="btn btn-danger">
-        <i class="bi bi-trash me-1"></i> Eliminar
+        <i class="bi bi-trash"></i> Eliminar
       </button>
     </div>
   </form>

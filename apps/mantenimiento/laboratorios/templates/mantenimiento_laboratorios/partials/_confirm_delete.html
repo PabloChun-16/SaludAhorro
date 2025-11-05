@@ -1,6 +1,6 @@
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
   <div class="modal-header">
@@ -13,9 +13,8 @@
   </div>
 
   <form method="post" id="form-eliminar-laboratorio" action="{{ action }}">
+    {% csrf_token %}
     <div class="modal-body">
-      {% csrf_token %}
-
       <p class="mb-3">
         ¿Seguro que deseas eliminar el siguiente laboratorio?
       </p>
@@ -29,11 +28,10 @@
     <div class="modal-footer bg-white">
       <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
         <i class="bi bi-x-lg"></i> Cancelar
-     </button>
+      </button>
       <button type="submit" class="btn btn-danger">
         <i class="bi bi-trash"></i> Eliminar
       </button>
     </div>
   </form>
 </div>
-

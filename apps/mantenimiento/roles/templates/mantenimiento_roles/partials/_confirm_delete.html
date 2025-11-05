@@ -1,6 +1,6 @@
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'confirm/confirm.css' %}">
+<link rel="stylesheet" href="{% static 'form/form.css' %}">
 
 <div class="saif-modal">
   <div class="modal-header">
@@ -13,9 +13,8 @@
   </div>
 
   <form method="post" id="form-eliminar-rol" action="{{ action }}">
+    {% csrf_token %}
     <div class="modal-body">
-      {% csrf_token %}
-
       <p class="mb-3">
         ¿Seguro que deseas eliminar el siguiente rol?
       </p>
@@ -24,8 +23,7 @@
         <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
         <input type="text" class="form-control readonly-control" value="{{ rol.nombre_rol }}" readonly>
       </div>
-
-     
+    </div>
 
     <div class="modal-footer bg-white">
       <button type="button" class="btn btn-light saif-btn-light" data-bs-dismiss="modal">
