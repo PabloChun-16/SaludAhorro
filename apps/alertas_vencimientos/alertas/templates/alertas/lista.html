@@ -9,16 +9,26 @@
 <section class="p-3">
   <div class="saif-card shadow-lg rounded-3 overflow-hidden">
     <!-- HEADER -->
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2 flex-wrap gap-2">
       <h3 class="mb-0 fs-6 d-flex align-items-center gap-2">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <span>Alertas de Inventario</span>
       </h3>
-      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button type="button" id="btnActualizarEstados" class="btn btn-light btn-sm text-success fw-semibold shadow-sm d-flex align-items-center gap-2">
+          <span id="spinnerActualizar" class="spinner-border spinner-border-sm text-success d-none" role="status" aria-hidden="true">
+            <span class="visually-hidden">Procesando...</span>
+          </span>
+          <i class="bi bi-arrow-clockwise"></i>
+          <span>Actualizar estados de lotes</span>
+        </button>
+        <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
+      </div>
     </div>
 
     <!-- BODY -->
     <div class="p-4 bg-light">
+      <div id="alertaEstadosLotes" class="alert alert-success d-none small py-2 px-3 mb-3" role="status"></div>
       <div class="row g-4 justify-content-center">
         <!-- STOCK BAJO -->
         <div class="col-md-3 col-sm-6">
@@ -129,6 +139,7 @@
   }
 
   h6 { letter-spacing: 0.3px; }
+  .saif-hidden-page{ display:none !important; }
 </style>
 {% endblock %}
 
@@ -151,6 +162,94 @@ SAIF.normalize = function (str) {
   }
 };
 
+if (!SAIF.getCsrfToken) {
+  SAIF.getCsrfToken = function () {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    if (match) return match[1];
+    const input = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return input ? input.value : "";
+  };
+}
+
+if (!SAIF.createPaginator) {
+  SAIF.createPaginator = function (tbody, pagerEl, pageSize) {
+    if (!tbody) return null;
+    const size = Math.max(1, pageSize || 5);
+    let currentPage = 1;
+
+    function getActiveRows() {
+      return Array.from(tbody.querySelectorAll("tr")).filter(
+        (tr) => !tr.classList.contains("d-none")
+      );
+    }
+
+    function render() {
+      const rows = getActiveRows();
+      const total = rows.length;
+      const totalPages = Math.max(1, Math.ceil(total / size));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      Array.from(tbody.querySelectorAll("tr")).forEach((tr) =>
+        tr.classList.remove("saif-hidden-page")
+      );
+
+      rows.forEach((tr, index) => {
+        const hide = index < (currentPage - 1) * size || index >= currentPage * size;
+        tr.classList.toggle("saif-hidden-page", hide);
+      });
+
+      if (!pagerEl) return;
+      if (total <= size) {
+        pagerEl.classList.add("d-none");
+        pagerEl.innerHTML = "";
+        return;
+      }
+
+      pagerEl.classList.remove("d-none");
+      pagerEl.classList.add("saif-pager", "d-flex", "justify-content-center", "align-items-center", "gap-2", "py-2");
+      pagerEl.innerHTML = "";
+
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      prev.innerHTML = "<i class='bi bi-chevron-left me-1'></i> Anterior";
+      prev.disabled = currentPage === 1;
+      prev.addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          render();
+        }
+      });
+
+      const info = document.createElement("span");
+      info.className = "fw-semibold text-success small";
+      info.textContent = `Pagina ${currentPage} de ${totalPages}`;
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      next.innerHTML = "Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+      next.disabled = currentPage >= totalPages;
+      next.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+          currentPage += 1;
+          render();
+        }
+      });
+
+      pagerEl.append(prev, info, next);
+    }
+
+    return {
+      refresh: render,
+      reset() {
+        currentPage = 1;
+        render();
+      },
+    };
+  };
+}
+
 /* =========================
    Modal: STOCK BAJO
    (Código + Nombre)
@@ -165,6 +264,8 @@ SAIF.initStockBajo = function (modalEl) {
   const btnApply = modalEl.querySelector("#sb-btn-apply");
   const btnClear = modalEl.querySelector("#sb-btn-clear");
   if (!tbody || !qCod || !qNom) return;
+  const pager = modalEl.querySelector("#sbPager");
+  const paginator = SAIF.createPaginator ? SAIF.createPaginator(tbody, pager, 5) : null;
 
   function apply() {
     const vCod = SAIF.normalize(qCod.value);
@@ -180,7 +281,8 @@ SAIF.initStockBajo = function (modalEl) {
       if (ok) count++;
     });
 
-    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+    if (totalBadge) totalBadge.textContent = `${count} registro${count === 1 ? "" : "s"}`;
+    paginator?.reset();
   }
 
   function clearAll(e) {
@@ -205,6 +307,7 @@ SAIF.initStockBajo = function (modalEl) {
   });
 
   apply(); // primera pasada
+  paginator?.refresh();
 };
 
 /* =========================
@@ -221,6 +324,8 @@ SAIF.initVencidos = function (modalEl) {
   const btnApply = modalEl.querySelector("#vv-btn-apply");
   const btnClear = modalEl.querySelector("#vv-btn-clear");
   if (!tbody || !qProd || !qLote) return;
+  const pager = modalEl.querySelector("#vvPager");
+  const paginator = SAIF.createPaginator ? SAIF.createPaginator(tbody, pager, 5) : null;
 
   function apply() {
     const vProd = SAIF.normalize(qProd.value);
@@ -236,7 +341,8 @@ SAIF.initVencidos = function (modalEl) {
       if (ok) count++;
     });
 
-    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+    if (totalBadge) totalBadge.textContent = `${count} registro${count === 1 ? "" : "s"}`;
+    paginator?.reset();
   }
 
   function clearAll(e) {
@@ -260,6 +366,7 @@ SAIF.initVencidos = function (modalEl) {
   });
 
   apply(); // primera pasada
+  paginator?.refresh();
 };
 
 /* =========================
@@ -277,6 +384,8 @@ SAIF.initProximosVencer = function (modalEl) {
   const btnApply = modalEl.querySelector("#pv-btn-apply");
   const btnClear = modalEl.querySelector("#pv-btn-clear");
   if (!tbody || !qProd || !qLote) return;
+  const pager = modalEl.querySelector("#pvPager");
+  const paginator = SAIF.createPaginator ? SAIF.createPaginator(tbody, pager, 5) : null;
 
   function apply() {
     const vProd = SAIF.normalize(qProd.value);
@@ -299,7 +408,8 @@ SAIF.initProximosVencer = function (modalEl) {
       if (ok) count++;
     });
 
-    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+    if (totalBadge) totalBadge.textContent = `${count} registro${count === 1 ? "" : "s"}`;
+    paginator?.reset();
   }
 
   function clearAll(e) {
@@ -325,6 +435,7 @@ SAIF.initProximosVencer = function (modalEl) {
   });
 
   apply(); // primera pasada
+  paginator?.refresh();
 };
 
 /* =========================
@@ -342,6 +453,8 @@ SAIF.initAgotamiento = function (modalEl) {
   const btnApply = modalEl.querySelector("#ag-btn-apply");
   const btnClear = modalEl.querySelector("#ag-btn-clear");
   if (!tbody || !qCod || !qNom) return;
+  const pager = modalEl.querySelector("#agPager");
+  const paginator = SAIF.createPaginator ? SAIF.createPaginator(tbody, pager, 5) : null;
 
   function parsePerc(v) {
     if (v == null) return NaN;
@@ -370,7 +483,8 @@ SAIF.initAgotamiento = function (modalEl) {
       if (ok) count++;
     });
 
-    if (totalBadge) totalBadge.textContent = `${count} ítem${count === 1 ? "" : "s"}`;
+    if (totalBadge) totalBadge.textContent = `${count} registro${count === 1 ? "" : "s"}`;
+    paginator?.reset();
   }
 
   function clearAll(e) {
@@ -396,10 +510,65 @@ SAIF.initAgotamiento = function (modalEl) {
   });
 
   apply(); // primera pasada
+  paginator?.refresh();
 };
 
 document.addEventListener("DOMContentLoaded", function () {
   const modalConfig = { backdrop: "static", keyboard: false };
+  const actualizarUrl = "{% url 'alertas_vencimientos:alertas:actualizar_estados_lotes' %}";
+  const btnActualizar = document.getElementById("btnActualizarEstados");
+  const spinnerActualizar = document.getElementById("spinnerActualizar");
+  const alertaEstados = document.getElementById("alertaEstadosLotes");
+
+  function limpiarAlertaEstados() {
+    if (!alertaEstados) return;
+    alertaEstados.classList.add("d-none");
+    alertaEstados.textContent = "";
+    alertaEstados.classList.remove("alert-danger", "alert-success");
+    alertaEstados.classList.add("alert-success");
+  }
+
+  function mostrarAlertaEstados(tipo, mensaje) {
+    if (!alertaEstados) return;
+    alertaEstados.textContent = mensaje;
+    alertaEstados.classList.remove("d-none", "alert-success", "alert-danger");
+    alertaEstados.classList.add(tipo === "error" ? "alert-danger" : "alert-success");
+  }
+
+  btnActualizar?.addEventListener("click", () => {
+    if (btnActualizar.disabled) return;
+    limpiarAlertaEstados();
+    btnActualizar.disabled = true;
+    btnActualizar.classList.add("disabled", "opacity-75");
+    spinnerActualizar?.classList.remove("d-none");
+
+    fetch(actualizarUrl, {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": SAIF.getCsrfToken()
+      }
+    })
+      .then((r) => r.json().then((data) => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok && data?.success) {
+          const msg = (data.message || "Actualizacion completada.").toString().trim();
+          mostrarAlertaEstados("success", msg);
+        } else {
+          const msg = (data?.error || "No se pudo actualizar los estados.").toString().trim();
+          mostrarAlertaEstados("error", msg);
+        }
+      })
+      .catch(() => {
+        mostrarAlertaEstados("error", "Error de red al ejecutar la actualizacion.");
+      })
+      .finally(() => {
+        spinnerActualizar?.classList.add("d-none");
+        btnActualizar.disabled = false;
+        btnActualizar.classList.remove("disabled", "opacity-75");
+      });
+  });
+
   // ====== Config de modales (PADRE) ======
   const modalDefs = [
     {
@@ -456,3 +625,16 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -243,9 +243,6 @@ tbody tr.estado-retirado td:nth-child(5){
               data-export-url="{% url 'inventario:stock:exportar_pdf' %}">
         <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
       </button>
-      <button id="btnReporteStockCritico" class="btn btn-warning rounded-pill px-4 shadow-sm">
-        <i class="bi bi-bar-chart-line"></i> Reporte Stock Crítico
-      </button>
     </div>
   </div>
 </section>
@@ -276,9 +273,12 @@ tbody tr.estado-retirado td:nth-child(5){
             <label class="form-label fw-semibold">Estado del lote</label>
             <select class="form-select" name="estado">
               <option value="">Todos</option>
-              <option value="vigente">Vigente</option>
+              <option value="devuelto">Devuelto</option>
+              <option value="disponible">Disponible</option>
+              <option value="en cuarentena">En Cuarentena</option>
+              <option value="pr&oacute;ximo a vencer">Pr&oacute;ximo a Vencer</option>
+              <option value="retirado">Retirado</option>
               <option value="vencido">Vencido</option>
-              <option value="otros">Otros</option>
             </select>
           </div>
           <div class="row g-3 mb-3">

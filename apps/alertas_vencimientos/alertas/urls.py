@@ -9,4 +9,5 @@ urlpatterns = [
     path("proximos_vencer/", views.alertas_proximos_vencer, name="alertas_proximos_vencer"),
     path("vencidos/", views.alertas_vencidos, name="alertas_vencidos"),
     path("agotamiento/", views.alertas_agotamiento, name="alertas_agotamiento"),
+    path("actualizar-estados/", views.ejecutar_actualizar_estados_lotes, name="actualizar_estados_lotes"),
 ]

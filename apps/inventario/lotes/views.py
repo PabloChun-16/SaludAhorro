@@ -5,6 +5,7 @@ from django.db.models import ProtectedError
 from apps.inventario.models import Lotes
 from apps.mantenimiento.models import Estado_Lote
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
 # ---------------------------
 # Utilidades de estados
@@ -51,6 +52,24 @@ def editar_lote(request, id):
     estados = _permitidos_para_usuario_qs()
 
     if request.method == "POST":
+        def _parse_decimal(value_raw):
+            if value_raw is None:
+                return None
+            value = value_raw.strip()
+            if not value:
+                return None
+
+            normalized = value.replace(" ", "")
+            if "," in normalized and "." in normalized:
+                normalized = normalized.replace(",", "")
+            elif "," in normalized and "." not in normalized:
+                normalized = normalized.replace(",", ".")
+
+            try:
+                return Decimal(normalized)
+            except (InvalidOperation, ValueError):
+                raise ValueError
+
         # --- convertir fecha a objeto date ---
         fecha_caducidad_str = request.POST.get("fecha_caducidad")
         if fecha_caducidad_str:
@@ -65,6 +84,16 @@ def editar_lote(request, id):
             lote.fecha_caducidad = None
 
         lote.ubicacion_almacen = request.POST.get("ubicacion_almacen")
+        precio_compra_raw = request.POST.get("precio_compra")
+        precio_venta_raw = request.POST.get("precio_venta")
+        try:
+            lote.precio_compra = _parse_decimal(precio_compra_raw)
+        except ValueError:
+            return JsonResponse({"success": False, "error": "Precio de compra invalido. Use un valor numerico."}, status=400)
+        try:
+            lote.precio_venta = _parse_decimal(precio_venta_raw)
+        except ValueError:
+            return JsonResponse({"success": False, "error": "Precio de venta invalido. Use un valor numerico."}, status=400)
 
         # Validación de estado
         estado_post = request.POST.get("estado")
@@ -81,7 +110,7 @@ def editar_lote(request, id):
             }, status=400)
 
         lote.id_estado_lote_id = estado_post
-        lote.save(update_fields=["fecha_caducidad", "ubicacion_almacen", "id_estado_lote"])
+        lote.save(update_fields=["fecha_caducidad", "ubicacion_almacen", "id_estado_lote", "precio_compra", "precio_venta"])
         return JsonResponse({"success": True})
 
     return render(request, "lotes/partials/_form.html", {"lote": lote, "estados": estados})

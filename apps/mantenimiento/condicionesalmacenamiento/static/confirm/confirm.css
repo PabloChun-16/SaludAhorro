@@ -10,6 +10,15 @@
   background: #fff; /* por si el contenedor no hereda */
 }
 
+/* Asegura que el contenedor Bootstrap tome el mismo estilo */
+.modal-content:has(> .saif-modal) {
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(14,122,58,.25);
+  background: #fff;
+}
+
 /* Header verde */
 .saif-modal .modal-header {
   background: #0E7A3A;

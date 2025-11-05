@@ -191,37 +191,92 @@ def recepcion_detail(request, pk):
 
 @login_required
 def recepcion_graficas(request):
-    """Vista simple de gráficas para Recepciones."""
-    qs = Recepciones_Envio.objects.all().values("estado_recepcion", "fecha_recepcion")
+    """Vista simple de graficas para Recepciones."""
+    qs = Recepciones_Envio.objects.select_related("estado_recepcion")
 
-    estados = {}
-    for r in qs:
-        key = r.get("estado_recepcion") or "Otros"
-        estados[key] = estados.get(key, 0) + 1
+    estado_param = (request.GET.get("estado") or "").strip()
+    rango_raw = (request.GET.get("rango") or "").strip()
+
+    if estado_param:
+        qs = qs.filter(estado_recepcion__nombre_estado__iexact=estado_param)
 
     from datetime import timedelta
     today = timezone.localdate()
-    labels = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
-    diarios = {d: 0 for d in labels}
-    for r in qs:
+
+    def _normalize_rango(value: str) -> str:
+        value = (value or "").strip().lower()
+        return value if value in {"7", "14", "30", "max"} else ""
+
+    rango_param = _normalize_rango(rango_raw) or "max"
+
+    rango_inicio = None
+    rango_fin = None
+    if rango_param in {"7", "14", "30"}:
+        dias = int(rango_param)
+        rango_fin = today
+        rango_inicio = today - timedelta(days=dias - 1)
+        qs = qs.filter(fecha_recepcion__date__range=(rango_inicio, rango_fin))
+
+    registros = list(
+        qs.values("estado_recepcion__nombre_estado", "fecha_recepcion")
+    )
+
+    estados: dict[str, int] = {}
+    for r in registros:
+        key = r.get("estado_recepcion__nombre_estado") or "Sin estado"
+        estados[key] = estados.get(key, 0) + 1
+
+    fechas = [r["fecha_recepcion"].date() for r in registros if r.get("fecha_recepcion")]
+    if rango_inicio and rango_fin:
+        inicio = rango_inicio
+        fin = rango_fin
+    elif fechas:
+        inicio = min(fechas)
+        fin = max(fechas)
+    else:
+        fin = today
+        inicio = today - timedelta(days=6)
+
+    if inicio > fin:
+        inicio, fin = fin, inicio
+
+    labels_dates = []
+    current = inicio
+    while current <= fin:
+        labels_dates.append(current)
+        current += timedelta(days=1)
+
+    diarios = {fecha: 0 for fecha in labels_dates}
+    for r in registros:
         dt = r.get("fecha_recepcion")
-        if dt:
-            d = dt.date()
-            if d in diarios:
-                diarios[d] += 1
+        if not dt:
+            continue
+        fecha = dt.date()
+        if fecha < inicio or fecha > fin:
+            continue
+        diarios[fecha] += 1
+
+    estados_catalogo = list(
+        Estado_Recepcion.objects.order_by("nombre_estado").values_list("nombre_estado", flat=True)
+    )
+
+    labels_estados = [e for e in estados_catalogo if e in estados]
+    labels_estados += [e for e in estados if e not in estados_catalogo]
+    data_estados = [estados[e] for e in labels_estados]
 
     context = {
-        "labels_dias": [d.strftime("%d/%m") for d in labels],
-        "data_dias": [diarios[d] for d in labels],
-        "labels_estados": list(estados.keys()),
-        "data_estados": list(estados.values()),
+        "labels_dias": [d.strftime("%d/%m") for d in labels_dates],
+        "data_dias": [diarios[d] for d in labels_dates],
+        "labels_estados": labels_estados,
+        "data_estados": data_estados,
+        "estados_catalogo": estados_catalogo,
+        "filtros": {
+            "estado": estado_param,
+            "rango": rango_param,
+        },
     }
     return render(request, "recepcion/graficas.html", context)
 
-
-# -------------------------------
-# Búsquedas vía AJAX
-# -------------------------------
 @login_required
 def search_productos(request):
     term = request.GET.get("term", "").strip()

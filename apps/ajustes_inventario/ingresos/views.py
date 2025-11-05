@@ -164,7 +164,14 @@ def search_productos(request):
 @login_required
 def search_lotes(request, producto_id: int):
     term = request.GET.get("term", "").strip()
-    qs = Lotes.objects.filter(id_producto_id=producto_id)
+    allowed_states = ["Disponible", "Próximo a Vencer", "Proximo a Vencer"]
+    qs = (
+        Lotes.objects
+        .filter(
+            id_producto_id=producto_id,
+            id_estado_lote__nombre_estado__in=allowed_states,
+        )
+    )
     if term:
         qs = qs.filter(numero_lote__icontains=term)
     lotes = qs.order_by("-id")[:20]

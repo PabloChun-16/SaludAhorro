@@ -3,6 +3,7 @@ from django.http import FileResponse
 from django.db.models import Q              # ⬅️ nuevo
 from apps.inventario.models import Lotes
 import io
+import unicodedata
 from django.utils.html import escape
 from django.utils.timezone import now
 from datetime import datetime               # ⬅️ nuevo
@@ -136,11 +137,29 @@ def exportar_stock_pdf(request):
     if d2:
         qs = qs.filter(fecha_caducidad__lte=d2)
 
-    if estado:
-        if estado in ("vigente", "vencido"):
-            qs = qs.filter(id_estado_lote__nombre_estado__iexact=estado.capitalize())
-        elif estado == "otros":
-            qs = qs.exclude(id_estado_lote__nombre_estado__in=["Vigente", "Vencido"])
+    def normalize_estado(nombre: str) -> str:
+        """Normaliza el estado a una cadena en minúsculas sin acentos."""
+        nombre = unicodedata.normalize("NFKD", nombre or "")
+        nombre = "".join(ch for ch in nombre if not unicodedata.combining(ch))
+        nombre = nombre.replace("_", " ").replace("-", " ")
+        return " ".join(nombre.strip().lower().split())
+
+    estado_normalizado = normalize_estado(estado)
+    if estado_normalizado:
+        estados_validos = {
+            "disponible": "Disponible",
+            "devuelto": "Devuelto",
+            "en cuarentena": "En Cuarentena",
+            "proximo a vencer": "Próximo a Vencer",
+            "retirado": "Retirado",
+            "vencido": "Vencido",
+            "vigente": "Vigente",  # compatibilidad con filtros anteriores
+        }
+        estado_objetivo = estados_validos.get(estado_normalizado)
+        if estado_objetivo:
+            qs = qs.filter(id_estado_lote__nombre_estado__iexact=estado_objetivo)
+        elif estado_normalizado == "otros":
+            qs = qs.exclude(id_estado_lote__nombre_estado__in=list(set(estados_validos.values())))
 
     if solo_disponibles:
         qs = qs.filter(cantidad_disponible__gt=0)

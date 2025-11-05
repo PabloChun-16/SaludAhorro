@@ -1,1180 +1,1314 @@
-﻿{% extends "dashboard/base.html" %}
-{% load static %}
-
-{% block title %}Recepciones &middot; SAIF{% endblock %}
-
-{% block content %}
-<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
-
-<style>
-/* ====== Contenedor con scroll ====== */
-.table-container{
-  overflow-x:auto;
-  width:100%;
-  scroll-padding-top:90px; /* evita que el sticky solape al saltar */
-}
-
-/* ====== Tabla ====== */
-#tablaRecepciones{
-  table-layout:fixed;
-  width:100%;
-  min-width:900px;
-  border-collapse:separate;   /* necesario para sticky + bordes finos */
-  border-spacing:0;
-  outline:1px solid #e3e6ea;  /* contorno sin ocupar espacio */
-  outline-offset:-1px;
-  border-radius:.5rem;
-}
-
-/* ====== Celdas ====== */
-#tablaRecepciones th,
-#tablaRecepciones td{
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  vertical-align:middle;
-  padding:.5rem;
-  font-size:.875rem;
-  background-clip:padding-box; /* evita solapes con sticky */
-  border:1px solid #e3e6ea;    /* líneas internas */
-}
-
-/* Mismo color en todas las filas */
-#tablaRecepciones tbody tr{ background:#ffffff; }
-
-/* ====== Encabezado pegajoso (2 filas: títulos + filtros) ====== */
-#tablaRecepciones thead.sticky-top{
-  position:sticky;
-  top:0;
-  z-index:10;
-  box-shadow:0 2px 4px rgba(0,0,0,.06);
-}
-
-/* Fila de títulos */
-#tablaRecepciones thead.sticky-top tr:first-child th{
-  position:sticky;
-  top:0;
-  z-index:11;
-  background:#e8f5ec;               /* verde muy suave */
-  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
-}
-
-/* Fila de filtros */
-#tablaRecepciones thead.sticky-top tr.filter-row th{
-  position:sticky;
-  top:42px;                          /* altura aproximada de la fila de títulos */
-  z-index:10;
-  background:#f4fbf6;
-  border-top:1px solid #d9f3e0;
-  border-bottom:1px solid #d7dbdf;
-  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
-  padding:.35rem .5rem;
-  overflow:visible;
-}
-
-/* ====== Controles de filtro ====== */
-thead .form-control-sm,
-thead .form-select-sm{
-  padding-top:.25rem;
-  padding-bottom:.25rem;
-  height:28px;
-}
-
-.filter-control{
-  width:100%;
-  height:32px;
-  padding:.25rem .5rem;
-  border:1px solid #cfe9d7;
-  background:#fff;
-  border-radius:.5rem;
-  transition:border-color .15s, box-shadow .15s;
-  font-size:.85rem;
-  box-sizing:border-box;
-}
-.filter-control::placeholder{ color:#94a3b8; }
-.filter-control.text-center{ text-align:center; }
-.filter-control:focus{
-  border-color:#62c07b;
-  outline:0;
-  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
-}
-
-select.filter-control{
-  padding-right:1.75rem;
-  appearance:none;
-  min-width:100px;
-}
-#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap{
-  display:flex; justify-content:center;
-}
-#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap>select{
-  width:100%; max-width:100%;
-}
-#tablaRecepciones thead.sticky-top tr.filter-row th select.form-select.filter-control{
-  -moz-text-align-last:center !important;
-  text-align-last:center !important;
-  text-align:center !important;
-}
-
-/* Mínimos para inputs angostos */
-#tablaRecepciones thead .filter-row th{ min-width:100px; }
-#tablaRecepciones thead .filter-row th:nth-child(1){ min-width:140px; } /* Numero Envio */
-#tablaRecepciones thead .filter-row th:nth-child(2){ min-width:140px; } /* Fecha */
-#tablaRecepciones thead .filter-row th:nth-child(4){ min-width:120px; } /* Estado */
-
-/* ====== Utilidades de ancho ====== */
-.wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
-
-/* ====== Paginación: ocultar filas fuera de página ====== */
-.hidden-by-pagination{ display:none !important; }
-
-/* ====== FIX bordes duplicados vs contorno ====== */
-#tablaRecepciones thead tr:first-child th{ border-top:0; }
-#tablaRecepciones tbody tr:last-child td{ border-bottom:0; }
-#tablaRecepciones tr>*:first-child{ border-left:0; }
-#tablaRecepciones tr>*:last-child{  border-right:0; }
-#tablaRecepciones tbody tr.last-visible td{ border-bottom:0 !important; }
-
-/* Hover suave */
-#tablaRecepciones tbody tr:hover{ background:#fafafa; }
-</style>
-<!-- Overrides para evitar salto y unificar comportamiento -->
-<style>
-.table-container{ max-height: calc(100vh - 250px); overflow-y: auto; }
-</style>
-
-<style>
-.saif-modal--estado{
-  border:0;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 18px 45px rgba(15,122,58,.25);
-  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-}
-.saif-modal--estado .modal-header{
-  background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
-  color:#fff;
-  border-bottom:0;
-  padding:1rem 1.2rem;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.saif-modal--estado .saif-modal-title{
-  display:flex;
-  align-items:center;
-  gap:.75rem;
-  font-weight:700;
-  letter-spacing:.02em;
-}
-.saif-modal--estado .saif-modal-icon{
-  width:42px;
-  height:42px;
-  border-radius:12px;
-  background:rgba(255,255,255,.18);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.25rem;
-}
-.saif-modal--estado .saif-modal-body{
-  background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
-  padding:1.4rem 1.5rem;
-}
-.saif-block{
-  background:#fff;
-  border-radius:1rem;
-  border:1px solid #cfe9d7;
-  box-shadow:0 12px 28px rgba(15,122,58,.12);
-  overflow:hidden;
-}
-.saif-block--warning{
-  border-color:#facc15;
-  box-shadow:0 16px 36px rgba(234,179,8,.18);
-}
-.saif-block--warning .saif-block__header{
-  background:linear-gradient(140deg,#fef9c3 0%,#fde68a 100%);
-  color:#854d0e;
-}
-.saif-block__header{
-  padding:.85rem 1.2rem;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  gap:.6rem;
-}
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Recepciones &middot; SAIF{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'lista/lista.css' %}">
+
+<style>
+/* ====== Contenedor con scroll ====== */
+.table-container{
+  overflow-x:auto;
+  width:100%;
+  scroll-padding-top:90px; /* evita que el sticky solape al saltar */
+}
+
+/* ====== Tabla ====== */
+#tablaRecepciones{
+  table-layout:fixed;
+  width:100%;
+  min-width:900px;
+  border-collapse:separate;   /* necesario para sticky + bordes finos */
+  border-spacing:0;
+  outline:1px solid #e3e6ea;  /* contorno sin ocupar espacio */
+  outline-offset:-1px;
+  border-radius:.5rem;
+}
+
+/* ====== Celdas ====== */
+#tablaRecepciones th,
+#tablaRecepciones td{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  vertical-align:middle;
+  padding:.5rem;
+  font-size:.875rem;
+  background-clip:padding-box; /* evita solapes con sticky */
+  border:1px solid #e3e6ea;    /* líneas internas */
+}
+
+/* Mismo color en todas las filas */
+#tablaRecepciones tbody tr{ background:#ffffff; }
+
+/* ====== Encabezado pegajoso (2 filas: títulos + filtros) ====== */
+#tablaRecepciones thead.sticky-top{
+  position:sticky;
+  top:0;
+  z-index:10;
+  box-shadow:0 2px 4px rgba(0,0,0,.06);
+}
+
+/* Fila de títulos */
+#tablaRecepciones thead.sticky-top tr:first-child th{
+  position:sticky;
+  top:0;
+  z-index:11;
+  background:#e8f5ec;               /* verde muy suave */
+  border-bottom:1px solid #d7dbdf;   /* división header/filtros */
+}
+
+/* Fila de filtros */
+#tablaRecepciones thead.sticky-top tr.filter-row th{
+  position:sticky;
+  top:42px;                          /* altura aproximada de la fila de títulos */
+  z-index:10;
+  background:#f4fbf6;
+  border-top:1px solid #d9f3e0;
+  border-bottom:1px solid #d7dbdf;
+  box-shadow:0 2px 3px rgba(0,0,0,.04) inset;
+  padding:.35rem .5rem;
+  overflow:visible;
+}
+
+/* ====== Controles de filtro ====== */
+thead .form-control-sm,
+thead .form-select-sm{
+  padding-top:.25rem;
+  padding-bottom:.25rem;
+  height:28px;
+}
+
+.filter-control{
+  width:100%;
+  height:32px;
+  padding:.25rem .5rem;
+  border:1px solid #cfe9d7;
+  background:#fff;
+  border-radius:.5rem;
+  transition:border-color .15s, box-shadow .15s;
+  font-size:.85rem;
+  box-sizing:border-box;
+}
+.filter-control::placeholder{ color:#94a3b8; }
+.filter-control.text-center{ text-align:center; }
+.filter-control:focus{
+  border-color:#62c07b;
+  outline:0;
+  box-shadow:0 0 0 .15rem rgba(34,197,94,.15);
+}
+
+select.filter-control{
+  padding-right:1.75rem;
+  appearance:none;
+  min-width:100px;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap{
+  display:flex; justify-content:center;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th .filter-wrap>select{
+  width:100%; max-width:100%;
+}
+#tablaRecepciones thead.sticky-top tr.filter-row th select.form-select.filter-control{
+  -moz-text-align-last:center !important;
+  text-align-last:center !important;
+  text-align:center !important;
+}
+
+/* Mínimos para inputs angostos */
+#tablaRecepciones thead .filter-row th{ min-width:100px; }
+#tablaRecepciones thead .filter-row th:nth-child(1){ min-width:140px; } /* Numero Envio */
+#tablaRecepciones thead .filter-row th:nth-child(2){ min-width:140px; } /* Fecha */
+#tablaRecepciones thead .filter-row th:nth-child(4){ min-width:120px; } /* Estado */
+
+/* ====== Utilidades de ancho ====== */
+.wp-12{width:12%}.wp-20{width:20%}.wp-16{width:16%}.wp-18{width:18%}.wp-14{width:14%}
+
+/* ====== Paginación: ocultar filas fuera de página ====== */
+.hidden-by-pagination{ display:none !important; }
+
+/* ====== FIX bordes duplicados vs contorno ====== */
+#tablaRecepciones thead tr:first-child th{ border-top:0; }
+#tablaRecepciones tbody tr:last-child td{ border-bottom:0; }
+#tablaRecepciones tr>*:first-child{ border-left:0; }
+#tablaRecepciones tr>*:last-child{  border-right:0; }
+#tablaRecepciones tbody tr.last-visible td{ border-bottom:0 !important; }
+
+/* Hover suave */
+#tablaRecepciones tbody tr:hover{ background:#fafafa; }
+</style>
+<!-- Overrides para evitar salto y unificar comportamiento -->
+<style>
+.table-container{ max-height: calc(100vh - 250px); overflow-y: auto; }
+</style>
+
+<style>
+.saif-modal--estado{
+  border:0;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(15,122,58,.25);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.saif-modal--estado .modal-header{
+  background:linear-gradient(135deg,#0f7a3a 0%,#0c6430 55%,#074d24 100%);
+  color:#fff;
+  border-bottom:0;
+  padding:1rem 1.2rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.saif-modal--estado .saif-modal-title{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.saif-modal--estado .saif-modal-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:rgba(255,255,255,.18);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+}
+.saif-modal--estado .saif-modal-body{
+  background:linear-gradient(180deg,#f6fdf8 0%,#effaf3 100%);
+  padding:1.4rem 1.5rem;
+}
+.saif-block{
+  background:#fff;
+  border-radius:1rem;
+  border:1px solid #cfe9d7;
+  box-shadow:0 12px 28px rgba(15,122,58,.12);
+  overflow:hidden;
+}
+.saif-block--warning{
+  border-color:#facc15;
+  box-shadow:0 16px 36px rgba(234,179,8,.18);
+}
+.saif-block--warning .saif-block__header{
+  background:linear-gradient(140deg,#fef9c3 0%,#fde68a 100%);
+  color:#854d0e;
+}
+.saif-block__header{
+  padding:.85rem 1.2rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+}
 .saif-block__body{
   padding:1rem 1.25rem;
   color:#0f172a;
   font-size:.95rem;
 }
 .saif-note-list{
+  list-style:none;
   margin:0;
-  padding-left:1.1rem;
+  padding:0;
   display:flex;
   flex-direction:column;
-  gap:.45rem;
+  gap:.55rem;
 }
-.saif-radio-group{
+.saif-note-list li{
+  position:relative;
+  padding-left:1.6rem;
+  line-height:1.45;
+}
+.saif-note-list li::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:.2rem;
+  width:.8rem;
+  height:.8rem;
+  border-radius:50%;
+  background:linear-gradient(135deg,#fcd34d 0%,#f97316 100%);
+  box-shadow:0 4px 10px rgba(249,115,22,.25);
+}
+.saif-state-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:.9rem;
+  margin-top:.5rem;
+}
+.saif-state-card{
+  position:relative;
   display:flex;
-  flex-direction:column;
-  gap:.6rem;
+  gap:.75rem;
+  align-items:flex-start;
+  padding:.85rem 1rem;
+  border:1px solid #d7ebe0;
+  border-radius:1rem;
+  background:#fff;
+  box-shadow:0 12px 24px rgba(15,122,58,.1);
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
-.saif-radio-option{
+.saif-state-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 36px rgba(15,122,58,.18);
+}
+.saif-state-card input[type="radio"]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+}
+.saif-state-card:has(input:checked){
+  border-color:#16a34a;
+  background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 100%);
+  box-shadow:0 0 0 2px rgba(34,197,94,.25) inset,0 22px 44px rgba(15,122,58,.22);
+}
+.saif-state-card.is-current::after{
+  content:"Estado actual";
+  position:absolute;
+  top:.65rem;
+  right:.75rem;
+  font-size:.7rem;
+  font-weight:700;
+  background:#ecfeff;
+  color:#0f5132;
+  border-radius:999px;
+  padding:.15rem .55rem;
+  letter-spacing:.01em;
+}
+.saif-state-card__icon{
+  width:44px;
+  height:44px;
+  border-radius:14px;
   display:flex;
   align-items:center;
-  gap:.65rem;
-  padding:.65rem .9rem;
-  border:1px solid #cfe9d7;
-  border-radius:.85rem;
-  background:#fff;
-  box-shadow:0 4px 12px rgba(15,122,58,.08);
-  font-weight:600;
-  color:#0f5132;
-  cursor:pointer;
-  transition:all .2s ease;
+  justify-content:center;
+  font-size:1.45rem;
+  flex:0 0 44px;
+  box-shadow:inset 0 0 0 2px rgba(15,122,58,.08);
 }
-.saif-radio-option:hover{
-  border-color:#86efac;
-  box-shadow:0 8px 18px rgba(22,101,52,.16);
+.saif-state-card__title{
+  font-weight:700;
+  color:#0f172a;
+  line-height:1.1;
 }
-.saif-radio-option input{
-  accent-color:#0f7a3a;
-  width:18px;
-  height:18px;
+.saif-state-card__desc{
+  font-size:.83rem;
+  color:#475569;
+  margin-top:.2rem;
+  line-height:1.35;
 }
-.saif-motivo{
-  background:#fff;
-  border:1px solid #cfe9d7;
-  border-radius:1rem;
-  padding:1rem 1.1rem;
-  margin-top:1rem;
-  box-shadow:0 10px 24px rgba(15,122,58,.12);
+.saif-state-card[data-state="completo"] .saif-state-card__icon{
+  background:linear-gradient(150deg,#dcfce7 0%,#bbf7d0 100%);
+  color:#15803d;
 }
-.saif-label{
-  font-weight:600;
-  color:#166534;
+.saif-state-card[data-state="parcial"] .saif-state-card__icon{
+  background:linear-gradient(150deg,#fef9c3 0%,#fde68a 100%);
+  color:#b45309;
 }
-.saif-input{
-  border-radius:.75rem;
-  border:1px solid #cfe9d7;
+.saif-state-card[data-state="rechazado"] .saif-state-card__icon{
+  background:linear-gradient(150deg,#fee2e2 0%,#fecaca 100%);
+  color:#b91c1c;
 }
-.saif-input:focus{
-  border-color:#22c55e;
-  box-shadow:0 0 0 .15rem rgba(34,197,94,.18);
-}
-.saif-alert{
-  padding:.85rem 1.1rem;
-  border-radius:.75rem;
-  font-weight:600;
-}
-.saif-alert--error{
-  background:rgba(248,113,113,.16);
-  border:1px solid rgba(248,113,113,.45);
-  color:#991b1b;
-}
-.saif-footer{
-  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
-  border-top:0;
-  padding:.9rem 1.3rem;
-  display:flex;
-  justify-content:flex-end;
-  gap:.75rem;
-}
-.saif-btn-light{
-  background:#f8fff9;
-  border:1px solid #cfe9d7;
-  color:#166534;
-  font-weight:600;
-  border-radius:999px;
-  padding:.45rem 1.2rem;
-}
-.saif-btn-light:hover{
-  background:#ecfdf5;
-  border-color:#a7f3d0;
-  color:#0f7a3a;
-}
-.saif-btn-success{
-  background:#0f7a3a;
-  border-color:#0f7a3a;
-  font-weight:600;
-  color:#fff;
-  border-radius:999px;
-  padding:.45rem 1.4rem;
-}
-.saif-btn-success:hover{
-  background:#0c5d2c;
-  border-color:#0c5d2c;
-  color:#fff;
-}
-</style>
-
-<section class="p-3">
-  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
-    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
-      <h3 class="mb-0 fs-6">
-        <i class="bi bi-box-arrow-in-down me-2"></i> Recepciones de Productos
-      </h3>
-      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
-    </div>
-
-    <div class="table-container">
-      <table class="table table-hover align-middle text-center" id="tablaRecepciones">
-        <colgroup>
-          <col style="width:25%"><col style="width:20%"><col style="width:25%"><col style="width:30%">
-        </colgroup>
-
-        <thead class="table-success text-dark shadow-sm sticky-top">
-          <tr>
-            <th>Numero Envio</th><th>Fecha Recepcion</th><th>Usuario</th><th>Estado</th>
-          </tr>
-          <tr class="filter-row">
-            <th><input id="f-envio" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
-            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
-            <th>
-              <div class="filter-wrap">
-                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
-                  <option value="">Todos</option>
-                  <option value="recibido completo">Recibido Completo</option>
-                  <option value="recibido parcialmente">Recibido Parcialmente</option>
-                  <option value="rechazado">Rechazado</option>
-                </select>
-              </div>
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for r in recepciones %}
-          <tr data-id="{{ r.id }}" style="cursor:pointer;">
-            <td class="text-truncate">{{ r.numero_envio_bodega }}</td>
-            <td class="text-truncate">{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
-            <td class="text-truncate">{{ r.id_usuario }}</td>
-            <td class="text-truncate">
-              {% with nombre=r.estado_recepcion.nombre_estado %}
-                {% if nombre == "Recibido Completo" %}
-                  <span class="badge bg-success badge-pill">Recibido Completo</span>
-                {% elif nombre == "Recibido Parcialmente" %}
-                  <span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>
-                {% elif nombre == "Rechazado" %}
-                  <span class="badge bg-danger badge-pill">Rechazado</span>
-                {% else %}
-                  <span class="badge bg-secondary badge-pill">{{ nombre }}</span>
-                {% endif %}
-              {% endwith %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="4" class="py-5 text-muted" data-empty-row>
-              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-              No hay recepciones registradas.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <div id="pagerRecepciones" class="saif-pager"></div>
-
-    <div class="px-3 py-3 text-center border-top bg-light">
-      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
-              data-bs-toggle="modal" data-bs-target="#modalRecepcion"
-              data-url="{% url 'recepcion:recepcion_create' %}">
-        <i class="bi bi-plus-circle"></i> Crear
-      </button>
-
-      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
-        <i class="bi bi-search"></i> Consultar
-      </button>
-
-      <!-- NUEVO: Cambiar estado -->
-      <button id="btnCambiarEstado" class="btn btn-outline-success rounded-pill px-3 ms-2 shadow-sm" disabled>
-        <i class="bi bi-arrow-repeat"></i> Cambiar estado
-      </button>
-
-      <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
-        <i class="bi bi-graph-up"></i> Gráficas
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- Modal CREAR -->
-<div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content" id="modal-recepcion-content"></div>
-  </div>
-</div>
-
-<!-- Modal CONSULTAR -->
-<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content" id="modal-consultar-content"></div>
-  </div>
-</div>
-
-<!-- NUEVO: Modal Cambiar Estado -->
-<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog">
-    <div class="modal-content saif-modal saif-modal--estado">
-      <div class="modal-header">
-        <div class="saif-modal-title">
-          <span class="saif-modal-icon"><i class="bi bi-arrow-repeat"></i></span>
-          <span>Cambiar estado</span>
-        </div>
-        <span class="saif-badge">SAIF</span>
-      </div>
-      <div class="modal-body saif-modal-body">
-        <div class="saif-block saif-block--warning mb-4">
-          <div class="saif-block__header">
-            <i class="bi bi-info-circle me-2"></i> Notas importantes
-          </div>
-          <div class="saif-block__body">
-            <ul class="saif-note-list">
-              <li><strong>Recibido Completo</strong> y <strong>Recibido Parcialmente</strong> no afectan inventario.</li>
-              <li><strong>Rechazado</strong> revierte la recepción (marca REC como cancelado y resta stock). Solo si no hubo salidas posteriores.</li>
-            </ul>
-          </div>
-        </div>
-        <div class="saif-radio-group">
-          <label class="saif-radio-option" for="estCompleto">
-            <input class="form-check-input" type="radio" name="estadoNuevo" id="estCompleto" value="Recibido Completo">
-            <span>Recibido Completo</span>
+.saif-motivo{
+  background:#fff;
+  border:1px solid #cfe9d7;
+  border-radius:1rem;
+  padding:1rem 1.1rem;
+  margin-top:1rem;
+  box-shadow:0 10px 24px rgba(15,122,58,.12);
+}
+.saif-label{
+  font-weight:600;
+  color:#166534;
+}
+.saif-input{
+  border-radius:.75rem;
+  border:1px solid #cfe9d7;
+}
+.saif-input:focus{
+  border-color:#22c55e;
+  box-shadow:0 0 0 .15rem rgba(34,197,94,.18);
+}
+.saif-alert{
+  padding:.85rem 1.1rem;
+  border-radius:.75rem;
+  font-weight:600;
+}
+.saif-alert--error{
+  background:rgba(248,113,113,.16);
+  border:1px solid rgba(248,113,113,.45);
+  color:#991b1b;
+}
+.saif-footer{
+  background:linear-gradient(145deg,#f6fdf8 0%,#eef8f1 100%);
+  border-top:0;
+  padding:.9rem 1.3rem;
+  display:flex;
+  justify-content:flex-end;
+  gap:.75rem;
+}
+.saif-btn-light{
+  background:#f8fff9;
+  border:1px solid #cfe9d7;
+  color:#166534;
+  font-weight:600;
+  border-radius:999px;
+  padding:.45rem 1.2rem;
+}
+.saif-btn-light:hover{
+  background:#ecfdf5;
+  border-color:#a7f3d0;
+  color:#0f7a3a;
+}
+.saif-btn-success{
+  background:#0f7a3a;
+  border-color:#0f7a3a;
+  font-weight:600;
+  color:#fff;
+  border-radius:999px;
+  padding:.45rem 1.4rem;
+}
+.saif-btn-success:hover{
+  background:#0c5d2c;
+  border-color:#0c5d2c;
+  color:#fff;
+}
+</style>
+
+<section class="p-3">
+  <div class="saif-card mb-4 shadow-lg rounded-3 overflow-hidden">
+    <div class="saif-card-header d-flex align-items-center justify-content-between bg-success text-white px-3 py-2">
+      <h3 class="mb-0 fs-6">
+        <i class="bi bi-box-arrow-in-down me-2"></i> Recepciones de Productos
+      </h3>
+      <span class="badge bg-light text-success px-2 py-1 fs-7">SAIF</span>
+    </div>
+
+    <div class="table-container">
+      <table class="table table-hover align-middle text-center" id="tablaRecepciones">
+        <colgroup>
+          <col style="width:25%"><col style="width:20%"><col style="width:25%"><col style="width:30%">
+        </colgroup>
+
+        <thead class="table-success text-dark shadow-sm sticky-top">
+          <tr>
+            <th>Numero Envio</th><th>Fecha Recepcion</th><th>Usuario</th><th>Estado</th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="f-envio" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th><input id="f-fecha" class="form-control form-control-sm filter-control text-center" placeholder="dd/mm/aaaa"></th>
+            <th><input id="f-usuario" class="form-control form-control-sm filter-control text-center" placeholder="Filtrar"></th>
+            <th>
+              <div class="filter-wrap">
+                <select id="f-estado" class="form-select form-select-sm filter-control text-center">
+                  <option value="">Todos</option>
+                  <option value="recibido completo">Recibido Completo</option>
+                  <option value="recibido parcialmente">Recibido Parcialmente</option>
+                  <option value="rechazado">Rechazado</option>
+                </select>
+              </div>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in recepciones %}
+          <tr data-id="{{ r.id }}" style="cursor:pointer;">
+            <td class="text-truncate">{{ r.numero_envio_bodega }}</td>
+            <td class="text-truncate">{{ r.fecha_recepcion|date:"d/m/Y" }}</td>
+            <td class="text-truncate">{{ r.id_usuario }}</td>
+            <td class="text-truncate">
+              {% with nombre=r.estado_recepcion.nombre_estado %}
+                {% if nombre == "Recibido Completo" %}
+                  <span class="badge bg-success badge-pill">Recibido Completo</span>
+                {% elif nombre == "Recibido Parcialmente" %}
+                  <span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>
+                {% elif nombre == "Rechazado" %}
+                  <span class="badge bg-danger badge-pill">Rechazado</span>
+                {% else %}
+                  <span class="badge bg-secondary badge-pill">{{ nombre }}</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="py-5 text-muted" data-empty-row>
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No hay recepciones registradas.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="pagerRecepciones" class="saif-pager"></div>
+
+    <div class="px-3 py-3 text-center border-top bg-light">
+      <button id="btnCrear" class="btn btn-warning rounded-pill px-3 me-2 shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#modalRecepcion"
+              data-url="{% url 'recepcion:recepcion_create' %}">
+        <i class="bi bi-plus-circle"></i> Crear
+      </button>
+
+      <button id="btnConsultar" class="btn btn-primary rounded-pill px-3 shadow-sm" disabled>
+        <i class="bi bi-search"></i> Consultar
+      </button>
+
+      <!-- NUEVO: Cambiar estado -->
+      <button id="btnCambiarEstado" class="btn btn-outline-success rounded-pill px-3 ms-2 shadow-sm" disabled>
+        <i class="bi bi-arrow-repeat"></i> Cambiar estado
+      </button>
+
+      <a href="{% url 'recepcion:graficas' %}" class="btn btn-success rounded-pill px-3 ms-2 shadow-sm">
+        <i class="bi bi-graph-up"></i> Gráficas
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Modal CREAR -->
+<div class="modal fade" id="modalRecepcion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="modal-recepcion-content"></div>
+  </div>
+</div>
+
+<!-- Modal CONSULTAR -->
+<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content" id="modal-consultar-content"></div>
+  </div>
+</div>
+
+<!-- NUEVO: Modal Cambiar Estado -->
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content saif-modal saif-modal--estado">
+      <div class="modal-header">
+        <div class="saif-modal-title">
+          <span class="saif-modal-icon"><i class="bi bi-arrow-repeat"></i></span>
+          <span>Cambiar estado</span>
+        </div>
+        <span class="saif-badge">SAIF</span>
+      </div>
+      <div class="modal-body saif-modal-body">
+        <div class="saif-block saif-block--warning mb-4">
+          <div class="saif-block__header">
+            <i class="bi bi-info-circle me-2"></i> Notas importantes
+          </div>
+          <div class="saif-block__body">
+            <ul class="saif-note-list">
+              <li><strong>Recibido Completo</strong> cierra la recepcion; no genera movimientos adicionales.</li>
+              <li><strong>Rechazado</strong> revierte la recepcion (marca REC como cancelado y resta stock) si no hubo salidas posteriores.</li>
+              <li><strong>Recibido Parcialmente</strong> deja constancia de faltantes para completarlos mas adelante.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="saif-state-grid">
+          <label class="saif-state-card" data-state="completo" for="estCompleto">
+            <input type="radio" name="estadoNuevo" id="estCompleto" value="Recibido Completo">
+            <span class="saif-state-card__icon"><i class="bi bi-check2-circle"></i></span>
+            <div>
+              <div class="saif-state-card__title">Recibido Completo</div>
+              <div class="saif-state-card__desc">Confirmas que todo se recibio conforme y cierras la recepcion.</div>
+            </div>
           </label>
-          <label class="saif-radio-option" for="estParcial">
-            <input class="form-check-input" type="radio" name="estadoNuevo" id="estParcial" value="Recibido Parcialmente">
-            <span>Recibido Parcialmente</span>
+          <label class="saif-state-card" data-state="parcial" for="estParcial">
+            <input type="radio" name="estadoNuevo" id="estParcial" value="Recibido Parcialmente">
+            <span class="saif-state-card__icon"><i class="bi bi-clipboard2-check"></i></span>
+            <div>
+              <div class="saif-state-card__title">Recibido Parcialmente</div>
+              <div class="saif-state-card__desc">Registra faltantes y deja la recepcion abierta para completarla despues.</div>
+            </div>
           </label>
-          <label class="saif-radio-option" for="estRechazado">
-            <input class="form-check-input" type="radio" name="estadoNuevo" id="estRechazado" value="Rechazado">
-            <span>Rechazado</span>
+          <label class="saif-state-card" data-state="rechazado" for="estRechazado">
+            <input type="radio" name="estadoNuevo" id="estRechazado" value="Rechazado">
+            <span class="saif-state-card__icon"><i class="bi bi-x-octagon"></i></span>
+            <div>
+              <div class="saif-state-card__title">Rechazado</div>
+              <div class="saif-state-card__desc">Revierte los movimientos REC y libera el stock asociado a la recepcion.</div>
+            </div>
           </label>
-        </div>
-        <div id="motivoWrap" class="saif-motivo d-none">
-          <label class="form-label saif-label">Motivo (obligatorio para Rechazado)</label>
-          <textarea id="motivoEstado" class="form-control saif-input" rows="2" placeholder="Explique el motivo..."></textarea>
-        </div>
-        <div id="estadoAlert" class="saif-alert saif-alert--error d-none mt-3"></div>
-      </div>
-      <div class="modal-footer saif-footer">
-        <button type="button" class="btn saif-btn-light" data-bs-dismiss="modal">
-          <i class="bi bi-x-lg"></i> Cancelar
-        </button>
-        <button type="button" class="btn saif-btn-success" id="btnConfirmEstado">
-          <i class="bi bi-check2-circle"></i> Confirmar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% include "recepcion/partials/producto_modal.html" %}
-{% include "recepcion/partials/lote_modal.html" %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const modalConfig = { backdrop: "static", keyboard: false };
-  /* ==================== MODAL CREAR ==================== */
-  const modalEl = document.getElementById("modalRecepcion");
-  const modalContent = document.getElementById("modal-recepcion-content");
-  const btnCrear = document.getElementById("btnCrear");
-  const modalInstance = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
-
-  // Se vacía/llena cada vez que se abre el form
-  let detalles = [];
-
-  function inicializarFormulario() {
-    detalles = [];
-    let detalleSeq = 0;
-    let detallesCurrentPage = 1;
-    const DETALLES_PAGE_SIZE = 5;
-
-    const productoIdEl = document.getElementById("productoIdInput");
-    const productoTextEl = document.getElementById("productoInput");
-    const loteIdEl      = document.getElementById("loteIdInput");
-    const loteTextEl    = document.getElementById("loteInput");
-    const caducidadEl   = document.getElementById("caducidadInput");
-    const cantidadEl    = document.getElementById("cantidadInput");
-    const costoEl       = document.getElementById("costoInput");
-    const tableBody     = document.getElementById("detalleTable");
-    const pagerDetalles = document.getElementById("pagerDetalles");
-
-    const getActivos = () => detalles.filter(Boolean);
-
-    function renderPager(total) {
-      if (!pagerDetalles) return;
-      if (total <= DETALLES_PAGE_SIZE) {
-        pagerDetalles.innerHTML = "";
-        pagerDetalles.style.display = "none";
-        return;
-      }
-
-      const totalPages = Math.max(1, Math.ceil(total / DETALLES_PAGE_SIZE));
-      if (detallesCurrentPage > totalPages) detallesCurrentPage = totalPages;
-
-      pagerDetalles.style.display = "flex";
-      pagerDetalles.classList.add("justify-content-center", "align-items-center", "py-3", "gap-3");
-      pagerDetalles.innerHTML = "";
-
-      const prev = document.createElement("button");
-      prev.type = "button";
-      prev.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
-      prev.innerHTML = "<i class='bi bi-chevron-left me-1'></i> Anterior";
-      prev.disabled = detallesCurrentPage === 1;
-      prev.addEventListener("click", () => {
-        if (detallesCurrentPage > 1) {
-          detallesCurrentPage -= 1;
-          renderDetalleTable();
-        }
-      });
-
-      const info = document.createElement("span");
-      info.className = "fw-semibold text-success small";
-      info.textContent = `Página ${detallesCurrentPage} de ${totalPages}`;
-
-      const next = document.createElement("button");
-      next.type = "button";
-      next.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
-      next.innerHTML = "Siguiente <i class='bi bi-chevron-right ms-1'></i>";
-      next.disabled = detallesCurrentPage === totalPages;
-      next.addEventListener("click", () => {
-        if (detallesCurrentPage < totalPages) {
-          detallesCurrentPage += 1;
-          renderDetalleTable();
-        }
-      });
-
-      pagerDetalles.append(prev, info, next);
-    }
-
-    function renderDetalleTable() {
-      if (!tableBody) return;
-      const activos = getActivos();
-      tableBody.innerHTML = "";
-
-      if (!activos.length) {
-        renderPager(0);
-        return;
-      }
-
-      const totalPages = Math.max(1, Math.ceil(activos.length / DETALLES_PAGE_SIZE));
-      if (detallesCurrentPage > totalPages) detallesCurrentPage = totalPages;
-      const start = (detallesCurrentPage - 1) * DETALLES_PAGE_SIZE;
-      const pageItems = activos.slice(start, start + DETALLES_PAGE_SIZE);
-
-      pageItems.forEach((item) => {
-        const row = document.createElement("tr");
-        row.dataset.uid = item.uid;
-        row.innerHTML = `
-          <td class="text-start">${item.producto}</td>
-          <td>${item.numero_lote ?? ('#' + item.lote_id)}</td>
-          <td>${item.fecha_caducidad ?? ''}</td>
-          <td>${item.cantidad_recibida}</td>
-          <td>${item.costo_unitario.toFixed(2)}</td>
-          <td><button type="button" class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
-        `;
-        row.querySelector(".btnRemove")?.addEventListener("click", () => {
-          const idx = detalles.findIndex(d => d && d.uid === item.uid);
-          if (idx >= 0) {
-            detalles[idx] = null;
-            renderDetalleTable();
-          }
-        });
-        tableBody.appendChild(row);
-      });
-
-      renderPager(activos.length);
-    }
-
-    function agregarDetalle() {
-      if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
-
-      const productoId = (productoIdEl?.value || "").trim();
-      const productoTx = (productoTextEl?.value || "").trim();
-      const loteId     = (loteIdEl?.value || "").trim();
-      const numeroLote = (loteTextEl?.value || "").trim();
-      const caducidad  = caducidadEl?.value || "";
-      const cantidad   = cantidadEl?.value;
-      const costo      = costoEl?.value;
-
-      if (!productoId) { alert("Seleccione un producto."); return; }
-      if (!loteId && !numeroLote) { alert("Ingrese o seleccione el número de lote."); return; }
-      if (!loteId && !caducidad) { alert("Para un lote nuevo, ingrese fecha de caducidad."); return; }
-      if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad inválida."); return; }
-
-      const item = {
-        uid: `d-${Date.now()}-${detalleSeq++}`,
-        producto_id: parseInt(productoId, 10),
-        producto: productoTx,
-        lote_id: loteId ? parseInt(loteId, 10) : null,
-        numero_lote: numeroLote || null,
-        fecha_caducidad: caducidad || null,
-        cantidad_recibida: parseInt(cantidad, 10),
-        costo_unitario: costo ? parseFloat(costo) : 0
-      };
-      detalles.push(item);
-      const activos = getActivos().length;
-      detallesCurrentPage = Math.max(1, Math.ceil(activos / DETALLES_PAGE_SIZE));
-      renderDetalleTable();
-
-      if (productoTextEl) {
-        productoTextEl.value = "";
-        productoTextEl.dispatchEvent(new Event("input", { bubbles: true }));
-        productoTextEl.focus();
-      }
-      if (productoIdEl) productoIdEl.value = "";
-      if (loteIdEl) loteIdEl.value = "";
-      if (loteTextEl) loteTextEl.value = "";
-      if (caducidadEl) caducidadEl.value = "";
-      if (cantidadEl) cantidadEl.value = "";
-      if (costoEl) costoEl.value = "";
-    }
-
-    document.getElementById("btnAddDetalle")?.addEventListener("click", agregarDetalle);
-    renderDetalleTable();
-
-    // ----- Envío del formulario -----
-    const formRecepcion = document.getElementById("form-recepcion");
-    if (formRecepcion) {
-      const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
-      formRecepcion.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const formData = {
-          numero_envio_bodega: document.getElementById("id_numero_envio_bodega")?.value || "",
-          fecha_recepcion: document.getElementById("id_fecha_recepcion")?.value || ""
-        };
-        const comentario = document.getElementById("comentarioInput")?.value?.trim() || "";
-        const payloadDetalles = getActivos().map(({ uid, producto, ...rest }) => rest);
-        const payload = { form_data: formData, detalles: payloadDetalles, comentario: comentario };
-
-        fetch(urlCrearRecepcion, {
-          method: "POST",
-          body: JSON.stringify(payload),
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
-            "X-Requested-With": "XMLHttpRequest",
-          },
-        })
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(errorData => {
-              console.error("Error del servidor:", errorData);
-              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!data) return;
-          if (data.success) {
-            alert("Recepción creada exitosamente.");
-            modalInstance.hide();
-            window.location.reload();
-          } else {
-            alert(data.error || "Ocurrió un error al crear la recepción.");
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          alert("Ocurrió un error de red al crear la recepción.");
-        });
-      });
-    }
-
-    // abrir modales auxiliares
-    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto"), modalConfig).show();
-    });
-    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarLote"), modalConfig).show();
-    });
-  } // fin inicializarFormulario
-
-  // Abrir modal CREAR y cargar form vía AJAX
-  btnCrear?.addEventListener("click", (ev) => {
-    const url = ev.currentTarget.getAttribute("data-url");
-    modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
-    modalInstance.show();
-
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(r => r.text())
-      .then(html => { modalContent.innerHTML = html; inicializarFormulario(); })
-      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
-  });
-
-  /* ==================== AUXILIARES PRODUCTOS/LOTES ==================== */
-  const modalBuscar     = document.getElementById("modalBuscarProducto");
-  const searchInput     = document.getElementById("searchProducto");
-  const tbodyResultados = document.getElementById("tablaBuscarProductos");
-
-  const modalLote       = document.getElementById("modalBuscarLote");
-  const searchLoteInput = document.getElementById("searchLote");
-  const tablaLotes      = document.getElementById("tablaBuscarLotes");
-
-  modalBuscar?.addEventListener("shown.bs.modal", () => {
-    const productoInput   = document.querySelector("#modalRecepcion #productoInput");
-    const productoIdInput = document.querySelector("#modalRecepcion #productoIdInput");
-    if (!searchInput || !tbodyResultados) return;
-    searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
-
-    searchInput.oninput = function () {
-      const term = this.value;
-      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
-        .then(r => r.json())
-        .then(data => {
-          tbodyResultados.innerHTML = "";
-          data.forEach(p => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${p.codigo}</td><td>${p.nombre}</td><td>${p.descripcion ?? ""}</td>
-              <td>${p.presentacion ?? ""}</td><td>${p.unidad ?? ""}</td><td>${p.condicion ?? ""}</td>
-              <td>${p.receta ? "Sí" : "No"}</td><td>${p.controlado ? "Sí" : "No"}</td>
-              <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
-            `;
-            tr.querySelector("button").addEventListener("click", () => {
-              if (typeof window.setProductoSeleccionado === "function") {
-                window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` });
-              } else {
-                if (productoInput)   productoInput.value = `${p.codigo} - ${p.nombre}`;
-                if (productoIdInput) productoIdInput.value = p.id;
-              }
-              bootstrap.Modal.getInstance(modalBuscar)?.hide();
-              bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
-            });
-            tbodyResultados.appendChild(tr);
-          });
-        })
-        .catch(() => {
-          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
-        });
-    };
-  });
-
-  modalBuscar?.addEventListener("hidden.bs.modal", () => {
-    if (!tbodyResultados || !searchInput) return;
-    tbodyResultados.innerHTML = ""; searchInput.value = "";
-  });
-
-  function lotesUrl(productoId, term) {
-    const base = "{% url 'recepcion:search_lotes' 0 %}".replace("0/", productoId + "/");
-    const q = term ? "?term=" + encodeURIComponent(term) : "";
-    return base + q;
-  }
-  function renderLotes(rows) {
-    if (!tablaLotes) return;
-    if (!rows || rows.length === 0) {
-      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para este producto.</td></tr>`;
-      return;
-    }
-    tablaLotes.innerHTML = "";
-    rows.forEach(l => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${l.numero_lote}</td><td>${l.fecha_caducidad || ""}</td><td>${l.cantidad}</td>
-        <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
-      `;
-      tr.querySelector("button").addEventListener("click", () => {
-        if (typeof window.setLoteSeleccionado === "function") {
-          window.setLoteSeleccionado({ id: l.id, numero: l.numero_lote, fecha: l.fecha_caducidad });
-        } else {
-          const loteIdInput = document.querySelector("#modalRecepcion #loteIdInput");
-          const loteInput   = document.querySelector("#modalRecepcion #loteInput");
-          const cadInput    = document.querySelector("#modalRecepcion #caducidadInput");
-          if (loteIdInput) loteIdInput.value = l.id;
-          if (loteInput)   loteInput.value   = l.numero_lote;
-          if (cadInput && l.fecha_caducidad) cadInput.value = l.fecha_caducidad;
-        }
-        bootstrap.Modal.getInstance(modalLote)?.hide();
-        bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
-      });
-      tablaLotes.appendChild(tr);
-    });
-  }
-  function loadLotes(term = "") {
-    const productoId = document.getElementById("productoIdInput")?.value;
-    if (!tablaLotes) return;
-    if (!productoId) {
-      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Primero seleccione un producto.</td></tr>`;
-      return;
-    }
-    tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Cargando...</td></tr>`;
-    fetch(lotesUrl(productoId, term))
-      .then(r => r.json())
-      .then(renderLotes)
-      .catch(() => {
-        tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
-      });
-  }
-  modalLote?.addEventListener("shown.bs.modal", () => {
-    if (!searchLoteInput) return;
-    searchLoteInput.value = ""; loadLotes("");
-    searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
-  });
-  // Crear lote rapido
-  const modalCrearLote = document.getElementById("modalCrearLote");
-  const formCrearLote = document.getElementById("formCrearLote");
-  const btnGuardarLote = document.getElementById("btnGuardarLote");
-  if (btnGuardarLote) {
-    btnGuardarLote.addEventListener("click", () => {
-      const productoId = document.getElementById("productoIdInput")?.value || "";
-      if (!productoId) { alert("Primero debe seleccionar un producto."); return; }
+        </div>
+        <div id="motivoWrap" class="saif-motivo d-none">
+          <label class="form-label saif-label">Motivo (obligatorio para Rechazado)</label>
+          <textarea id="motivoEstado" class="form-control saif-input" rows="2" placeholder="Explique el motivo..."></textarea>
+        </div>
+        <div id="estadoAlert" class="saif-alert saif-alert--error d-none mt-3"></div>
+      </div>
+      <div class="modal-footer saif-footer">
+        <button type="button" class="btn saif-btn-light" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="button" class="btn saif-btn-success" id="btnConfirmEstado">
+          <i class="bi bi-check2-circle"></i> Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "recepcion/partials/producto_modal.html" %}
+{% include "recepcion/partials/lote_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const modalConfig = { backdrop: "static", keyboard: false };
+  /* ==================== MODAL CREAR ==================== */
+  const modalEl = document.getElementById("modalRecepcion");
+  const modalContent = document.getElementById("modal-recepcion-content");
+  const btnCrear = document.getElementById("btnCrear");
+  const modalInstance = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false });
+
+  // Se vacía/llena cada vez que se abre el form
+  let detalles = [];
+
+  function inicializarFormulario() {
+    detalles = [];
+    let detalleSeq = 0;
+    let detallesCurrentPage = 1;
+    const DETALLES_PAGE_SIZE = 5;
+
+    const productoIdEl = document.getElementById("productoIdInput");
+    const productoTextEl = document.getElementById("productoInput");
+    const loteIdEl      = document.getElementById("loteIdInput");
+    const loteTextEl    = document.getElementById("loteInput");
+    const caducidadEl   = document.getElementById("caducidadInput");
+    const cantidadEl    = document.getElementById("cantidadInput");
+    const costoEl       = document.getElementById("costoInput");
+    const tableBody     = document.getElementById("detalleTable");
+    const pagerDetalles = document.getElementById("pagerDetalles");
+
+    const getActivos = () => detalles.filter(Boolean);
+
+    function renderPager(total) {
+      if (!pagerDetalles) return;
+      if (total <= DETALLES_PAGE_SIZE) {
+        pagerDetalles.innerHTML = "";
+        pagerDetalles.style.display = "none";
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(total / DETALLES_PAGE_SIZE));
+      if (detallesCurrentPage > totalPages) detallesCurrentPage = totalPages;
+
+      pagerDetalles.style.display = "flex";
+      pagerDetalles.classList.add("justify-content-center", "align-items-center", "py-3", "gap-3");
+      pagerDetalles.innerHTML = "";
+
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      prev.innerHTML = "<i class='bi bi-chevron-left me-1'></i> Anterior";
+      prev.disabled = detallesCurrentPage === 1;
+      prev.addEventListener("click", () => {
+        if (detallesCurrentPage > 1) {
+          detallesCurrentPage -= 1;
+          renderDetalleTable();
+        }
+      });
+
+      const info = document.createElement("span");
+      info.className = "fw-semibold text-success small";
+      info.textContent = `Página ${detallesCurrentPage} de ${totalPages}`;
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "btn btn-success btn-sm rounded-pill shadow-sm px-3";
+      next.innerHTML = "Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+      next.disabled = detallesCurrentPage === totalPages;
+      next.addEventListener("click", () => {
+        if (detallesCurrentPage < totalPages) {
+          detallesCurrentPage += 1;
+          renderDetalleTable();
+        }
+      });
+
+      pagerDetalles.append(prev, info, next);
+    }
+
+    function renderDetalleTable() {
+      if (!tableBody) return;
+      const activos = getActivos();
+      tableBody.innerHTML = "";
+
+      if (!activos.length) {
+        renderPager(0);
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(activos.length / DETALLES_PAGE_SIZE));
+      if (detallesCurrentPage > totalPages) detallesCurrentPage = totalPages;
+      const start = (detallesCurrentPage - 1) * DETALLES_PAGE_SIZE;
+      const pageItems = activos.slice(start, start + DETALLES_PAGE_SIZE);
+
+      pageItems.forEach((item) => {
+        const row = document.createElement("tr");
+        row.dataset.uid = item.uid;
+        row.innerHTML = `
+          <td class="text-start">${item.producto}</td>
+          <td>${item.numero_lote ?? ('#' + item.lote_id)}</td>
+          <td>${item.fecha_caducidad ?? ''}</td>
+          <td>${item.cantidad_recibida}</td>
+          <td>${item.costo_unitario.toFixed(2)}</td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
+        `;
+        row.querySelector(".btnRemove")?.addEventListener("click", () => {
+          const idx = detalles.findIndex(d => d && d.uid === item.uid);
+          if (idx >= 0) {
+            detalles[idx] = null;
+            renderDetalleTable();
+          }
+        });
+        tableBody.appendChild(row);
+      });
+
+      renderPager(activos.length);
+    }
+
+    function agregarDetalle() {
+      if (!tableBody) { console.warn("No se encontró #detalleTable"); return; }
+
+      const productoId = (productoIdEl?.value || "").trim();
+      const productoTx = (productoTextEl?.value || "").trim();
+      const loteId     = (loteIdEl?.value || "").trim();
+      const numeroLote = (loteTextEl?.value || "").trim();
+      const caducidad  = caducidadEl?.value || "";
+      const cantidad   = cantidadEl?.value;
+      const costo      = costoEl?.value;
+
+      if (!productoId) { alert("Seleccione un producto."); return; }
+      if (!loteId && !numeroLote) { alert("Ingrese o seleccione el número de lote."); return; }
+      if (!loteId && !caducidad) { alert("Para un lote nuevo, ingrese fecha de caducidad."); return; }
+      if (!cantidad || parseInt(cantidad, 10) <= 0) { alert("Cantidad inválida."); return; }
+
+      const item = {
+        uid: `d-${Date.now()}-${detalleSeq++}`,
+        producto_id: parseInt(productoId, 10),
+        producto: productoTx,
+        lote_id: loteId ? parseInt(loteId, 10) : null,
+        numero_lote: numeroLote || null,
+        fecha_caducidad: caducidad || null,
+        cantidad_recibida: parseInt(cantidad, 10),
+        costo_unitario: costo ? parseFloat(costo) : 0
+      };
+      detalles.push(item);
+      const activos = getActivos().length;
+      detallesCurrentPage = Math.max(1, Math.ceil(activos / DETALLES_PAGE_SIZE));
+      renderDetalleTable();
+
+      if (productoTextEl) {
+        productoTextEl.value = "";
+        productoTextEl.dispatchEvent(new Event("input", { bubbles: true }));
+        productoTextEl.focus();
+      }
+      if (productoIdEl) productoIdEl.value = "";
+      if (loteIdEl) loteIdEl.value = "";
+      if (loteTextEl) loteTextEl.value = "";
+      if (caducidadEl) caducidadEl.value = "";
+      if (cantidadEl) cantidadEl.value = "";
+      if (costoEl) costoEl.value = "";
+    }
+
+    document.getElementById("btnAddDetalle")?.addEventListener("click", agregarDetalle);
+    renderDetalleTable();
+
+    // ----- Envío del formulario -----
+    const formRecepcion = document.getElementById("form-recepcion");
+    if (formRecepcion) {
+      const urlCrearRecepcion = "{% url 'recepcion:recepcion_create' %}";
+      formRecepcion.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const formData = {
+          numero_envio_bodega: document.getElementById("id_numero_envio_bodega")?.value || "",
+          fecha_recepcion: document.getElementById("id_fecha_recepcion")?.value || ""
+        };
+        const comentario = document.getElementById("comentarioInput")?.value?.trim() || "";
+        const payloadDetalles = getActivos().map(({ uid, producto, ...rest }) => rest);
+        const payload = { form_data: formData, detalles: payloadDetalles, comentario: comentario };
+
+        fetch(urlCrearRecepcion, {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(errorData => {
+              console.error("Error del servidor:", errorData);
+              alert("Error: " + (errorData.errors || "Ocurrió un error inesperado."));
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (!data) return;
+          if (data.success) {
+            alert("Recepción creada exitosamente.");
+            modalInstance.hide();
+            window.location.reload();
+          } else {
+            alert(data.error || "Ocurrió un error al crear la recepción.");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Ocurrió un error de red al crear la recepción.");
+        });
+      });
+    }
+
+    // abrir modales auxiliares
+    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarProducto"), modalConfig).show();
+    });
+    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("modalBuscarLote"), modalConfig).show();
+    });
+  } // fin inicializarFormulario
+
+  // Abrir modal CREAR y cargar form vía AJAX
+  btnCrear?.addEventListener("click", (ev) => {
+    const url = ev.currentTarget.getAttribute("data-url");
+    modalContent.innerHTML = '<div class="p-4">Cargando...</div>';
+    modalInstance.show();
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => { modalContent.innerHTML = html; inicializarFormulario(); })
+      .catch(() => { modalContent.innerHTML = '<div class="p-4 text-danger">Error cargando el formulario.</div>'; });
+  });
+
+  /* ==================== AUXILIARES PRODUCTOS/LOTES ==================== */
+  const modalBuscar     = document.getElementById("modalBuscarProducto");
+  const searchInput     = document.getElementById("searchProducto");
+  const tbodyResultados = document.getElementById("tablaBuscarProductos");
+
+  const modalLote       = document.getElementById("modalBuscarLote");
+  const searchLoteInput = document.getElementById("searchLote");
+  const tablaLotes      = document.getElementById("tablaBuscarLotes");
+
+  modalBuscar?.addEventListener("shown.bs.modal", () => {
+    const productoInput   = document.querySelector("#modalRecepcion #productoInput");
+    const productoIdInput = document.querySelector("#modalRecepcion #productoIdInput");
+    if (!searchInput || !tbodyResultados) return;
+    searchInput.value = ""; tbodyResultados.innerHTML = ""; searchInput.focus();
+
+    searchInput.oninput = function () {
+      const term = this.value;
+      fetch("{% url 'recepcion:search_productos' %}?term=" + encodeURIComponent(term))
+        .then(r => r.json())
+        .then(data => {
+          tbodyResultados.innerHTML = "";
+          data.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${p.codigo}</td><td>${p.nombre}</td><td>${p.descripcion ?? ""}</td>
+              <td>${p.presentacion ?? ""}</td><td>${p.unidad ?? ""}</td><td>${p.condicion ?? ""}</td>
+              <td>${p.receta ? "Sí" : "No"}</td><td>${p.controlado ? "Sí" : "No"}</td>
+              <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
+            `;
+            tr.querySelector("button").addEventListener("click", () => {
+              if (typeof window.setProductoSeleccionado === "function") {
+                window.setProductoSeleccionado({ id: p.id, texto: `${p.codigo} - ${p.nombre}` });
+              } else {
+                if (productoInput)   productoInput.value = `${p.codigo} - ${p.nombre}`;
+                if (productoIdInput) productoIdInput.value = p.id;
+              }
+              bootstrap.Modal.getInstance(modalBuscar)?.hide();
+              bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
+            });
+            tbodyResultados.appendChild(tr);
+          });
+        })
+        .catch(() => {
+          tbodyResultados.innerHTML = `<tr><td colspan="9" class="text-danger">Error buscando productos.</td></tr>`;
+        });
+    };
+  });
+
+  modalBuscar?.addEventListener("hidden.bs.modal", () => {
+    if (!tbodyResultados || !searchInput) return;
+    tbodyResultados.innerHTML = ""; searchInput.value = "";
+  });
+
+  function lotesUrl(productoId, term) {
+    const base = "{% url 'recepcion:search_lotes' 0 %}".replace("0/", productoId + "/");
+    const q = term ? "?term=" + encodeURIComponent(term) : "";
+    return base + q;
+  }
+  function renderLotes(rows) {
+    if (!tablaLotes) return;
+    if (!rows || rows.length === 0) {
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Sin lotes para este producto.</td></tr>`;
+      return;
+    }
+    tablaLotes.innerHTML = "";
+    rows.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.numero_lote}</td><td>${l.fecha_caducidad || ""}</td><td>${l.cantidad}</td>
+        <td><button type="button" class="btn btn-sm btn-success" title="Seleccionar"><i class="bi bi-check-lg"></i></button></td>
+      `;
+      tr.querySelector("button").addEventListener("click", () => {
+        if (typeof window.setLoteSeleccionado === "function") {
+          window.setLoteSeleccionado({ id: l.id, numero: l.numero_lote, fecha: l.fecha_caducidad });
+        } else {
+          const loteIdInput = document.querySelector("#modalRecepcion #loteIdInput");
+          const loteInput   = document.querySelector("#modalRecepcion #loteInput");
+          const cadInput    = document.querySelector("#modalRecepcion #caducidadInput");
+          if (loteIdInput) loteIdInput.value = l.id;
+          if (loteInput)   loteInput.value   = l.numero_lote;
+          if (cadInput && l.fecha_caducidad) cadInput.value = l.fecha_caducidad;
+        }
+        bootstrap.Modal.getInstance(modalLote)?.hide();
+        bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
+      });
+      tablaLotes.appendChild(tr);
+    });
+  }
+  function loadLotes(term = "") {
+    const productoId = document.getElementById("productoIdInput")?.value;
+    if (!tablaLotes) return;
+    if (!productoId) {
+      tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Primero seleccione un producto.</td></tr>`;
+      return;
+    }
+    tablaLotes.innerHTML = `<tr><td colspan="4" class="text-muted">Cargando...</td></tr>`;
+    fetch(lotesUrl(productoId, term))
+      .then(r => r.json())
+      .then(renderLotes)
+      .catch(() => {
+        tablaLotes.innerHTML = `<tr><td colspan="4" class="text-danger">Error cargando lotes.</td></tr>`;
+      });
+  }
+  modalLote?.addEventListener("shown.bs.modal", () => {
+    if (!searchLoteInput) return;
+    searchLoteInput.value = ""; loadLotes("");
+    searchLoteInput.oninput = () => loadLotes(searchLoteInput.value);
+  });
+  // Crear lote rapido
+  const modalCrearLote = document.getElementById("modalCrearLote");
+  const formCrearLote = document.getElementById("formCrearLote");
+  const btnGuardarLote = document.getElementById("btnGuardarLote");
+  if (btnGuardarLote) {
+    btnGuardarLote.addEventListener("click", () => {
+      const productoId = document.getElementById("productoIdInput")?.value || "";
+      if (!productoId) { alert("Primero debe seleccionar un producto."); return; }
       if (formCrearLote && !formCrearLote.reportValidity()) { return; }
 
       const numero = document.getElementById("numeroLote")?.value || "";
       const caducidad = document.getElementById("fechaCaducidad")?.value || "";
       const ubicacion = document.getElementById("ubicacionAlmacen")?.value || "";
+      const precioCompra = document.getElementById("precioCompra")?.value || "";
+      const precioVenta = document.getElementById("precioVenta")?.value || "";
       const csrfToken = formCrearLote?.querySelector("[name=csrfmiddlewaretoken]")?.value
         || document.querySelector("[name=csrfmiddlewaretoken]")?.value
         || "";
 
       fetch("{% url 'recepcion:create_lote' %}", {
-        method: "POST",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken,
           "X-Requested-With": "XMLHttpRequest"
         },
-        body: JSON.stringify({ producto_id: productoId, numero_lote: numero, fecha_caducidad: caducidad, ubicacion: ubicacion })
+        body: JSON.stringify({
+          producto_id: productoId,
+          numero_lote: numero,
+          fecha_caducidad: caducidad,
+          ubicacion: ubicacion,
+          precio_compra: precioCompra,
+          precio_venta: precioVenta
+        })
       })
-      .then(r => {
-        if (!r.ok) { throw new Error("Respuesta no valida"); }
-        return r.json();
-      })
-      .then(data => {
-        if (data.success) {
-          formCrearLote?.reset();
-          const crearInstancia = bootstrap.Modal.getInstance(modalCrearLote) || bootstrap.Modal.getOrCreateInstance(modalCrearLote, modalConfig);
-          crearInstancia.hide();
-          bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
-          loadLotes("");
-
-          const loteInput = document.getElementById("loteInput");
-          const caducidadInput = document.getElementById("caducidadInput");
-          const loteIdInput = document.getElementById("loteIdInput");
-          if (loteInput) loteInput.value = data.numero_lote;
-          if (caducidadInput) caducidadInput.value = data.fecha_caducidad || "";
-          if (loteIdInput) loteIdInput.value = data.id;
-        } else {
-          alert(data.error || "Error al crear el lote.");
-        }
-      })
-      .catch(() => {
-        alert("No fue posible crear el lote. Intente nuevamente.");
-      });
-    });
-  }
-  modalCrearLote?.addEventListener("hidden.bs.modal", () => {
-    formCrearLote?.reset();
-  });
-  modalCrearLote?.addEventListener("show.bs.modal", () => {
-    formCrearLote?.reset();
-    const productoHidden = document.getElementById("productoIdHidden");
-    const actual = document.getElementById("productoIdInput")?.value || "";
-    if (productoHidden) productoHidden.value = actual;
-    setTimeout(() => document.getElementById("numeroLote")?.focus(), 120);
-  });
-
-  document.getElementById("btnCancelarLote")?.addEventListener("click", () => {
-    const crearInstancia = bootstrap.Modal.getInstance(modalCrearLote) || bootstrap.Modal.getOrCreateInstance(modalCrearLote, modalConfig);
-    crearInstancia.hide();
-    bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
-  });
-  document.getElementById("btnCerrarProducto")?.addEventListener("click", () => {
-    bootstrap.Modal.getInstance(modalBuscar)?.hide();
-    bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
-  });
-  document.getElementById("btnCerrarLote")?.addEventListener("click", () => {
-    bootstrap.Modal.getInstance(modalLote).hide();
-    bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion"), modalConfig).show();
-  });
-
-  /* ==================== TABLA: selección, filtros y paginación ==================== */
-  const table = document.getElementById("tablaRecepciones");
-  const tbody = table.querySelector("tbody");
-  const pagerEl = document.getElementById("pagerRecepciones");
-  const btnConsultar = document.getElementById("btnConsultar");
+      .then(r => {
+        if (!r.ok) { throw new Error("Respuesta no valida"); }
+        return r.json();
+      })
+      .then(data => {
+        if (data.success) {
+          formCrearLote?.reset();
+          const crearInstancia = bootstrap.Modal.getInstance(modalCrearLote) || bootstrap.Modal.getOrCreateInstance(modalCrearLote, modalConfig);
+          crearInstancia.hide();
+          bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
+          loadLotes("");
+
+          const loteInput = document.getElementById("loteInput");
+          const caducidadInput = document.getElementById("caducidadInput");
+          const loteIdInput = document.getElementById("loteIdInput");
+          if (loteInput) loteInput.value = data.numero_lote;
+          if (caducidadInput) caducidadInput.value = data.fecha_caducidad || "";
+          if (loteIdInput) loteIdInput.value = data.id;
+        } else {
+          alert(data.error || "Error al crear el lote.");
+        }
+      })
+      .catch(() => {
+        alert("No fue posible crear el lote. Intente nuevamente.");
+      });
+    });
+  }
+  modalCrearLote?.addEventListener("hidden.bs.modal", () => {
+    formCrearLote?.reset();
+  });
+  modalCrearLote?.addEventListener("show.bs.modal", () => {
+    formCrearLote?.reset();
+    const productoHidden = document.getElementById("productoIdHidden");
+    const actual = document.getElementById("productoIdInput")?.value || "";
+    if (productoHidden) productoHidden.value = actual;
+    setTimeout(() => document.getElementById("numeroLote")?.focus(), 120);
+  });
+
+  document.getElementById("btnCancelarLote")?.addEventListener("click", () => {
+    const crearInstancia = bootstrap.Modal.getInstance(modalCrearLote) || bootstrap.Modal.getOrCreateInstance(modalCrearLote, modalConfig);
+    crearInstancia.hide();
+    bootstrap.Modal.getOrCreateInstance(modalLote, modalConfig).show();
+  });
+  document.getElementById("btnCerrarProducto")?.addEventListener("click", () => {
+    bootstrap.Modal.getInstance(modalBuscar)?.hide();
+    bootstrap.Modal.getOrCreateInstance(modalEl, modalConfig).show();
+  });
+  document.getElementById("btnCerrarLote")?.addEventListener("click", () => {
+    bootstrap.Modal.getInstance(modalLote).hide();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("modalRecepcion"), modalConfig).show();
+  });
+
+  /* ==================== TABLA: selección, filtros y paginación ==================== */
+  const table = document.getElementById("tablaRecepciones");
+  const tbody = table.querySelector("tbody");
+  const pagerEl = document.getElementById("pagerRecepciones");
+  const btnConsultar = document.getElementById("btnConsultar");
   const btnCambiarEstado = document.getElementById("btnCambiarEstado");
   let selectedId = null;
-
-  function refreshAutoTitles(){
-    table.querySelectorAll("td, th").forEach(el=>{
-      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
-      else{el.removeAttribute("title")}
-    });
-  }
-  function removeEmptyRows(){
-    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
-      if(tr.hasAttribute('data-empty-row')) return;
-      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
-      if(!hasContent){ tr.remove(); }
-    });
-  }
-function selectRow(row){
-  if(!row) return;
-
-  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
-  row.classList.add("table-active");
-  selectedId = row.getAttribute("data-id");
-  const enabled = !!selectedId;
-  btnConsultar.disabled = !enabled;
-
-  // === Detectar estado actual ===
-  let estadoActual = "";
-  const estadoCell = row.querySelector("td:nth-child(4)");
-  if (estadoCell) {
-    estadoActual = (estadoCell.textContent || "").trim().toLowerCase();
-  }
-
-  // Deshabilitar "Cambiar estado" si está RECHAZADO
-  if (btnCambiarEstado) {
-    if (estadoActual.includes("rechazado")) {
-      btnCambiarEstado.disabled = true;
-      btnCambiarEstado.classList.add("disabled", "opacity-75");
-      btnCambiarEstado.title = "No se puede modificar un registro rechazado.";
-    } else {
-      btnCambiarEstado.disabled = !enabled;
-      btnCambiarEstado.classList.remove("disabled", "opacity-75");
-      btnCambiarEstado.removeAttribute("title");
-    }
-  }
-}
-
-
-  tbody.addEventListener("click",(ev)=>{
-    const row = ev.target.closest("tr");
-    if(!row || row.hasAttribute("data-empty-row")) return;
-    selectRow(row);
-  });
-
-  // Doble click = Consultar
-  tbody.addEventListener("dblclick",(ev)=>{
-    const row = ev.target.closest("tr");
-    if(!row || row.hasAttribute("data-empty-row")) return;
-    selectRow(row);
-    if(selectedId){
-      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
-      const url = urlBase.replace("0/", selectedId + "/");
-      abrirModalConsultar(url);
-    }
-  });
-
-  function abrirModalConsultar(url){
-    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"), { backdrop: "static", keyboard: false });
-    const container = document.getElementById("modal-consultar-content");
-    container.innerHTML = '<div class="p-4">Cargando...</div>';
-
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then(r => r.text())
-      .then(html => { container.innerHTML = html; modalConsultar.show(); })
-      .catch(() => { container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>'; modalConsultar.show(); });
-  }
-
-  // Teclado para navegar/abrir
-  table.addEventListener("keydown",(ev)=>{
-    const current = tbody.querySelector("tr.table-active");
-    const rows = Array.from(tbody.querySelectorAll("tr"))
-      .filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
-    if(!rows.length) return;
-
-    const idx = rows.indexOf(current);
-    if(ev.key==="ArrowDown"){
-      const next = rows[Math.min(rows.length-1, idx+1>=0?idx+1:0)];
-      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
-    }else if(ev.key==="ArrowUp"){
-      const prev = rows[Math.max(0, idx-1>=0?idx-1:0)];
-      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
-    }else if(ev.key==="Enter" && selectedId){
-      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
-      const url = urlBase.replace("0/", selectedId + "/");
-      abrirModalConsultar(url); ev.preventDefault();
-    }
-  });
-
-  document.getElementById("btnConsultar").addEventListener("click", () => {
-    if (!selectedId) return;
-    const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
-    const url = urlBase.replace("0/", selectedId + "/");
-    abrirModalConsultar(url);
-  });
-
-  /* ====== Paginación (igual a Productos) ====== */
-  let currentPage=1; let pageSize=15; const rowHeight=42;
-
-  function recomputarPageSize(){
-    const rect=tbody.getBoundingClientRect(); const margenInf=160;
-    const espacio=window.innerHeight-rect.top-margenInf;
-    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
-  }
-  function getDataRows(){
-    return Array.from(tbody.querySelectorAll("tr"))
-      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
-  }
-  function renderPager(totalPages){
-    if(totalPages<=1){
-      pagerEl.innerHTML="";
-      pagerEl.style.display="none";
-      return;
-    }
-
-    pagerEl.style.display="flex";
-    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
-    pagerEl.innerHTML="";
-
-    const prev=document.createElement("button");
-    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
-    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
-    prev.disabled=currentPage===1;
-    prev.onclick=()=>{ currentPage--; applyPagination(); };
-
-    const info=document.createElement("span");
-    info.className="fw-semibold text-success small";
-    info.textContent=`Página ${currentPage} de ${totalPages}`;
-
-    const next=document.createElement("button");
-    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
-    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
-    next.disabled=currentPage===totalPages;
-    next.onclick=()=>{ currentPage++; applyPagination(); };
-
-    pagerEl.append(prev,info,next);
-  }
-  function applyPagination(){
-    const rows=getDataRows(); const total=rows.length;
-    const totalPages=Math.max(1,Math.ceil(total/pageSize));
-    if(currentPage>totalPages) currentPage=totalPages;
-    const start=(currentPage-1)*pageSize; const end=start+pageSize;
-    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
-    renderPager(totalPages);
-    // Marcar última visible para quitar borde inferior
-    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
-    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
-    const last = visibles[visibles.length-1];
-    if(last) last.classList.add('last-visible');
-
-    // Mantener selección visible
-    if(selectedId){
-      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
-      if(sel && sel.classList.contains("hidden-by-pagination")){
-        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
-        if(firstVisible) selectRow(firstVisible);
-      }
-    }
-    refreshAutoTitles();
-  }
-
-  /* ====== Filtros ====== */
-  function installFilters(){
-    const fEnvio=document.getElementById("f-envio");
-    const fFecha=document.getElementById("f-fecha");
-    const fUsuario=document.getElementById("f-usuario");
-    const fEstado=document.getElementById("f-estado");
-
-    const inputs=[fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
-    const norm=(s)=>(s||"").toString().trim().toLowerCase();
-    const cleanAccents=(s)=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-    function applyFilters(){
-      const envioVal=cleanAccents(fEnvio?.value);
-      const fechaVal=cleanAccents(fFecha?.value);
-      const usuarioVal=cleanAccents(fUsuario?.value);
-      const estadoVal=cleanAccents(fEstado?.value);
-
-      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
-
-      rows.forEach(tr=>{
-        const tds=tr.querySelectorAll("td");
-        const txt=i=>cleanAccents(tds[i]?.textContent);
-        const ok =
-          (!envioVal  || txt(0).includes(envioVal)) &&
-          (!fechaVal  || txt(1).includes(fechaVal)) &&
-          (!usuarioVal|| txt(2).includes(usuarioVal)) &&
-          (!estadoVal || txt(3).includes(estadoVal));
-        tr.style.display = ok ? "" : "none";
-      });
-
-      currentPage=1; applyPagination();
-    }
-    inputs.forEach(inp=>{
-      const ev=(inp.tagName==="SELECT")?"change":"input";
-      inp.addEventListener(ev,applyFilters);
-    });
-  }
-
-  /* ====== Cambiar Estado (modal) ====== */
-  const modalEstadoEl = document.getElementById("modalEstado");
-  const modalEstado   = modalEstadoEl ? new bootstrap.Modal(modalEstadoEl, { backdrop: "static", keyboard: false }) : null;
-  const alertEstado   = document.getElementById("estadoAlert");
-  const motivoWrap    = document.getElementById("motivoWrap");
-  const motivoInput   = document.getElementById("motivoEstado");
-
-  function showErr(msg){ if(alertEstado){ alertEstado.textContent = msg; alertEstado.classList.remove("d-none"); } }
-  function hideErr(){ if(alertEstado){ alertEstado.textContent=""; alertEstado.classList.add("d-none"); } }
-
-  modalEstadoEl?.addEventListener("change", (e)=>{
-    if(e.target.name === "estadoNuevo"){
-      const v = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
-      motivoWrap?.classList.toggle("d-none", v !== "Rechazado");
-    }
-  });
-
+  let selectedEstadoNombre = "";
+
+  function refreshAutoTitles(){
+    table.querySelectorAll("td, th").forEach(el=>{
+      if(el.scrollWidth>el.clientWidth){el.setAttribute("title",el.textContent.trim())}
+      else{el.removeAttribute("title")}
+    });
+  }
+  function removeEmptyRows(){
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+      if(tr.hasAttribute('data-empty-row')) return;
+      const hasContent = Array.from(tr.cells).some(td => (td.textContent||'').trim() !== '' || td.querySelector('*'));
+      if(!hasContent){ tr.remove(); }
+    });
+  }
+function selectRow(row){
+  if(!row) return;
+
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("table-active"));
+  row.classList.add("table-active");
+  selectedId = row.getAttribute("data-id");
+  const enabled = !!selectedId;
+  btnConsultar.disabled = !enabled;
+
+  // === Detectar estado actual ===
+  selectedEstadoNombre = "";
+  let estadoActual = "";
+  const estadoCell = row.querySelector("td:nth-child(4)");
+  if (estadoCell) {
+    const textoEstado = (estadoCell.textContent || "").trim();
+    selectedEstadoNombre = textoEstado;
+    estadoActual = textoEstado.toLowerCase();
+  }
+
+  // Deshabilitar "Cambiar estado" si está RECHAZADO
+  if (btnCambiarEstado) {
+    if (estadoActual.includes("rechazado")) {
+      btnCambiarEstado.disabled = true;
+      btnCambiarEstado.classList.add("disabled", "opacity-75");
+      btnCambiarEstado.title = "No se puede modificar un registro rechazado.";
+    } else {
+      btnCambiarEstado.disabled = !enabled;
+      btnCambiarEstado.classList.remove("disabled", "opacity-75");
+      btnCambiarEstado.removeAttribute("title");
+    }
+  }
+}
+
+
+  tbody.addEventListener("click",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+  });
+
+  // Doble click = Consultar
+  tbody.addEventListener("dblclick",(ev)=>{
+    const row = ev.target.closest("tr");
+    if(!row || row.hasAttribute("data-empty-row")) return;
+    selectRow(row);
+    if(selectedId){
+      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+      const url = urlBase.replace("0/", selectedId + "/");
+      abrirModalConsultar(url);
+    }
+  });
+
+  function abrirModalConsultar(url){
+    const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"), { backdrop: "static", keyboard: false });
+    const container = document.getElementById("modal-consultar-content");
+    container.innerHTML = '<div class="p-4">Cargando...</div>';
+
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.text())
+      .then(html => { container.innerHTML = html; modalConsultar.show(); })
+      .catch(() => { container.innerHTML = '<div class="p-4 text-danger">No se pudo cargar la recepción.</div>'; modalConsultar.show(); });
+  }
+
+  // Teclado para navegar/abrir
+  table.addEventListener("keydown",(ev)=>{
+    const current = tbody.querySelector("tr.table-active");
+    const rows = Array.from(tbody.querySelectorAll("tr"))
+      .filter(r=>!r.classList.contains("hidden-by-pagination") && !r.hasAttribute("data-empty-row"));
+    if(!rows.length) return;
+
+    const idx = rows.indexOf(current);
+    if(ev.key==="ArrowDown"){
+      const next = rows[Math.min(rows.length-1, idx+1>=0?idx+1:0)];
+      selectRow(next); next.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="ArrowUp"){
+      const prev = rows[Math.max(0, idx-1>=0?idx-1:0)];
+      selectRow(prev); prev.focus({preventScroll:true}); ev.preventDefault();
+    }else if(ev.key==="Enter" && selectedId){
+      const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+      const url = urlBase.replace("0/", selectedId + "/");
+      abrirModalConsultar(url); ev.preventDefault();
+    }
+  });
+
+  document.getElementById("btnConsultar").addEventListener("click", () => {
+    if (!selectedId) return;
+    const urlBase = "{% url 'recepcion:recepcion_detail' 0 %}";
+    const url = urlBase.replace("0/", selectedId + "/");
+    abrirModalConsultar(url);
+  });
+
+  /* ====== Paginación (igual a Productos) ====== */
+  let currentPage=1; let pageSize=15; const rowHeight=42;
+
+  function recomputarPageSize(){
+    const rect=tbody.getBoundingClientRect(); const margenInf=160;
+    const espacio=window.innerHeight-rect.top-margenInf;
+    pageSize=Math.max(1,Math.floor(espacio/rowHeight));
+  }
+  function getDataRows(){
+    return Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr=>!tr.hasAttribute("data-empty-row") && tr.style.display!=="none");
+  }
+  function renderPager(totalPages){
+    if(totalPages<=1){
+      pagerEl.innerHTML="";
+      pagerEl.style.display="none";
+      return;
+    }
+
+    pagerEl.style.display="flex";
+    pagerEl.classList.add("justify-content-center","align-items-center","py-3","gap-3");
+    pagerEl.innerHTML="";
+
+    const prev=document.createElement("button");
+    prev.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    prev.innerHTML="<i class='bi bi-chevron-left me-1'></i> Anterior";
+    prev.disabled=currentPage===1;
+    prev.onclick=()=>{ currentPage--; applyPagination(); };
+
+    const info=document.createElement("span");
+    info.className="fw-semibold text-success small";
+    info.textContent=`Página ${currentPage} de ${totalPages}`;
+
+    const next=document.createElement("button");
+    next.className="btn btn-success btn-sm rounded-pill shadow-sm px-3";
+    next.innerHTML="Siguiente <i class='bi bi-chevron-right ms-1'></i>";
+    next.disabled=currentPage===totalPages;
+    next.onclick=()=>{ currentPage++; applyPagination(); };
+
+    pagerEl.append(prev,info,next);
+  }
+  function applyPagination(){
+    const rows=getDataRows(); const total=rows.length;
+    const totalPages=Math.max(1,Math.ceil(total/pageSize));
+    if(currentPage>totalPages) currentPage=totalPages;
+    const start=(currentPage-1)*pageSize; const end=start+pageSize;
+    rows.forEach((tr,idx)=>{ tr.classList.toggle("hidden-by-pagination", !(idx>=start && idx<end)); });
+    renderPager(totalPages);
+    // Marcar última visible para quitar borde inferior
+    tbody.querySelectorAll('tr').forEach(tr=>tr.classList.remove('last-visible'));
+    const visibles = rows.filter(r=>!r.classList.contains('hidden-by-pagination'));
+    const last = visibles[visibles.length-1];
+    if(last) last.classList.add('last-visible');
+
+    // Mantener selección visible
+    if(selectedId){
+      const sel=rows.find(r=>r.getAttribute("data-id")===selectedId);
+      if(sel && sel.classList.contains("hidden-by-pagination")){
+        const firstVisible=rows.find(r=>!r.classList.contains("hidden-by-pagination"));
+        if(firstVisible) selectRow(firstVisible);
+      }
+    }
+    refreshAutoTitles();
+  }
+
+  /* ====== Filtros ====== */
+  function installFilters(){
+    const fEnvio=document.getElementById("f-envio");
+    const fFecha=document.getElementById("f-fecha");
+    const fUsuario=document.getElementById("f-usuario");
+    const fEstado=document.getElementById("f-estado");
+
+    const inputs=[fEnvio,fFecha,fUsuario,fEstado].filter(Boolean);
+    const norm=(s)=>(s||"").toString().trim().toLowerCase();
+    const cleanAccents=(s)=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    function applyFilters(){
+      const envioVal=cleanAccents(fEnvio?.value);
+      const fechaVal=cleanAccents(fFecha?.value);
+      const usuarioVal=cleanAccents(fUsuario?.value);
+      const estadoVal=cleanAccents(fEstado?.value);
+
+      const rows=Array.from(tbody.querySelectorAll("tr")).filter(r=>!r.hasAttribute("data-empty-row"));
+
+      rows.forEach(tr=>{
+        const tds=tr.querySelectorAll("td");
+        const txt=i=>cleanAccents(tds[i]?.textContent);
+        const ok =
+          (!envioVal  || txt(0).includes(envioVal)) &&
+          (!fechaVal  || txt(1).includes(fechaVal)) &&
+          (!usuarioVal|| txt(2).includes(usuarioVal)) &&
+          (!estadoVal || txt(3).includes(estadoVal));
+        tr.style.display = ok ? "" : "none";
+      });
+
+      currentPage=1; applyPagination();
+    }
+    inputs.forEach(inp=>{
+      const ev=(inp.tagName==="SELECT")?"change":"input";
+      inp.addEventListener(ev,applyFilters);
+    });
+  }
+
+  /* ====== Cambiar Estado (modal) ====== */
+  const modalEstadoEl = document.getElementById("modalEstado");
+  const modalEstado   = modalEstadoEl ? new bootstrap.Modal(modalEstadoEl, { backdrop: "static", keyboard: false }) : null;
+  const alertEstado   = document.getElementById("estadoAlert");
+  const motivoWrap    = document.getElementById("motivoWrap");
+  const motivoInput   = document.getElementById("motivoEstado");
+
+  function showErr(msg){ if(alertEstado){ alertEstado.textContent = msg; alertEstado.classList.remove("d-none"); } }
+  function hideErr(){ if(alertEstado){ alertEstado.textContent=""; alertEstado.classList.add("d-none"); } }
+
+  modalEstadoEl?.addEventListener("change", (e)=>{
+    if(e.target.name === "estadoNuevo"){
+      const v = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
+      motivoWrap?.classList.toggle("d-none", v !== "Rechazado");
+    }
+  });
+
   btnCambiarEstado?.addEventListener("click", () => {
-    // abrir modal para cambiar estado (preparar controles)
-    if(!selectedId || !modalEstado) return;
+    if (!selectedId || !modalEstado) return;
     hideErr();
-    document.querySelectorAll('#modalEstado input[name="estadoNuevo"]').forEach(r => r.checked = false);
+
+    const radios = modalEstadoEl ? modalEstadoEl.querySelectorAll("input[name=\"estadoNuevo\"]") : [];
+    radios.forEach(r => { r.checked = false; });
+
+    const cards = modalEstadoEl ? modalEstadoEl.querySelectorAll(".saif-state-card") : [];
+    cards.forEach(card => card.classList.remove("is-current"));
+
     if (motivoInput) motivoInput.value = "";
     motivoWrap?.classList.add("d-none");
-    modalEstado.show();
-  });
 
-  // acción de confirmar cambio de estado (botón dentro del modal)
-  const btnConfirmEstadoEl = document.getElementById("btnConfirmEstado");
-  btnConfirmEstadoEl?.addEventListener("click", () => {
-    hideErr();
-    const estado = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
-    const motivo = (motivoInput?.value || "").trim();
-    if(!estado){ showErr("Seleccione un estado."); return; }
-    if(estado === "Rechazado" && !motivo){ showErr("Debe indicar un motivo para rechazar."); return; }
+    if (selectedEstadoNombre) {
+      const normalized = selectedEstadoNombre.trim().toLowerCase();
+      let target = "";
+      if (normalized.includes("completo")) target = "Recibido Completo";
+      else if (normalized.includes("parcial")) target = "Recibido Parcialmente";
+      else if (normalized.includes("rechazado")) target = "Rechazado";
 
-    const urlBase = "{% url 'recepcion:cambiar_estado' 0 %}";
-    const url = urlBase.replace("0/", selectedId + "/");
-
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type":"application/json",
-        "X-Requested-With":"XMLHttpRequest",
-        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-      },
-      body: JSON.stringify({ nuevo_estado: estado, motivo })
-    })
-    .then(r => r.json().then(j => ({ok:r.ok, data:j})))
-    .then(({ok, data})=>{
-      if(!ok || !data.success){ showErr(data.error || "No se pudo cambiar el estado."); return; }
-      const row = tbody.querySelector(`tr[data-id="${selectedId}"]`);
-      if(row){
-        const td = row.querySelectorAll("td")[3];
-        if(estado === "Recibido Completo") td.innerHTML = '<span class="badge bg-success badge-pill">Recibido Completo</span>';
-        else if(estado === "Recibido Parcialmente") td.innerHTML = '<span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>';
-        else td.innerHTML = '<span class="badge bg-danger badge-pill">Rechazado</span>';
+      if (target && modalEstadoEl) {
+        const selector = 'input[name="estadoNuevo"][value="' + target + '"]';
+        const radio = modalEstadoEl.querySelector(selector);
+        if (radio) {
+          radio.checked = true;
+          if (target === "Rechazado") {
+            motivoWrap?.classList.remove("d-none");
+          }
+          const card = radio.closest(".saif-state-card");
+          if (card) card.classList.add("is-current");
+        }
       }
-      modalEstado?.hide();
-    })
-    .catch(()=> showErr("Error de red al cambiar estado."));
-  });
-  /* ====== Inicializar tabla ====== */
-  removeEmptyRows();
-  recomputarPageSize();
-  installFilters();
-  applyPagination();
-  refreshAutoTitles();
-  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
-});
-</script>
-{% endblock %}
+    }
+
+    modalEstado.show();
+  });
+
+  // acción de confirmar cambio de estado (botón dentro del modal)
+  const btnConfirmEstadoEl = document.getElementById("btnConfirmEstado");
+  btnConfirmEstadoEl?.addEventListener("click", () => {
+    hideErr();
+    const estado = document.querySelector('input[name="estadoNuevo"]:checked')?.value;
+    const motivo = (motivoInput?.value || "").trim();
+    if(!estado){ showErr("Seleccione un estado."); return; }
+    if(estado === "Rechazado" && !motivo){ showErr("Debe indicar un motivo para rechazar."); return; }
+
+    const urlBase = "{% url 'recepcion:cambiar_estado' 0 %}";
+    const url = urlBase.replace("0/", selectedId + "/");
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type":"application/json",
+        "X-Requested-With":"XMLHttpRequest",
+        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ nuevo_estado: estado, motivo })
+    })
+    .then(r => r.json().then(j => ({ok:r.ok, data:j})))
+    .then(({ok, data})=>{
+      if(!ok || !data.success){ showErr(data.error || "No se pudo cambiar el estado."); return; }
+      const row = tbody.querySelector(`tr[data-id="${selectedId}"]`);
+      if(row){
+        const td = row.querySelectorAll("td")[3];
+        if(estado === "Recibido Completo") td.innerHTML = '<span class="badge bg-success badge-pill">Recibido Completo</span>';
+        else if(estado === "Recibido Parcialmente") td.innerHTML = '<span class="badge bg-warning text-dark badge-pill">Recibido Parcialmente</span>';
+        else td.innerHTML = '<span class="badge bg-danger badge-pill">Rechazado</span>';
+      }
+      modalEstado?.hide();
+    })
+    .catch(()=> showErr("Error de red al cambiar estado."));
+  });
+  /* ====== Inicializar tabla ====== */
+  removeEmptyRows();
+  recomputarPageSize();
+  installFilters();
+  applyPagination();
+  refreshAutoTitles();
+  window.addEventListener("resize",()=>{recomputarPageSize();applyPagination();});
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+

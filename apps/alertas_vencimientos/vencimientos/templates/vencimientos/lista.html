@@ -1,4 +1,4 @@
-{% extends "dashboard/base.html" %}
+﻿{% extends "dashboard/base.html" %}
 {% load static %}
 
 {% block title %}Reportes de Vencimiento · SAIF{% endblock %}
@@ -30,7 +30,7 @@
             <th><input id="f-doc"   class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
             <th><input id="f-fecha" class="form-control form-control-sm text-center filter-control" placeholder="dd/mm/aaaa"></th>
             <th><input id="f-user"  class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
-            <th><input id="f-est"   class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
+            <th><input id="f-est" class="form-control form-control-sm text-center filter-control" placeholder="Filtrar"></th>
           </tr>
         </thead>
 
@@ -176,7 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalContent = document.getElementById("modal-reporte-content");
   const btnCrear = document.getElementById("btnCrearReporte");
   const modalInstance = new bootstrap.Modal(modalEl, modalConfig);
-  let detalles = [];
 
   function attachChildModalBehavior(childEl) {
     if (!childEl || childEl.dataset.parentSync === "1") return;
@@ -210,40 +209,243 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // === INICIALIZAR FORMULARIO ===
   function inicializarFormulario() {
-    const btnAdd = document.getElementById("btnAddDetalle");
-    const tableBody = document.getElementById("detalleTable").querySelector("tbody");
+    const tableEl = document.getElementById("detalleTable");
+    const tableBody = tableEl ? tableEl.querySelector("tbody") : null;
+    const pagerDetalle = document.getElementById("detallePager");
+    const alertInline = document.getElementById("formAlertInline");
     const productoInput = document.getElementById("productoInput");
     const productoIdInput = document.getElementById("productoIdInput");
     const loteInput = document.getElementById("loteInput");
     const loteIdInput = document.getElementById("loteIdInput");
+    const btnBuscarProducto = document.getElementById("btnBuscarProducto");
+    const btnBuscarLote = document.getElementById("btnBuscarLote");
+    const btnAgregar = document.getElementById("btnAgregarDetalle");
+    const form = document.getElementById("formReporteVencimiento");
+    const btnSubmit = form?.querySelector('button[type="submit"]');
     const modalProductoEl = document.getElementById("modalBuscarProducto");
     const modalLoteEl = document.getElementById("modalBuscarLote");
-    let detalles = [];
+
+    let detalleItems = [];
+    let detallePage = 1;
+    const detallePageSize = 5;
+    let loteSeleccion = null;
 
     attachChildModalBehavior(modalProductoEl);
     attachChildModalBehavior(modalLoteEl);
-    // === MODALES ===
-    document.getElementById("btnBuscarProducto")?.addEventListener("click", () => {
+
+    const alertVariants = ["alert-warning","alert-danger","alert-success","alert-info","alert-primary","alert-secondary"];
+    const alertIcons = {
+      success: "check-circle-fill",
+      warning: "exclamation-triangle-fill",
+      danger: "x-circle-fill",
+      info: "info-circle-fill"
+    };
+
+    function toggleAgregar(enable) {
+      if (btnAgregar) btnAgregar.disabled = !enable;
+    }
+
+    function clearLote() {
+      if (loteInput) loteInput.value = "";
+      if (loteIdInput) loteIdInput.value = "";
+      loteSeleccion = null;
+      toggleAgregar(false);
+    }
+
+    function clearProducto() {
+      if (productoInput) productoInput.value = "";
+      if (productoIdInput) productoIdInput.value = "";
+      clearLote();
+    }
+
+    function showInlineAlert(type, message) {
+      if (!alertInline) return;
+      const icon = alertIcons[type] || "info-circle";
+      alertInline.classList.remove("d-none", ...alertVariants);
+      alertInline.classList.add(`alert-${type}`);
+      alertInline.innerHTML = `<i class="bi bi-${icon} me-1"></i>${message}`;
+    }
+
+    function clearInlineAlert() {
+      if (!alertInline) return;
+      alertInline.classList.add("d-none");
+      alertInline.classList.remove(...alertVariants);
+      alertInline.textContent = "";
+    }
+
+    function renderDetallePager(totalPages) {
+      if (!pagerDetalle) return;
+      if (totalPages <= 1) {
+        pagerDetalle.innerHTML = "";
+        pagerDetalle.classList.add("d-none");
+        return;
+      }
+      pagerDetalle.classList.remove("d-none");
+      pagerDetalle.classList.add("d-flex","justify-content-between","align-items-center","gap-2","flex-wrap","mt-2");
+      pagerDetalle.innerHTML = "";
+
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "btn btn-outline-success btn-sm";
+      prev.innerHTML = '<i class="bi bi-chevron-left me-1"></i> Anterior';
+      prev.disabled = detallePage === 1;
+      prev.addEventListener("click", () => {
+        if (detallePage > 1) {
+          detallePage -= 1;
+          renderDetalles();
+        }
+      });
+
+      const info = document.createElement("span");
+      info.className = "fw-semibold text-success small";
+      info.textContent = `Página ${detallePage} de ${totalPages}`;
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "btn btn-outline-success btn-sm";
+      next.innerHTML = 'Siguiente <i class="bi bi-chevron-right ms-1"></i>';
+      next.disabled = detallePage === totalPages;
+      next.addEventListener("click", () => {
+        if (detallePage < totalPages) {
+          detallePage += 1;
+          renderDetalles();
+        }
+      });
+
+      pagerDetalle.append(prev, info, next);
+    }
+
+    function renderDetalles() {
+      if (!tableBody) return;
+      if (!detalleItems.length) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-muted text-center py-3"><i class="bi bi-inbox me-1"></i> Sin productos agregados</td></tr>';
+        renderDetallePager(0);
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(detalleItems.length / detallePageSize));
+      if (detallePage > totalPages) detallePage = totalPages;
+
+      tableBody.innerHTML = "";
+      const start = (detallePage - 1) * detallePageSize;
+      const end = start + detallePageSize;
+      detalleItems.slice(start, end).forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.producto}</td>
+          <td>${item.lote}</td>
+          <td>${item.cantidad_reportada}</td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></td>
+        `;
+        tr.querySelector("button")?.addEventListener("click", () => {
+          const globalIndex = start + idx;
+          detalleItems.splice(globalIndex, 1);
+          if (!detalleItems.length) detallePage = 1;
+          renderDetalles();
+          showInlineAlert("info", "Detalle eliminado del reporte.");
+        });
+        tableBody.appendChild(tr);
+      });
+
+      renderDetallePager(totalPages);
+    }
+
+    function setDetallePageToLast() {
+      detallePage = Math.max(1, Math.ceil(detalleItems.length / detallePageSize));
+    }
+
+    function cargarLotes() {
+      const productoId = productoIdInput?.value;
+      const tablaLotes = document.getElementById("tablaBuscarLotes");
+      const searchLoteInput = document.getElementById("searchLote");
+      if (!productoId || !tablaLotes) return;
+
+      const term = (searchLoteInput?.value || "").trim();
+      const urlBase = "{% url 'alertas_vencimientos:vencimientos:search_lotes' 0 %}".replace("0/", productoId + "/");
+      fetch(urlBase + (term ? "?term=" + encodeURIComponent(term) : ""))
+        .then(r => r.json())
+        .then(data => {
+          tablaLotes.innerHTML = "";
+          if (!data.length) {
+            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Sin lotes vencidos.</td></tr>';
+            return;
+          }
+          data.forEach(l => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${l.numero_lote}</td>
+              <td>${l.fecha_caducidad}</td>
+              <td>${l.cantidad}</td>
+              <td><button type="button" class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+            `;
+            tr.querySelector("button")?.addEventListener("click", () => {
+              loteSeleccion = { id: l.id, numero: l.numero_lote, cantidad: l.cantidad };
+              if (loteInput) loteInput.value = l.numero_lote;
+              if (loteIdInput) loteIdInput.value = l.id;
+              toggleAgregar(true);
+              showInlineAlert("info", "Lote seleccionado; pulsa \"Agregar\" para incluirlo en el reporte.");
+              bootstrap.Modal.getInstance(modalLoteEl)?.hide();
+            });
+            tablaLotes.appendChild(tr);
+          });
+        });
+    }
+
+    toggleAgregar(false);
+    clearInlineAlert();
+    renderDetalles();
+
+    btnBuscarProducto?.addEventListener("click", () => {
+      clearInlineAlert();
       if (!modalProductoEl) return;
       bootstrap.Modal.getOrCreateInstance(modalProductoEl, modalConfig).show();
     });
 
-    document.getElementById("btnBuscarLote")?.addEventListener("click", () => {
-      if (!productoIdInput.value) {
-        alert("Seleccione primero un producto con lotes vencidos.");
+    btnBuscarLote?.addEventListener("click", () => {
+      if (!productoIdInput?.value) {
+        showInlineAlert("warning", "Selecciona un producto con lotes vencidos antes de consultar los lotes.");
         return;
       }
+      clearInlineAlert();
       if (!modalLoteEl) return;
       bootstrap.Modal.getOrCreateInstance(modalLoteEl, modalConfig).show();
-      cargarLotes();
     });
 
-    // === BUSCAR PRODUCTOS (solo con lotes vencidos) ===
+    btnAgregar?.addEventListener("click", () => {
+      if (!productoIdInput?.value || !productoInput?.value) {
+        showInlineAlert("warning", "Selecciona un producto para continuar.");
+        return;
+      }
+      if (!loteSeleccion || !loteIdInput?.value) {
+        showInlineAlert("warning", "Selecciona un lote vencido para agregarlo.");
+        return;
+      }
+      const exists = detalleItems.some(item => item.producto_id === productoIdInput.value && item.lote_id === loteSeleccion.id);
+      if (exists) {
+        showInlineAlert("warning", "El lote seleccionado ya fue agregado al reporte.");
+        return;
+      }
+      const nuevoDetalle = {
+        producto: productoInput.value,
+        producto_id: productoIdInput.value,
+        lote: loteSeleccion.numero,
+        lote_id: loteSeleccion.id,
+        cantidad_reportada: loteSeleccion.cantidad
+      };
+      detalleItems.push(nuevoDetalle);
+      setDetallePageToLast();
+      renderDetalles();
+      showInlineAlert("success", "Detalle agregado al reporte.");
+      clearProducto();
+      productoInput?.focus();
+    });
+
     if (modalProductoEl && !modalProductoEl.dataset.searchBound) {
       modalProductoEl.addEventListener("shown.bs.modal", () => {
         const searchInput = document.getElementById("searchProducto");
         const tbodyResultados = document.getElementById("tablaBuscarProductos");
         if (!searchInput || !tbodyResultados) return;
+        searchInput.value = "";
         tbodyResultados.innerHTML = '<tr><td colspan="9" class="text-muted">Escribe para buscar...</td></tr>';
 
         searchInput.oninput = function () {
@@ -267,11 +469,13 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td>${p.condicion || "-"}</td>
                   <td>${p.receta ? "Sí" : "No"}</td>
                   <td>${p.controlado ? "Sí" : "No"}</td>
-                  <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
+                  <td><button type="button" class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
                 `;
-                tr.querySelector("button").addEventListener("click", () => {
-                  productoInput.value = `${p.codigo} - ${p.nombre}`;
-                  productoIdInput.value = p.id;
+                tr.querySelector("button")?.addEventListener("click", () => {
+                  if (productoInput) productoInput.value = `${p.codigo} - ${p.nombre}`;
+                  if (productoIdInput) productoIdInput.value = p.id;
+                  clearLote();
+                  showInlineAlert("info", "Producto seleccionado. Ahora elige un lote vencido.");
                   bootstrap.Modal.getInstance(modalProductoEl)?.hide();
                 });
                 tbodyResultados.appendChild(tr);
@@ -282,90 +486,67 @@ document.addEventListener("DOMContentLoaded", function () {
       modalProductoEl.dataset.searchBound = "1";
     }
 
-    // === BUSCAR LOTES VENCIDOS ===
-    function cargarLotes() {
-      const productoId = productoIdInput.value;
-      const searchLoteInput = document.getElementById("searchLote");
-      const tablaLotes = document.getElementById("tablaBuscarLotes");
-      const urlBase = "{% url 'alertas_vencimientos:vencimientos:search_lotes' 0 %}".replace("0/", productoId + "/");
-      const term = searchLoteInput?.value || "";
-
-      fetch(urlBase + (term ? "?term=" + encodeURIComponent(term) : ""))
-        .then(r => r.json())
-        .then(data => {
-          tablaLotes.innerHTML = "";
-          if (!data.length) {
-            tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Sin lotes vencidos.</td></tr>';
-            return;
-          }
-          data.forEach(l => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${l.numero_lote}</td>
-              <td>${l.fecha_caducidad}</td>
-              <td>${l.cantidad}</td>
-              <td><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i></button></td>
-            `;
-            tr.querySelector("button").addEventListener("click", () => {
-              loteInput.value = l.numero_lote;
-              loteIdInput.value = l.id;
-              // Agregar directamente a la tabla
-              agregarDetalle(productoInput.value, productoIdInput.value, l.numero_lote, l.id, l.cantidad);
-              bootstrap.Modal.getInstance(modalLoteEl)?.hide();
-            });
-            tablaLotes.appendChild(tr);
-          });
-        });
-    }
-
-    function agregarDetalle(prodNombre, prodId, loteNombre, loteId, cantidad) {
-      const item = { producto: prodNombre, producto_id: prodId, lote: loteNombre, lote_id: loteId, cantidad_reportada: cantidad };
-      detalles.push(item);
-
-      if (detalles.length === 1) tableBody.innerHTML = "";
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${prodNombre}</td>
-        <td>${loteNombre}</td>
-        <td>${cantidad}</td>
-        <td><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-trash"></i></button></td>
-      `;
-      tr.querySelector(".btnRemove").addEventListener("click", () => {
-        detalles = detalles.filter(d => d !== item);
-        tr.remove();
-        if (!detalles.length)
-          tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sin productos agregados</td></tr>';
+    if (modalLoteEl && !modalLoteEl.dataset.searchBound) {
+      modalLoteEl.addEventListener("shown.bs.modal", () => {
+        const searchInput = document.getElementById("searchLote");
+        const tablaLotes = document.getElementById("tablaBuscarLotes");
+        if (!searchInput || !tablaLotes) return;
+        searchInput.value = "";
+        tablaLotes.innerHTML = '<tr><td colspan="4" class="text-muted">Cargando lotes vencidos...</td></tr>';
+        searchInput.oninput = () => cargarLotes();
+        cargarLotes();
       });
-      tableBody.appendChild(tr);
+      modalLoteEl.dataset.searchBound = "1";
     }
 
-    // === GUARDAR REPORTE ===
-    const form = document.getElementById("formReporteVencimiento");
-    form.addEventListener("submit", e => {
+    form?.addEventListener("submit", (e) => {
       e.preventDefault();
-      const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
-      if (!detalles.length) return alert("Debe agregar al menos un producto con lote vencido.");
+      clearInlineAlert();
+      if (!detalleItems.length) {
+        showInlineAlert("warning", "Agrega al menos un producto con lote vencido antes de guardar.");
+        return;
+      }
+      const csrf = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+      if (!csrf) {
+        showInlineAlert("danger", "No se encontró el token CSRF para enviar la solicitud.");
+        return;
+      }
 
-      const formData = {
-        documento: document.querySelector("#id_documento").value,
-        observaciones: document.querySelector("#id_observaciones").value
+      btnSubmit?.setAttribute("disabled", "disabled");
+      showInlineAlert("info", "Guardando reporte, por favor espera...");
+
+      const payload = {
+        form_data: {
+          documento: document.querySelector("#id_documento")?.value || "",
+          observaciones: document.querySelector("#id_observaciones")?.value || ""
+        },
+        detalles: detalleItems
       };
 
       fetch("{% url 'alertas_vencimientos:vencimientos:reporte_vencimiento_create' %}", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf, "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify({ form_data: formData, detalles })
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify(payload)
       })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            alert("Reporte de vencimiento generado correctamente.");
-            window.location.reload();
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (ok && data.success) {
+            showInlineAlert("success", "Reporte de vencimiento generado correctamente. Recargando...");
+            setTimeout(() => window.location.reload(), 900);
           } else {
-            alert("Error: " + (data.errors || "Error desconocido."));
+            const message = data?.errors || data?.error || "No se pudo guardar el reporte.";
+            showInlineAlert("danger", message);
+            btnSubmit?.removeAttribute("disabled");
           }
         })
-        .catch(() => alert("Error al guardar el reporte."));
+        .catch(() => {
+          showInlineAlert("danger", "Error inesperado al guardar el reporte.");
+          btnSubmit?.removeAttribute("disabled");
+        });
     });
   }
 
@@ -645,6 +826,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endblock %}
+
+
+
 
 
 

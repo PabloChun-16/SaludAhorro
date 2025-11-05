@@ -60,6 +60,24 @@
             </div>
           </div>
 
+          <div class="col-md-6">
+            <label class="form-label">Precio de compra <small class="text-muted">(opcional)</small></label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-cash-coin"></i></span>
+              <input type="number" step="0.01" min="0" name="precio_compra" class="form-control saif-input"
+                     value="{{ lote.precio_compra|default_if_none:'' }}" placeholder="Ej. 5.25">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Precio de venta <small class="text-muted">(opcional)</small></label>
+            <div class="input-group">
+              <span class="input-group-text saif-ig"><i class="bi bi-currency-exchange"></i></span>
+              <input type="number" step="0.01" min="0" name="precio_venta" class="form-control saif-input"
+                     value="{{ lote.precio_venta|default_if_none:'' }}" placeholder="Ej. 8.99">
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

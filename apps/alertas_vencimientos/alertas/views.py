@@ -1,10 +1,19 @@
+import logging
 from datetime import timedelta
+from io import StringIO
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.core.management import call_command
+
 from apps.inventario.models import Productos, Lotes
+
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------
@@ -122,3 +131,26 @@ def alertas_vencidos(request):
         .order_by('-fecha_caducidad')
     )
     return render(request, "alertas/partials/vencidos.html", {"lotes": lotes})
+
+
+@login_required
+@require_POST
+def ejecutar_actualizar_estados_lotes(request):
+    """
+    Ejecuta el management command `actualizar_estados_lotes` y devuelve el resultado en JSON.
+    Permite lanzar la actualizaci�n desde la interfaz de alertas.
+    """
+    buffer = StringIO()
+    try:
+        call_command("actualizar_estados_lotes", verbosity=2, stdout=buffer, stderr=buffer)
+        message = buffer.getvalue().strip() or "Actualizaci�n completada."
+        return JsonResponse({"success": True, "message": message})
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("Error al ejecutar actualizar_estados_lotes desde alertas.")
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(exc) or "No se pudo actualizar los estados de los lotes.",
+            },
+            status=500,
+        )
